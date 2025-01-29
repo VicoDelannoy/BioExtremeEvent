@@ -1,0 +1,33 @@
+Package: ExtremeEvent
+Type: Package
+Title: ExtremeEvent
+Version: 0.0.900
+Authors@R: c(
+  person(given   = "Victoria",
+         family  = "Delannoy",
+         role    = c("aut"),
+         email   = "victoria.delannoy@protonmail.com"))
+Description: The goal of this project is to bring a new view for the analysis of the marine heat wave and more precisely bring a morphological view
+URL: https://github.com/VicoMarbec/ExtremeEvent.git
+BugReports: https://github.com/VicoMarbec/ExtremeEvent
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends:
+	caret,
+	here,
+	missForest,
+	parallel,
+	ranger,
+	terra,
+	tidymodels,
+	tidyverse
+Imports:
+	doParallel,
+	dplyr,
+	foreach,
+	ggplot2,
+	lubridate,
+	sf
