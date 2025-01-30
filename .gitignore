@@ -1,3 +1,6 @@
+# Specific dataset to ignore
+cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_2.94E-5.10E_42.01N-43.57N_1983-01-01-2024-12-30.nc
+
 # History files
 .Rhistory
 .Rapp.history

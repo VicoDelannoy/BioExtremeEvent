@@ -3,6 +3,8 @@ title: "MakeR"
 author: "Victoria"
 format: html
 editor: visual
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r}
@@ -15,5 +17,67 @@ editor: visual
  |____/ |_| \___/  |______|/_/\_\ \__||_|   \___||_| |_| |_| \___| |______|\_/  \___||_| |_| \__|
                                                                                                  
                                                                                                  
+```
+
+This file is the main skeleton of the package BioExtremEvent (BEE) and guide you through the different steps of analysis.
+
+# Load dependencies and associated functions
+
+```{r}
+#'@description
+## R Parameters ----
+rm(list=ls())
+set.seed(666) #to get the same randomization across users
+
+## Install Dependencies (listed in DESCRIPTION) ----
+remotes::install_deps(dependencies = TRUE, upgrade = "never", force = TRUE) #list of all the packages required for this package to run)
+
+## Load Project Addins (R Functions and Packages) ----
+pkgload::load_all(here::here()) #here::here find files were the skeleton file is located
+
+
+
+## Load .qmd file (functions)
+files.source <- list.files(path = here::here(), pattern = "\\.qmd$", full.names = TRUE, recursive = TRUE)
+
+# Withdraw Make.R file from the list to avoid infinit loop
+files.source <- files.source[!grepl("MakeR.qmd", files.source)]
+
+sapply(files.source, function(file) {
+  rmarkdown::render(file, envir = .GlobalEnv)  #Excute code and load functions
+})
+```
+
+# Load data
+Detecting an 'extreme' event implies to know what are the normal conditions, thus, it is recommended to provide a 30 years times series. This can be painful to download manually from Copernicus Marine Data center or NOAA website as they often limit the amount of rasters that can be download. Therefore, here bellow are two functions to download data from R. They allows data to be dowloaded much faster ;)
+- BEE.data.Load_Copernicus is a wrapper from the python function "CopernicusMarine".
+- BEE.data.Load_NOAA is wrapper of some code coming from the heatwaveR package.
+- You can also download your raster manually on any website, make sure to use a NetCDF format and to stack your rasters without gaps in the time serie.
+
+## From Copernicus
+```{r}
+# username <- "vdela"
+# password <- "Marbec_2WAVE"
+ds <- BEE.data.Load_Copernicus(username=username, password=password,
+                               dataset_id="cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021",
+  dataset_version="202411",
+  variables= list("analysed_sst"),
+  minimum_longitude=2.9,
+  maximum_longitude=5.1,
+  minimum_latitude=42,
+  maximum_latitude=43.6,
+  start_datetime="1983-01-01T00:00:00",
+  end_datetime="2024-12-30T00:00:00",
+  coordinates_selection_method="strict-inside",
+  disable_progress_bar=FALSE,
+  output_directory = here::here("Data"))
+```
+
+## From NOAA
+HERE I MUST ADD A WRAPPED VERSION OF HEATWAVE3
+
+## Check that you dataset fit your expectation
+```{r}
+ds <- rast("Data/cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_2.94E-5.10E_42.01N-43.57N_1983-01-01-2024-12-30.nc")
 ```
 
