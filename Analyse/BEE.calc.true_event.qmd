@@ -1,0 +1,160 @@
+---
+title: "BEE.calc.true_event"
+author: "Victoria"
+format: html
+editor: visual
+---
+
+This function apply a filter to withdraw isolated events. For instance, is you consider that an event that last only 2 days should not be accounted for in future analysis, you can correct those value by 0. Here are the different filter you can apply :
+
+Simple filter : HERE WE COULD INCLUDE AN INTERACTIVE INTERFACE TO TEST DIFFERENT PARAMETERS VALUES
+
+Low complexity :
+
+-   Minimum number of consecutive day above threshold to consider that there is an extreme event : *n* (\>=)
+
+-   Maximum number of days bellow thershold to consider two series of value above threshold as a single extreme event (distance max in days btw 2 event to merge them): *d* (\<=)
+
+Examples : *n*\>=5 *d*\>=2
+
+0 0 0 1 1 1 1 **1** 0 0 0 = 1 event, but 0 0 0 1 1 1 1 0 0 0 = no event ;
+
+0 0 0 1 1 1 1 1 0 0 1 1 1 0 0 0 = 1 event of 5 days, but 0 0 0 1 1 1 1 1 0 0 1 1 1 **1 1** 0 0 0 = 1 event of 12 days, but 0 0 0 1 1 1 1 1 0 0 **0** 1 1 1 1 1 0 0 0 = 2 instincts event of 5 days each.
+
+Medium complexity (Hobday et al. 2016,2018) :
+
+-   Minimum number of days distant from *d* days or less to an event of *n* days : *nbis*.
+
+Example : *n* = 5 ; d = 2 ; nbis = 3
+
+This is for the case you want to consider 0 0 0 1 1 1 1 1 0 0 1 1 **1** 0 0 0 as one event of 10 days but 0 0 0 1 1 1 1 1 0 0 1 1 0 0 0 as one event of 5 days. In the first case, if there are not five consecutive days above threshold right before or after (d=2) the 3 consecutive days above threshold, the 3 consecutive '1' will not be considered as an event as *n* still fixed to 5.
+
+High complexity :
+
+-   Unstable window *w* between to event in which you allow a certain proportion *p* of days of *w* to be bellow threshold if this windows is bordered by series of *w \*p c*onsecutive days above threshold on each size. *w* and *p* replace *d*. If *w i*s an odd number, the minimum number of days above threshold within *w* will be the value rounded to the superior round number. For instance if *w* = 7 and *p* = 0.3 a window of 7 days between to event of *n* consecutive days will not create two distinct event if at least 4 days are above threshold. ( *w* \* *p* = 7 \* 0.5 = 3.5 rounded to 4)
+
+Examples : n = 5; w = 10; p = 0.5 -\> w \* p = 5
+
+case that lead to a single big event of 15 days :
+
+0 0 0 0 0 1 1 1 1 1 0 1 1 1 0 0 0 1 1 0 1 1 1 1 1 0 0 0 0 0
+
+0 0 0 0 0 1 1 1 1 1 0 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 (you can also use low complexity *n* = 5 and *d* = 3)
+
+0 0 0 0 0 1 1 1 1 1 0 1 0 1 0 1 0 1 0 1 1 1 1 1 1 0 0 0 0 0
+
+case that lead to 2 distinct events :
+
+0 0 0 0 0 1 1 1 1 1 0 1 1 0 0 1 0 1 0 0 1 1 1 1 1 0 0 0 0 0
+
+0 0 0 0 0 1 1 1 1 1 0 0 0 1 1 1 1 0 0 0 1 1 1 1 1 0 0 0 0 0
+
+0 0 0 0 0 1 1 1 1 1 0 1 1 1 1 0 0 0 0 0 1 1 1 1 1 0 0 0 0 0 (if you want to detect 1 event of 10 days then a distinct event of 5 days instead of 2 events of 5 days only you can use : low complexity with *n* = 4 and *d* = 1)
+
+```{r}
+BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL, p = NULL){ 
+    # Extract all rasters
+  profvis::profvis({
+  all_rasters <- list()
+  all_rasters_names <- character()  
+  all_dates <- character()
+  for (i in seq_along(binarized_EE)) { # go through each day
+    for (j in seq_along(names(binarized_EE[[i]]))) { # of each years
+     all_dates <- c(all_dates, names(binarized_EE[[i]][[j]]))
+     raster <- binarized_EE[[i]][[j]]
+     all_rasters[[length(all_rasters) + 1]] <- raster
+     all_rasters_names <- c(all_rasters_names, names(binarized_EE[[i]])[j])
+   }
+  }
+  all_dates <- sort(as.Date(all_dates, format = "%Y-%m-%d"))  #sort all the dates available
+  start_date <- min(all_dates, na.rm = TRUE)
+  #70.5 s
+  end_date <- max(all_dates, na.rm = TRUE)
+  sorted_indices <- order(all_rasters_names) # get a list of the current position of the rasters : the first number tell you where is currently the raster that should be first in chronological order
+  sorted_rasters <- all_rasters[sorted_indices] #sort the rasters
+  
+  # Transform the list of sorted raster into a multilayers raster to be able to use terra:extract on cells
+  stacked_rasters <- rast(sorted_rasters)
+  pixel_time_series <- terra::extract(stacked_rasters, 1:ncell(stacked_rasters)) #one row per cell, 1 column per time step
+  # Transform to character the series of value for each pixels
+
+  if (!is.null(n) & !is.null(d) & is.null(nbis) & is.null(w) & is.null(p)){ # here add code for low complexity
+
+    Event_corrected <- data.frame()
+    
+    correct_lowcomplexity_n_d <- function(pixel_values, n, d, pix){ # pixel_values <- pixel_time_series[1,] and pix=1; "pix" is a dynamic argument that is automatically indexed when calling the function, it identify each pixels (~ each rows of pixel_time_series)
+      # Get the lenght and values of all the subseries
+       rle_series <- rle(pixel_values)
+      # Clean isolated '1'
+       One_to_0 <- which(rle_series$values == 1 & rle_series$lengths < n) #replace isolated '1' (series < n ) by 0
+       rle_series$values[One_to_0] <- 0
+       pixel_values_cleanned <- inverse.rle(rle_series) 
+       rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify the series of 0, this way series of zeros are re-defined to include 0 and 1 transformed to 0 in one same serie when they are next to each other.
+       pixel <- data.frame(Original_value = as.vector(t(pixel_values[1,])), #need to go through a dataframe because I don't know how to modify the ID directly in rle object
+                           Cleanned_value = unlist(pixel_values_cleanned),
+                           ID = rep(seq_along(rle_series_cleanned$lengths), rle_series_cleanned$lengths),
+                           Nb_days = rep(rle_series_cleanned$lengths, rle_series_cleanned$lengths))
+  
+      # Rename event that should gathered because they are separated by d days (or less) bellow threshold
+       zero_series <- unique(pixel$ID[pixel$Cleanned_value == 0 & pixel$Nb_days <= d]) #identify series of 0 shorter than d (or equal to d)
+       zero_series <- setdiff(zero_series,c(1,max(pixel$ID))) # withdraw the beginning and end of the timeserie as it cannot be surrounded by '1' values
+       to_modify <- sort(c(zero_series, zero_series + 1))  #list of futur index to rename zero series and one series under one same name when necessary, using the first one serie's name (only when 0 serie length <=d)
+       modifier <- zero_series-1 #sequence of one before the short sequence of 0, <-> the sequence of one that will be merge with the next sequence of 1
+       replacement_map <- setNames(rep(modifier, each = 2), to_modify) # associate the ID value to replace (firt line) with the value of replacement (second line)
+       pixel$ID <- ifelse(
+          pixel$ID %in% names(replacement_map),  # Check if ID modification is requiered
+          as.numeric(replacement_map[as.character(pixel$ID)]),  # If so -> replace
+          pixel$ID ) # If not -> keep the existing one
+       # re-calculate number of days :
+       pixel$Nb_days <- rep(rle(pixel$ID)$lengths,rle(pixel$ID)$lengths)
+       # add somting to the ID so it doesn't mess-up in between the pixel 
+       pixel$ID <- paste0(pix,'_',pixel$ID) #pix is the pixel identifier
+       return(pixel)
+    }
+    
+    Event_corrected <- mclapply(1:nrow(pixel_time_series), function(c) { #one time serie of corrected event per pixel
+            pix <- c
+            intermediate_df <- correct_lowcomplexity_n_d(pixel_time_series[c,], 
+                                                         n, 
+                                                         d,
+                                                         pix)
+            return(intermediate_df)}, 
+            mc.cores = detectCores(logical = FALSE)-2)
+  }
+  
+ if (!is.null(n) & !is.null(d) & !is.null(nbis) & is.null(w) & is.null(p)){
+    #here add code for medium complexity
+  }
+  if (!is.null(n) & is.null(d) & is.null(nbis) & !is.null(w) & !is.null(p)){
+    #here add code for high complexity
+  }
+  
+  # Aply corrections to raster of 1 and 0
+  stacked_rasters_corrected <- lapply(1:nlyr(stacked_rasters), function(t) { #stacked raster are rasters in the same order than in Event_corrected but before modifications
+    correct_raster(stacked_rasters[[t]], t, Event_corrected)
+  })
+  stacked_rasters_corrected <- rast(stacked_rasters_corrected)
+  names(stacked_rasters_corrected) <- all_dates
+  })
+  
+  return(list(stacked_rasters_corrected = stacked_rasters_corrected, 
+            Event_corrected = Event_corrected))
+}
+```
+
+#function used in the big function : 
+```{r}
+  # Aply corrections
+  correct_raster <- function(raster, t, Event_corrected) {
+    # get values of each layers
+     corrected_values <- values(raster)
+     Matching_cleanning_values <- sapply(Event_corrected, function(event) event$Cleanned_value[t])
+    # Identify where corrections are needed /!\ 
+    correction_indices <- which(!is.na(corrected_values) & !is.na(Matching_cleanning_values) & corrected_values != Matching_cleanning_values)
+     # Apply corrections
+     corrected_values[correction_indices] <- Matching_cleanning_values[correction_indices]
+    # Modify raster layer values
+    values(raster) <- corrected_values
+    return(raster)
+  }
+```

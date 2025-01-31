@@ -1,0 +1,74 @@
+---
+title: "BEE.calc.corrections"
+author: "Victoria"
+format: html
+editor: visual
+---
+
+This function allow to check how many corrections your settings in EE.calc.true_events have induced.
+
+```{r}
+#function for 1 dataframe (=one date in Events_corrected)
+analyze_changes <- function(dataframe) {
+  # Count modifications
+  one_to_zero <- sum(dataframe$Original_value == 1 & dataframe$Cleanned_value == 0)
+  zero_to_one <- sum(dataframe$Original_value == 0 & dataframe$Cleanned_value == 1)
+  
+  # Count orginal total value
+  total_ones <- sum(dataframe$Original_value == 1)
+  total_zeros <- sum(dataframe$Original_value == 0)
+  
+ return(data.frame(one_to_zero = one_to_zero,
+              zero_to_one = zero_to_one,
+              total_ones = total_ones,
+              total_zeros = total_zeros))
+}
+#Apply to the list of dataframe
+results = c()
+
+
+BEE.calc.corrections <- function(Events_corrected) {
+  # Number of cores available
+  num_cores <- detectCores() - 2  
+  # Calculate changes
+  results <- mclapply(Events_corrected, analyze_changes, mc.cores = num_cores)
+  results_df <- do.call(rbind, results)
+  rm(results)
+  
+  #Calculate percentages (data for the whole area and the whole time period)
+  abs_one_to_zero <- as.numeric(sum(results_df$one_to_zero, na.rm=TRUE))
+  abs_1 <-  as.numeric(sum(results_df$total_ones, na.rm=TRUE))
+  abs_zero_to_one <-  as.numeric(sum(results_df$zero_to_one, na.rm=TRUE))
+  abs_0 <-  as.numeric(sum(results_df$total_zeros, na.rm=TRUE))
+  percentage_one_to_zero <- abs_one_to_zero * 100 / abs_1 #percentage of 1 converted to 0
+  percentage_zero_to_one <- abs_zero_to_one * 100 / abs_0
+  
+  #Calculate mean per year and pixel
+  total_nb_info = nrow(Events_corrected[[1]])*length(Events_corrected) #nb pixel * nb days (or month if monthly time resolution)
+  abs_one_to_zero_Ymean <- abs_one_to_zero * 100 / total_nb_info # 6% of information (days*pixel) have been changed 
+  abs_1_Ymean <- abs_1 / total_nb_info
+  #sd_1_Ymean <- as.numeric(sd(results_df$total_ones, na.rm=TRUE)) / total_nb_info # variability of being 1 among the pixel
+  sd_1to0_Ymean <- as.numeric(sd(results_df$one_to_zero, na.rm=TRUE))  # corrections among the pixel
+  abs_zero_to_one_Ymean <- abs_zero_to_one / total_nb_info
+  abs_0_Ymean <- abs_0 / total_nb_info
+  sd_1to0_Ymean <- as.numeric(sd(results_df$zero_to_one, na.rm=TRUE))  # corrections among the pixel
+  
+cat(
+  "Absolut values for the whole area and whole time period :","\n",
+  "Original total number of days above threshold (1):",  "\n",abs_1, "\n",
+  "Percentage of 1 converted to 0:",  "\n",percentage_one_to_zero, "%", "\n",
+  "Original total number of days below threshold (0):",  "\n",abs_0, "\n",
+  "Percentage of 0 converted to 1:",  "\n", percentage_zero_to_one, "%", "\n",
+  "\n",
+  "Mean values per pixel and date :","\n",
+  "Mean percentage of pixel value above threshold :",  "\n",abs_1_Ymean*100,"%", "\n",
+  "Mean percentage of corrections from 1 to 0:",  "\n",abs_one_to_zero_Ymean, "%", "\n",
+  "Standard deviation of corrections among pixel(1 to 0):","\n",sd_1to0_Ymean, "%","\n",
+  "Mean percentage of pixel value bellow thershold :",  "\n",abs_0_Ymean*100,"%", "\n",
+  "Mean percentage of corrections to 1 ", "\n",abs_zero_to_one_Ymean, "%", "\n",
+  "Standard deviation of corrections among pixel (0 to 1)", "\n",sd_1to0_Ymean,"%","\n"
+)
+
+}
+
+```

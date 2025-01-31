@@ -1,0 +1,86 @@
+---
+title: "BEE.calc.binarize"
+author: "Victoria"
+format: html
+editor: visual
+---
+
+```{r}
+BEE.calc.binarize <- function(rast_name, baseline, direction) {
+
+  if(class(baseline) == "SpatRaster"){
+    new_extent <- ext(rast_name) # Retrieve the extent of rast_name
+    baseline <- resample(baseline, rast_name, method = "near") # Change the extent to match that of rast_name
+    #baseline <- crop(baseline, new_extent, snap = "in") # Crop to obtain the same area as rast_name
+    time_list_exp <- time(rast_name, format="days") # Retrieve the dates
+    time_list_base <- generate_month_day(2024) # Create dates in the format %m.%d
+    names(rast_name) <- time_list_exp # Rename the layers with the dates
+    names(baseline) <- time_list_base # Rename the layers with the dates
+    baseline <- subset(baseline, subset = "02.29", negate = TRUE) # Remove February 29th
+    delta <- binarize_spat(rast_name, baseline, direction) # Binarize the pixels to 1 & 0 (function from the packacge itself, in R_functions) /!\ this part doesn't check if the value is above for five consecutive days or any duration provided through daysEE, defined in Small_shaping_function
+    delta_list <- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
+    return(delta_list) # Output the list
+  }
+  
+  if(class(baseline) == "numeric"){
+    time_list_exp <- time(rast_name, format="days") # Retrieve the dates
+    names(rast_name) <- time_list_exp # Rename the layers with the dates
+    if (direction == "above"){
+      delta <- ifel(rast_name < baseline, 0,1) # Binarize the cells based on the condition
+      }
+    if (direction == "bellow"){
+      delta <- ifel(rast_name < baseline, 1,0) # Binarize the cells based on the condition
+    }
+    delta_list <- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
+    return(delta_list) # Output the list
+  }
+}
+```
+
+
+================ Here bellow are the function used in BEE.calc.binarize ========================================
+# Generate a list of date (format %m.%d) for a year
+
+```{r}
+generate_month_day <- function(year) {
+  days_per_month <- c(31, 28 + (year %% 4 == 0 & (year %% 100 != 0 | year %% 400 == 0)), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+  months <- sprintf("%02d", rep(1:12, days_per_month))
+  days <- sprintf("%02d", unlist(sapply(days_per_month, seq_len)))
+  return(paste(months, days, sep = "."))
+}
+```
+
+# Binarise SpatRaster's cells with 1 & 0 if true or false to a reference condition
+
+```{r}
+binarize_spat <- function(exp, base, direction="above"){
+  delta <- exp - base
+  if(direction == "above"){
+    delta <- ifel(delta <= 0, 0, 1)
+  }
+  if(direction == "bellow"){
+    delta <- ifel(delta <= 0, 0, 1)
+  }
+  return(delta)
+}
+```
+
+# Create a list from a SpatRaster with the date (format %m.%d) as list's items
+
+```{r}
+RastToList <- function(x) {
+  md <- generate_month_day(2023)
+  indices_strata <- list()
+  noms_strata <- names(x)
+  for (i in unique(md)) {
+    indices <- which(grepl(i, noms_strata))
+    if (length(indices) == 0) {
+      next
+    }
+    indices_strata[[i]] <- indices
+  }
+  return(lapply(indices_strata, FUN = function(y) {
+    indices <- x[[y]]
+  }))
+}
+```
