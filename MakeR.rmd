@@ -92,7 +92,7 @@ names(ds) <- time(ds)
 If your using the package to work on temperature raster, you can check that the unit is Celsius (and make conversion if necessary) using the function bellow.
 
 ```{r}
-ds <- BEE.calc.Celsius(ds)
+ds <- BEE.calc.celsius(ds)
 ```
 
 # 3. Calculate a baseline value for each cell in your dataset using one of two methods with "*EE.calc.baseline"* :

@@ -53,8 +53,7 @@ case that lead to 2 distinct events :
 
 ```{r}
 BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL, p = NULL){ 
-    # Extract all rasters
-  profvis::profvis({
+    # Extract all rasters (If we have to think to a faster way we could filter so pixel that are alwayes NA (land) are not processed and we could create "all_dates" strating from scratch, only knowing firest day and last day and assuming there is no missing day)
   all_rasters <- list()
   all_rasters_names <- character()  
   all_dates <- character()
@@ -75,7 +74,7 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
   
   # Transform the list of sorted raster into a multilayers raster to be able to use terra:extract on cells
   stacked_rasters <- rast(sorted_rasters)
-  pixel_time_series <- terra::extract(stacked_rasters, 1:ncell(stacked_rasters)) #one row per cell, 1 column per time step
+  pixel_time_series <- terra::extract(stacked_rasters, 1:ncell(stacked_rasters)) #one row per pixel, 1 column per time step
   # Transform to character the series of value for each pixels
 
   if (!is.null(n) & !is.null(d) & is.null(nbis) & is.null(w) & is.null(p)){ # here add code for low complexity
@@ -83,14 +82,14 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
     Event_corrected <- data.frame()
     
     correct_lowcomplexity_n_d <- function(pixel_values, n, d, pix){ # pixel_values <- pixel_time_series[1,] and pix=1; "pix" is a dynamic argument that is automatically indexed when calling the function, it identify each pixels (~ each rows of pixel_time_series)
-      # Get the lenght and values of all the subseries
-       rle_series <- rle(pixel_values)
+       pixel_values <- as.numeric(pixel_values)
+       rle_series <- rle(pixel_values) 
       # Clean isolated '1'
        One_to_0 <- which(rle_series$values == 1 & rle_series$lengths < n) #replace isolated '1' (series < n ) by 0
        rle_series$values[One_to_0] <- 0
        pixel_values_cleanned <- inverse.rle(rle_series) 
        rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify the series of 0, this way series of zeros are re-defined to include 0 and 1 transformed to 0 in one same serie when they are next to each other.
-       pixel <- data.frame(Original_value = as.vector(t(pixel_values[1,])), #need to go through a dataframe because I don't know how to modify the ID directly in rle object
+       pixel <- data.frame(Original_value = as.vector(pixel_values), #need to go through a dataframe because I don't know how to modify the ID directly in rle object
                            Cleanned_value = unlist(pixel_values_cleanned),
                            ID = rep(seq_along(rle_series_cleanned$lengths), rle_series_cleanned$lengths),
                            Nb_days = rep(rle_series_cleanned$lengths, rle_series_cleanned$lengths))
@@ -120,9 +119,9 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
                                                          pix)
             return(intermediate_df)}, 
             mc.cores = detectCores(logical = FALSE)-2)
-  }
+    }
   
- if (!is.null(n) & !is.null(d) & !is.null(nbis) & is.null(w) & is.null(p)){
+  if (!is.null(n) & !is.null(d) & !is.null(nbis) & is.null(w) & is.null(p)){
     #here add code for medium complexity
   }
   if (!is.null(n) & is.null(d) & is.null(nbis) & !is.null(w) & !is.null(p)){
@@ -135,7 +134,7 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
   })
   stacked_rasters_corrected <- rast(stacked_rasters_corrected)
   names(stacked_rasters_corrected) <- all_dates
-  })
+
   
   return(list(stacked_rasters_corrected = stacked_rasters_corrected, 
             Event_corrected = Event_corrected))

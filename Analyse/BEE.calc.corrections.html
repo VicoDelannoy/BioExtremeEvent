@@ -12,7 +12,7 @@
 <meta name="author" content="Victoria" />
 
 
-<title>BEE.calc.true_event</title>
+<title>BEE.calc.corrections</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,173 +349,76 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.calc.true_event</h1>
+<h1 class="title toc-ignore">BEE.calc.corrections</h1>
 <h4 class="author">Victoria</h4>
 
 </div>
 
 
-<p>This function apply a filter to withdraw isolated events. For
-instance, is you consider that an event that last only 2 days should not
-be accounted for in future analysis, you can correct those value by 0.
-Here are the different filter you can apply :</p>
-<p>Simple filter : HERE WE COULD INCLUDE AN INTERACTIVE INTERFACE TO
-TEST DIFFERENT PARAMETERS VALUES</p>
-<p>Low complexity :</p>
-<ul>
-<li><p>Minimum number of consecutive day above threshold to consider
-that there is an extreme event : <em>n</em> (&gt;=)</p></li>
-<li><p>Maximum number of days bellow thershold to consider two series of
-value above threshold as a single extreme event (distance max in days
-btw 2 event to merge them): <em>d</em> (&lt;=)</p></li>
-</ul>
-<p>Examples : <em>n</em>&gt;=5 <em>d</em>&gt;=2</p>
-<p>0 0 0 1 1 1 1 <strong>1</strong> 0 0 0 = 1 event, but 0 0 0 1 1 1 1 0
-0 0 = no event ;</p>
-<p>0 0 0 1 1 1 1 1 0 0 1 1 1 0 0 0 = 1 event of 5 days, but 0 0 0 1 1 1
-1 1 0 0 1 1 1 <strong>1 1</strong> 0 0 0 = 1 event of 12 days, but 0 0 0
-1 1 1 1 1 0 0 <strong>0</strong> 1 1 1 1 1 0 0 0 = 2 instincts event of
-5 days each.</p>
-<p>Medium complexity (Hobday et al. 2016,2018) :</p>
-<ul>
-<li>Minimum number of days distant from <em>d</em> days or less to an
-event of <em>n</em> days : <em>nbis</em>.</li>
-</ul>
-<p>Example : <em>n</em> = 5 ; d = 2 ; nbis = 3</p>
-<p>This is for the case you want to consider 0 0 0 1 1 1 1 1 0 0 1 1
-<strong>1</strong> 0 0 0 as one event of 10 days but 0 0 0 1 1 1 1 1 0 0
-1 1 0 0 0 as one event of 5 days. In the first case, if there are not
-five consecutive days above threshold right before or after (d=2) the 3
-consecutive days above threshold, the 3 consecutive ‘1’ will not be
-considered as an event as <em>n</em> still fixed to 5.</p>
-<p>High complexity :</p>
-<ul>
-<li>Unstable window <em>w</em> between to event in which you allow a
-certain proportion <em>p</em> of days of <em>w</em> to be bellow
-threshold if this windows is bordered by series of <em>w *p
-c</em>onsecutive days above threshold on each size. <em>w</em> and
-<em>p</em> replace <em>d</em>. If <em>w i</em>s an odd number, the
-minimum number of days above threshold within <em>w</em> will be the
-value rounded to the superior round number. For instance if <em>w</em> =
-7 and <em>p</em> = 0.3 a window of 7 days between to event of <em>n</em>
-consecutive days will not create two distinct event if at least 4 days
-are above threshold. ( <em>w</em> * <em>p</em> = 7 * 0.5 = 3.5 rounded
-to 4)</li>
-</ul>
-<p>Examples : n = 5; w = 10; p = 0.5 -&gt; w * p = 5</p>
-<p>case that lead to a single big event of 15 days :</p>
-<p>0 0 0 0 0 1 1 1 1 1 0 1 1 1 0 0 0 1 1 0 1 1 1 1 1 0 0 0 0 0</p>
-<p>0 0 0 0 0 1 1 1 1 1 0 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 (you can
-also use low complexity <em>n</em> = 5 and <em>d</em> = 3)</p>
-<p>0 0 0 0 0 1 1 1 1 1 0 1 0 1 0 1 0 1 0 1 1 1 1 1 1 0 0 0 0 0</p>
-<p>case that lead to 2 distinct events :</p>
-<p>0 0 0 0 0 1 1 1 1 1 0 1 1 0 0 1 0 1 0 0 1 1 1 1 1 0 0 0 0 0</p>
-<p>0 0 0 0 0 1 1 1 1 1 0 0 0 1 1 1 1 0 0 0 1 1 1 1 1 0 0 0 0 0</p>
-<p>0 0 0 0 0 1 1 1 1 1 0 1 1 1 1 0 0 0 0 0 1 1 1 1 1 0 0 0 0 0 (if you
-want to detect 1 event of 10 days then a distinct event of 5 days
-instead of 2 events of 5 days only you can use : low complexity with
-<em>n</em> = 4 and <em>d</em> = 1)</p>
-<pre class="r"><code>BEE.calc.true_event &lt;- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL, p = NULL){ 
-    # Extract all rasters (If we have to think to a faster way we could filter so pixel that are alwayes NA (land) are not processed and we could create &quot;all_dates&quot; strating from scratch, only knowing firest day and last day and assuming there is no missing day)
-  all_rasters &lt;- list()
-  all_rasters_names &lt;- character()  
-  all_dates &lt;- character()
-  for (i in seq_along(binarized_EE)) { # go through each day
-    for (j in seq_along(names(binarized_EE[[i]]))) { # of each years
-     all_dates &lt;- c(all_dates, names(binarized_EE[[i]][[j]]))
-     raster &lt;- binarized_EE[[i]][[j]]
-     all_rasters[[length(all_rasters) + 1]] &lt;- raster
-     all_rasters_names &lt;- c(all_rasters_names, names(binarized_EE[[i]])[j])
-   }
-  }
-  all_dates &lt;- sort(as.Date(all_dates, format = &quot;%Y-%m-%d&quot;))  #sort all the dates available
-  start_date &lt;- min(all_dates, na.rm = TRUE)
-  #70.5 s
-  end_date &lt;- max(all_dates, na.rm = TRUE)
-  sorted_indices &lt;- order(all_rasters_names) # get a list of the current position of the rasters : the first number tell you where is currently the raster that should be first in chronological order
-  sorted_rasters &lt;- all_rasters[sorted_indices] #sort the rasters
+<p>This function allow to check how many corrections your settings in
+EE.calc.true_events have induced.</p>
+<pre class="r"><code>#function for 1 dataframe (=one date in Events_corrected)
+analyze_changes &lt;- function(dataframe) {
+  # Count modifications
+  one_to_zero &lt;- sum(dataframe$Original_value == 1 &amp; dataframe$Cleanned_value == 0)
+  zero_to_one &lt;- sum(dataframe$Original_value == 0 &amp; dataframe$Cleanned_value == 1)
   
-  # Transform the list of sorted raster into a multilayers raster to be able to use terra:extract on cells
-  stacked_rasters &lt;- rast(sorted_rasters)
-  pixel_time_series &lt;- terra::extract(stacked_rasters, 1:ncell(stacked_rasters)) #one row per pixel, 1 column per time step
-  # Transform to character the series of value for each pixels
+  # Count orginal total value
+  total_ones &lt;- sum(dataframe$Original_value == 1)
+  total_zeros &lt;- sum(dataframe$Original_value == 0)
+  
+ return(data.frame(one_to_zero = one_to_zero,
+              zero_to_one = zero_to_one,
+              total_ones = total_ones,
+              total_zeros = total_zeros))
+}
+#Apply to the list of dataframe
+results = c()
 
-  if (!is.null(n) &amp; !is.null(d) &amp; is.null(nbis) &amp; is.null(w) &amp; is.null(p)){ # here add code for low complexity
 
-    Event_corrected &lt;- data.frame()
-    
-    correct_lowcomplexity_n_d &lt;- function(pixel_values, n, d, pix){ # pixel_values &lt;- pixel_time_series[1,] and pix=1; &quot;pix&quot; is a dynamic argument that is automatically indexed when calling the function, it identify each pixels (~ each rows of pixel_time_series)
-       pixel_values &lt;- as.numeric(pixel_values)
-       rle_series &lt;- rle(pixel_values) 
-      # Clean isolated &#39;1&#39;
-       One_to_0 &lt;- which(rle_series$values == 1 &amp; rle_series$lengths &lt; n) #replace isolated &#39;1&#39; (series &lt; n ) by 0
-       rle_series$values[One_to_0] &lt;- 0
-       pixel_values_cleanned &lt;- inverse.rle(rle_series) 
-       rle_series_cleanned &lt;- rle(unlist(pixel_values_cleanned)) # re-identify the series of 0, this way series of zeros are re-defined to include 0 and 1 transformed to 0 in one same serie when they are next to each other.
-       pixel &lt;- data.frame(Original_value = as.vector(pixel_values), #need to go through a dataframe because I don&#39;t know how to modify the ID directly in rle object
-                           Cleanned_value = unlist(pixel_values_cleanned),
-                           ID = rep(seq_along(rle_series_cleanned$lengths), rle_series_cleanned$lengths),
-                           Nb_days = rep(rle_series_cleanned$lengths, rle_series_cleanned$lengths))
+BEE.calc.corrections &lt;- function(Events_corrected) {
+  # Number of cores available
+  num_cores &lt;- detectCores() - 2  
+  # Calculate changes
+  results &lt;- mclapply(Events_corrected, analyze_changes, mc.cores = num_cores)
+  results_df &lt;- do.call(rbind, results)
+  rm(results)
   
-      # Rename event that should gathered because they are separated by d days (or less) bellow threshold
-       zero_series &lt;- unique(pixel$ID[pixel$Cleanned_value == 0 &amp; pixel$Nb_days &lt;= d]) #identify series of 0 shorter than d (or equal to d)
-       zero_series &lt;- setdiff(zero_series,c(1,max(pixel$ID))) # withdraw the beginning and end of the timeserie as it cannot be surrounded by &#39;1&#39; values
-       to_modify &lt;- sort(c(zero_series, zero_series + 1))  #list of futur index to rename zero series and one series under one same name when necessary, using the first one serie&#39;s name (only when 0 serie length &lt;=d)
-       modifier &lt;- zero_series-1 #sequence of one before the short sequence of 0, &lt;-&gt; the sequence of one that will be merge with the next sequence of 1
-       replacement_map &lt;- setNames(rep(modifier, each = 2), to_modify) # associate the ID value to replace (firt line) with the value of replacement (second line)
-       pixel$ID &lt;- ifelse(
-          pixel$ID %in% names(replacement_map),  # Check if ID modification is requiered
-          as.numeric(replacement_map[as.character(pixel$ID)]),  # If so -&gt; replace
-          pixel$ID ) # If not -&gt; keep the existing one
-       # re-calculate number of days :
-       pixel$Nb_days &lt;- rep(rle(pixel$ID)$lengths,rle(pixel$ID)$lengths)
-       # add somting to the ID so it doesn&#39;t mess-up in between the pixel 
-       pixel$ID &lt;- paste0(pix,&#39;_&#39;,pixel$ID) #pix is the pixel identifier
-       return(pixel)
-    }
-    
-    Event_corrected &lt;- mclapply(1:nrow(pixel_time_series), function(c) { #one time serie of corrected event per pixel
-            pix &lt;- c
-            intermediate_df &lt;- correct_lowcomplexity_n_d(pixel_time_series[c,], 
-                                                         n, 
-                                                         d,
-                                                         pix)
-            return(intermediate_df)}, 
-            mc.cores = detectCores(logical = FALSE)-2)
-    }
+  #Calculate percentages (data for the whole area and the whole time period)
+  abs_one_to_zero &lt;- as.numeric(sum(results_df$one_to_zero, na.rm=TRUE))
+  abs_1 &lt;-  as.numeric(sum(results_df$total_ones, na.rm=TRUE))
+  abs_zero_to_one &lt;-  as.numeric(sum(results_df$zero_to_one, na.rm=TRUE))
+  abs_0 &lt;-  as.numeric(sum(results_df$total_zeros, na.rm=TRUE))
+  percentage_one_to_zero &lt;- abs_one_to_zero * 100 / abs_1 #percentage of 1 converted to 0
+  percentage_zero_to_one &lt;- abs_zero_to_one * 100 / abs_0
   
-  if (!is.null(n) &amp; !is.null(d) &amp; !is.null(nbis) &amp; is.null(w) &amp; is.null(p)){
-    #here add code for medium complexity
-  }
-  if (!is.null(n) &amp; is.null(d) &amp; is.null(nbis) &amp; !is.null(w) &amp; !is.null(p)){
-    #here add code for high complexity
-  }
+  #Calculate mean per year and pixel
+  total_nb_info = nrow(Events_corrected[[1]])*length(Events_corrected) #nb pixel * nb days (or month if monthly time resolution)
+  abs_one_to_zero_Ymean &lt;- abs_one_to_zero * 100 / total_nb_info # 6% of information (days*pixel) have been changed 
+  abs_1_Ymean &lt;- abs_1 / total_nb_info
+  #sd_1_Ymean &lt;- as.numeric(sd(results_df$total_ones, na.rm=TRUE)) / total_nb_info # variability of being 1 among the pixel
+  sd_1to0_Ymean &lt;- as.numeric(sd(results_df$one_to_zero, na.rm=TRUE))  # corrections among the pixel
+  abs_zero_to_one_Ymean &lt;- abs_zero_to_one / total_nb_info
+  abs_0_Ymean &lt;- abs_0 / total_nb_info
+  sd_1to0_Ymean &lt;- as.numeric(sd(results_df$zero_to_one, na.rm=TRUE))  # corrections among the pixel
   
-  # Aply corrections to raster of 1 and 0
-  stacked_rasters_corrected &lt;- lapply(1:nlyr(stacked_rasters), function(t) { #stacked raster are rasters in the same order than in Event_corrected but before modifications
-    correct_raster(stacked_rasters[[t]], t, Event_corrected)
-  })
-  stacked_rasters_corrected &lt;- rast(stacked_rasters_corrected)
-  names(stacked_rasters_corrected) &lt;- all_dates
+cat(
+  &quot;Absolut values for the whole area and whole time period :&quot;,&quot;\n&quot;,
+  &quot;Original total number of days above threshold (1):&quot;,  &quot;\n&quot;,abs_1, &quot;\n&quot;,
+  &quot;Percentage of 1 converted to 0:&quot;,  &quot;\n&quot;,percentage_one_to_zero, &quot;%&quot;, &quot;\n&quot;,
+  &quot;Original total number of days below threshold (0):&quot;,  &quot;\n&quot;,abs_0, &quot;\n&quot;,
+  &quot;Percentage of 0 converted to 1:&quot;,  &quot;\n&quot;, percentage_zero_to_one, &quot;%&quot;, &quot;\n&quot;,
+  &quot;\n&quot;,
+  &quot;Mean values per pixel and date :&quot;,&quot;\n&quot;,
+  &quot;Mean percentage of pixel value above threshold :&quot;,  &quot;\n&quot;,abs_1_Ymean*100,&quot;%&quot;, &quot;\n&quot;,
+  &quot;Mean percentage of corrections from 1 to 0:&quot;,  &quot;\n&quot;,abs_one_to_zero_Ymean, &quot;%&quot;, &quot;\n&quot;,
+  &quot;Standard deviation of corrections among pixel(1 to 0):&quot;,&quot;\n&quot;,sd_1to0_Ymean, &quot;%&quot;,&quot;\n&quot;,
+  &quot;Mean percentage of pixel value bellow thershold :&quot;,  &quot;\n&quot;,abs_0_Ymean*100,&quot;%&quot;, &quot;\n&quot;,
+  &quot;Mean percentage of corrections to 1 &quot;, &quot;\n&quot;,abs_zero_to_one_Ymean, &quot;%&quot;, &quot;\n&quot;,
+  &quot;Standard deviation of corrections among pixel (0 to 1)&quot;, &quot;\n&quot;,sd_1to0_Ymean,&quot;%&quot;,&quot;\n&quot;
+)
 
-  
-  return(list(stacked_rasters_corrected = stacked_rasters_corrected, 
-            Event_corrected = Event_corrected))
 }</code></pre>
-<p>#function used in the big function :</p>
-<pre class="r"><code>  # Aply corrections
-  correct_raster &lt;- function(raster, t, Event_corrected) {
-    # get values of each layers
-     corrected_values &lt;- values(raster)
-     Matching_cleanning_values &lt;- sapply(Event_corrected, function(event) event$Cleanned_value[t])
-    # Identify where corrections are needed /!\ 
-    correction_indices &lt;- which(!is.na(corrected_values) &amp; !is.na(Matching_cleanning_values) &amp; corrected_values != Matching_cleanning_values)
-     # Apply corrections
-     corrected_values[correction_indices] &lt;- Matching_cleanning_values[correction_indices]
-    # Modify raster layer values
-    values(raster) &lt;- corrected_values
-    return(raster)
-  }</code></pre>
 
 
 
