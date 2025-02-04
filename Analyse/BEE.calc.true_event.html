@@ -471,18 +471,26 @@ instead of 2 events of 5 days only you can use : low complexity with
        pixel$Nb_days &lt;- rep(rle(pixel$ID)$lengths,rle(pixel$ID)$lengths)
        # add somting to the ID so it doesn&#39;t mess-up in between the pixel 
        pixel$ID &lt;- paste0(pix,&#39;_&#39;,pixel$ID) #pix is the pixel identifier
+       pixel &lt;- cbind(Date=all_dates, pixel)
        return(pixel)
     }
-    
-    Event_corrected &lt;- mclapply(1:nrow(pixel_time_series), function(c) { #one time serie of corrected event per pixel
-            pix &lt;- c
-            intermediate_df &lt;- correct_lowcomplexity_n_d(pixel_time_series[c,], 
-                                                         n, 
-                                                         d,
-                                                         pix)
-            return(intermediate_df)}, 
-            mc.cores = detectCores(logical = FALSE)-2)
-    }
+  nb_cores &lt;- floor(detectCores(logical = FALSE) * 40 / 100)
+  if (nb_cores &lt;= 2) {
+    nb_cores &lt;- 1
+  }
+
+  Event_corrected &lt;- mclapply(1:nrow(pixel_time_series), function(c) { 
+   pix &lt;- c
+   intermediate_df &lt;- correct_lowcomplexity_n_d(
+     pixel_time_series[c,], 
+     n, 
+     d,
+     pix)
+    gc()
+    print(paste(&quot;Mémoire utilisée:&quot;, memory.size(), &quot;MB&quot;))
+    return(intermediate_df)
+    }, mc.cores = nb_cores)  # Correctement fermé et ajout de mc.cores
+  }
   
   if (!is.null(n) &amp; !is.null(d) &amp; !is.null(nbis) &amp; is.null(w) &amp; is.null(p)){
     #here add code for medium complexity

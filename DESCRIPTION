@@ -31,6 +31,8 @@ Imports:
 	foreach,
 	ggplot2,
 	lubridate,
-	sf
+	sf,
+	data.table,
+	purrr
 Remotes:
 	robwschlegel/heatwave3

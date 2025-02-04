@@ -108,12 +108,12 @@ ds <- BEE.calc.celsius(ds)
 ```{r}
 # Dynamic Baseline ; 1 minutes 40 s to run on 3 332 pixels and 10 227 days
 baseline_qt90 <- BEE.calc.baseline(rast_name = ds, end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9) 
-save(baseline_qt90, file= here::here("Outputs","baseline_qt90.")) 
-# Takes a couple of minutes baseline_qt90 <- load(here::here("Outputs/baseline_qt90.RData"))
-
+saveRDS(baseline_qt90, here::here("Outputs", "baseline_qt90.rds"))
+baseline_qt90 <- readRDS(here::here("Outputs", "baseline_qt90.rds"))
 # Mean Basline 
-baseline_mean <- BEE.calc.baseline(rast_name = raster_time_serie, threshold = "mean", quantile_value = NULL)
-saveRDS(baseline_mean, file= here::here("Outputs","baseline_mean.RDS"))
+baseline_mean <- BEE.calc.baseline(rast_name = ds, end_date = "2010-12-31", threshold = "mean", quantile_value = NULL)
+saveRDS(baseline_mean, here::here("Outputs", "baseline_mean.rds"))
+baseline_mean <- readRDS(here::here("Outputs", "baseline_mean.rds"))
 ```
 
 # 4. Binarize spatial data : This step test for each cell of the area whether the metric of the 'event' is above or 'bellow' the threshold.
@@ -124,9 +124,12 @@ The 29 of February is removed.
 
 ```{r chunk-5}
 binarized_EE <- BEE.calc.binarize(rast_name= ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above"
-#plot(period_of_interest[[1]]) ; plot(baseline_qt90[[1]]) ; plot(binarized_EE[[1]]["2021-01-01"])
+
+# plot(baseline_qt90[[1]]) ; plot(binarized_EE$`01.01`$`1983-01-01`)
 ```
+
 You can use the output to check which are the pixel more subject to peaks of your studdied parameter :
+
 ```{r}
 # # exemple : sst on the 23th of august
 # plot(sum(binarize_EE$`08.23`))
@@ -142,21 +145,35 @@ You can use the output to check which are the pixel more subject to peaks of you
 # # % of MHW have roughly doubled
 ```
 
-
 # 5. Identify Extreme Event
+
 Delete short period above threshold from the list of extreme event and merge close periods above threshold. Provide informations on the amount of modifications.
 
 ```{r}
 # 5 minutes 56 s to run on 3 332 pixels and 10 227 days
+gc()
+# For Windows :
 result <- BEE.calc.true_event(binarized_EE, n = 5, d = 3)
 Corrected_rasters <- result$stacked_rasters_corrected
 Events_corrected <- result$Event_corrected
-
+saveRDS(Events_corrected, file = here::here("Outputs", "Events_corrected.rds"))
+test_Events_corrected <- readRDS(here::here("Outputs/Events_corrected.rds"))
+gc()
 #testL <- as.Date.character(c("2022-11-25", "2022-11-26", "2022-11-27", "2022-11-28", "2022-11-29", "2022-11-30", "2022-12-01", "2022-12-02", "2022-12-03", "2022-12-04", "2022-12-05")) ; test <- Corrected_rasters[[names(Corrected_rasters) %in% as.character(testL)]] ;library(viridis) ; plot(sum(test),  col = viridis::viridis(4))  ; plot(Corrected_rasters["2022-11-30"])
+# saveRDS(result, file= here::here("Outputs/result.rds")) ; test_result <- readRDS(here::here("Outputs/result.rds"))
 #Check settings
 BEE.calc.corrections(Events_corrected)
 ```
 
+# 6. Get metrics related to time using detect_event() from heatwaveR package.
+
+The function bellow gives you basic metrics for a given GPS position, list of position, polygones or list of polygones.
+
+```{r}
+GPS <- data.frame(x = c(3.766, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls
+                  y = c(43.428, 43.183, 42.781))
+metrics <- BEE.calc.metrics_points()
+```
 
 For instance, if you are intrested in marine heat wave you may want to apply Hobday et al. 2016 definition and only keeps the days above treshold when they belongs to a series of 5 days (or more) above threshold and you may want to group these event under a same event when they are distant from 3 days or less. For biological reasons mainly, you may want to apply a more specific definition of 'biologically extreme event'. To see options please look at : ???????????
 
