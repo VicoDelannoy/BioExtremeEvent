@@ -172,7 +172,7 @@ The function bellow gives you basic metrics for a given GPS position, list of po
 ```{r}
 GPS <- data.frame(x = c(3.766, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls
                   y = c(43.428, 43.183, 42.781))
-metrics <- BEE.calc.metrics_points()
+points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2023-12-31")
 ```
 
 For instance, if you are intrested in marine heat wave you may want to apply Hobday et al. 2016 definition and only keeps the days above treshold when they belongs to a series of 5 days (or more) above threshold and you may want to group these event under a same event when they are distant from 3 days or less. For biological reasons mainly, you may want to apply a more specific definition of 'biologically extreme event'. To see options please look at : ???????????

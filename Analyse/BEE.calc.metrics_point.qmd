@@ -7,7 +7,7 @@ editor: visual
 
 ```{r}
 #start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds
-EE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NULL, end_date=NULL){
+BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NULL, end_date=NULL){
   ########################################## WARNINGS ############################################################
   if ( is.null(start_date) | is.null(end_date)) {
     warning("You didn't specify a begining date and a ending date (see argument 'start_date' and 'end_date'), the first date and last date in your time Values SpatRaster will be used.")
@@ -18,10 +18,6 @@ EE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NULL
      class(end_date)   != class(names(Values[[1]]))  | 
      class(start_date) != class(end_date)){
     warning("The date formats are inconsistent between start_date, end_date and Values. Please ensure that the layer names follow a consistent date format. Use class(YourObject) to verify the current format.")
-  }
-  #rename properly each raster from period_of_interst
-  if (!is.null(GPS)){ #function for a GPS point or a dataframe with several GPS cooridantes
-    warning("Please provide a dataframe with GPS position (in a format consitent with the one of your raster layers).")
   }
   #Check that start date and end_date are within the SpatRasters provided
   if (!(start_date %in% names(Values)) | !(end_date %in% names(Values))) {
@@ -92,10 +88,19 @@ EE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NULL
     mean_value <- df %>%
      group_by(ID) %>%
       summarize(mean_value = mean(value), .groups = "drop") 
+   # Get median temperature per event
+    median_value <- df %>%
+     group_by(ID) %>%
+      summarize(median_value = median(value), .groups = "drop") 
    # Get max temperature per event
     max_value <- df %>%
      group_by(ID) %>%
       summarize(max_value = max(value), .groups = "drop") 
+    # Day of maximum
+    date_max_value <- df %>%
+      group_by(ID) %>%
+      slice_max(order_by = value, n = 1, with_ties = FALSE) %>%
+      select(ID, Date, max_value = value)
     # Join together by ID (To optimise we could rbind all the df from df_list and avoid metrics loop, we would just have to create separated dataframe for each pixel at the end)
     result_df <- data.frame(
      x = rep(x, length.out = nrow(duration)),  # Ensure matching row length
@@ -105,31 +110,18 @@ EE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NULL
      first_day = first_day$first_date,
      last_day = last_day$last_date,
      mean_value = mean_value$mean_value,
-     max_value = max_value$max_value
-     
+     median_value = median_value$median_value,
+     max_value = max_value$max_value,
+     date_max_value = date_max_value$Date
    )
     return(result_df)
   })
 
-############### À ADAPTER DANS LE STYLE DU CODE JUSTE AU DESSUS :
-    mean_value <- c()
-    median_value <- c()
-    max_value <- c()
-    min_value <- c()
-    for (p in 1:length(df)){
-      print(p)
-      for (l in 1:length(df[[p]]$first_day)){
-        print(l)
-      date <- as.character(as.Date(unlist(date_lists[[p]][l])))
-      mean_value <- c(mean_value, mean(as.numeric(period_of_interest_values[p,date]), na.rm=TRUE))
-      median_value <- c(median_value, median(as.numeric(period_of_interest_values[p,date]), na.rm=TRUE))
-      max_value <- c(max_value, max(as.numeric(period_of_interest_values[p,date]), na.rm=TRUE))
-      min_value <- c(min_value, min(as.numeric(period_of_interest_values[p,date]), na.rm=TRUE))
-      }
-    }
-    
-    warning("Shared 'eventnb' between different posistions (GPS_name) don't necessarily indicates that the same event encompassed the two GPS positions. 'eventnb' is proper to each GPS positions.")
-    return(df)
-  # For the all period I want : Total nb of day, Frequency, maximum intensity, mean and median intensity, sum of anomalies, date of maximum intensity, first date 1, last date 1
+  # OTHER PART TO DEVELOP : 
+  # For each pixels : 
+  # - anomalie cumulée par événements
+  # - catégories
+  # - onset rate, offset_rate (dans l'événement et depuis une période donnée avant et après dont la durée et fixée par l'utilisateur)
+  #For the all period I want : Frequency, maximum intensity, mean and median intensity, sum of anomalies, date of maximum intensity, first date 1, last date 1
 }
 ```
