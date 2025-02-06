@@ -355,6 +355,7 @@ display: none;
 </div>
 
 
+<p>#rast_name= ds; baseline=baseline_qt90; direction = “above”</p>
 <pre class="r"><code>BEE.calc.binarize &lt;- function(rast_name, baseline, direction) {
 
   if(class(baseline) == &quot;SpatRaster&quot;){
@@ -365,7 +366,7 @@ display: none;
     time_list_base &lt;- generate_month_day(2024) # Create dates in the format %m.%d
     names(rast_name) &lt;- time_list_exp # Rename the layers with the dates
     names(baseline) &lt;- time_list_base # Rename the layers with the dates
-    baseline &lt;- subset(baseline, subset = &quot;02.29&quot;, negate = TRUE) # Remove February 29th
+   # baseline &lt;- subset(baseline, subset = &quot;02.29&quot;, negate = TRUE) # Remove February 29th
     delta &lt;- binarize_spat(rast_name, baseline, direction) # Binarize the pixels to 1 &amp; 0 (function from the packacge itself, in R_functions) /!\ this part doesn&#39;t check if the value is above for five consecutive days or any duration provided through daysEE, defined in Small_shaping_function
     delta_list &lt;- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
     return(delta_list) # Output the list
@@ -411,11 +412,11 @@ reference condition</h1>
 <h1>Create a list from a SpatRaster with the date (format %m.%d) as
 list’s items</h1>
 <pre class="r"><code>RastToList &lt;- function(x) {
-  md &lt;- generate_month_day(2023)
+  md &lt;- generate_month_day(2024)
   indices_strata &lt;- list()
   noms_strata &lt;- names(x)
   for (i in unique(md)) {
-    indices &lt;- which(grepl(i, noms_strata))
+    indices &lt;- which(grepl(paste0(i, &quot;$&quot;), noms_strata))
     if (length(indices) == 0) {
       next
     }

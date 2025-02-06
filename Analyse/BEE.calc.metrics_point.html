@@ -355,65 +355,66 @@ display: none;
 </div>
 
 
-<pre class="r"><code>#start_date &lt;- &quot;2023-01-01&quot; ; end_date &lt;- &quot;2023-12-31&quot;
-EE.calc.metrics_point &lt;- function(Events_corrected, Corrected_rasters, GPS, start_date=NULL, end_date=NULL){
+<pre class="r"><code>#start_date &lt;- &quot;2022-01-01&quot; ; end_date &lt;- &quot;2023-12-31&quot; ; Values &lt;- ds
+BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS, start_date=NULL, end_date=NULL){
   ########################################## WARNINGS ############################################################
   if ( is.null(start_date) | is.null(end_date)) {
-    warning(&quot;You didn&#39;t specify a begining date and a ending date (see argument &#39;start_date&#39; and &#39;end_date&#39;), the first date and last date in your time Corrected_rasters SpatRaster will be used.&quot;)
-    start_date &lt;- min(as.Date.character(names(Corrected_rasters)))
+    warning(&quot;You didn&#39;t specify a begining date and a ending date (see argument &#39;start_date&#39; and &#39;end_date&#39;), the first date and last date in your time Values SpatRaster will be used.&quot;)
+    start_date &lt;- min(as.Date.character(names(Values)))
     end_date &lt;- max(as.Date.character(names(period_of_interest)))
   }
-  if(class(start_date) != class(names(Corrected_rasters[[1]]))  | 
-     class(end_date)   != class(names(Corrected_rasters[[1]]))  | 
+  if(class(start_date) != class(names(Values[[1]]))  | 
+     class(end_date)   != class(names(Values[[1]]))  | 
      class(start_date) != class(end_date)){
-    warning(&quot;The date formats are inconsistent between start_date, end_date and Corrected_rasters. Please ensure that the layer names follow a consistent date format. Use class(YourObject) to verify the current format.&quot;)
-  }
-  #rename properly each raster from period_of_interst
-  if (!is.null(GPS)){ #function for a GPS point or a dataframe with several GPS cooridantes
-    warning(&quot;Please provide a dataframe with GPS position (in a format consitent with the one of your raster layers).&quot;)
+    warning(&quot;The date formats are inconsistent between start_date, end_date and Values. Please ensure that the layer names follow a consistent date format. Use class(YourObject) to verify the current format.&quot;)
   }
   #Check that start date and end_date are within the SpatRasters provided
-  if (!(start_date %in% names(Corrected_rasters)) | !(end_date %in% names(Corrected_rasters))) {
+  if (!(start_date %in% names(Values)) | !(end_date %in% names(Values))) {
     warning(&quot;One or both the specified layers are not present in the SpatRaster containning corrected binarized extreme event.&quot;)
   }
-  # Subset both rasters so they match the timeframe provided with &#39;start_date&#39; and &#39;end_date&#39;.
-  Corrected_rasters &lt;- 
-    Corrected_rasters[[which(names(Corrected_rasters)==start_date):which(names(Corrected_rasters)==end_date)]]
-  Corrected_rasters_extent &lt;- terra::ext(Corrected_rasters)
-  #Check that all GPS points are within Corrected_rasters and period_of_interest extent
-  if ( !all(abs(GPS[1]) &lt;= abs(Corrected_rasters_extent$xmax) &amp; 
-            abs(GPS[1]) &gt;= abs(Corrected_rasters_extent$xmin)) ){
+  Values_extent &lt;- terra::ext(Values)
+  #Check that all GPS points are within Values and period_of_interest extent
+  if ( !all(abs(GPS[1]) &lt;= abs(Values_extent$xmax) &amp; 
+            abs(GPS[1]) &gt;= abs(Values_extent$xmin)) ){
    warning(&quot;At least one longitude coordinate falls outside the extent of the SpatRaster containing the binarized corrected events. Ensure the first column of the dataframe contains valid longitude (x) values for analysis.&quot;)
   }
-  if (!all(abs(GPS[2]) &lt;= abs(Corrected_rasters_extent$ymax) &amp; 
-           abs(GPS[2]) &gt;= abs(Corrected_rasters_extent$ymin))){
+  if (!all(abs(GPS[2]) &lt;= abs(Values_extent$ymax) &amp; 
+           abs(GPS[2]) &gt;= abs(Values_extent$ymin))){
    warning(&quot;At least one latitude coordinate falls outside the extent of the SpatRaster containing the binarized corrected events. Ensure the second column of the dataframe contains valid latitude (y) values for analysis.&quot;)
   }
 
    ########################################## CODE ############################################################
-  
+    #Extract values for the given GPS position 
+  GPS$pixel &lt;- cellFromXY(Values, GPS)
+  df_list  &lt;- lapply(GPS$pixel, function(p) Events_corrected[[p]])
+  Values &lt;- t(terra::extract(Values,GPS[,3]))
+    
+    # Subset both dataset so they match the timeframe provided with &#39;start_date&#39; and &#39;end_date&#39;.
+  Values &lt;- Values[which(as.Date(rownames(Values)) &gt;= as.Date(start_date) &amp; as.Date(rownames(Values)) &lt;= as.Date(end_date)),]
+  df_list &lt;- map(df_list, ~ .x[.x$Date &gt;= start_date &amp; .x$Date &lt;= end_date, ])
   # For each event I want : duration, maximum intensity, mean and median intensity, category, sum of anomalies, date of maximum intensity, position of the day of maximum intensity, mean increasing slop, mean decreasing slope, start_date, end_date
-  ##Contrary to Events_corrected, Corrected_rasters didn&#39;t kept this information of which extreme event were merge together because they were separated by d days or less. Thus, we need to use Events corrected if we want to calculate a metric that describe an event.
-  ### We need to know in which pixel of Corrected_rasters are the points we want to study so we can extract from Events_corrected the matching df.
-  GPS$pixel &lt;- cellFromXY(Corrected_rasters, GPS)
+  ##Contrary to Events_corrected, Values didn&#39;t kept this information of which extreme event were merge together because they were separated by d days or less. Thus, we need to use Events corrected if we want to calculate a metric that describe an event.
   
-  #Extract values for the given GPS position
-  Binarized_value_with_corrections  &lt;- lapply(GPS$pixel, function(p) Events_corrected[[p]])
-  Corrected_rasters &lt;- terra::extract(Corrected_rasters,GPS[,c(1,2)])
+  #Merge df_list and Values
+  df_list &lt;- Map(function(df, col_idx) {
+    # Ad to each dataframe the corresponding column of pixel value
+    df$value &lt;- Values[,col_idx]  # col_idx is he idee  
+    return(df)
+  }, df_list, seq_along(df_list))
   
   #Delete the information related to days bellow threshold (to save computation time)
-  event_to_delete_list &lt;- lapply(Binarized_value_with_corrections, function(df) {
+  event_to_delete_list &lt;- lapply(df_list, function(df) {
   unique(df[which(df$Cleanned_value == 0),&quot;ID&quot;])})
-  Binarized_value_with_corrections &lt;- lapply(seq_along(Binarized_value_with_corrections), function(p) {
-  Binarized_value_with_corrections[[p]] %&gt;%
+  df_list_only_1 &lt;- lapply(seq_along(df_list), function(p) { # we need to save the data that correspond to value above threshold in a specific object beacause we may want to optimize the function so it test the onset rate before the event start (and thus we will need values bellow threshold as well)
+    df_list[[p]] %&gt;%
     filter(!(ID %in% event_to_delete_list[[p]]))
-})
+  })
   
   #Create a list of dataframe to store the information using one element (df) per pixel and one row per event
   colnames(GPS)&lt;-c(&quot;x&quot;,&quot;y&quot;, names(GPS[3]))
 
-  metrics &lt;- lapply(1:length(Binarized_value_with_corrections), function(p) {
-    df &lt;- Binarized_value_with_corrections[[p]]
+  metrics &lt;- lapply(1:length(df_list_only_1), function(p) { # Go through each pixel
+    df &lt;- df_list_only_1[[p]]
     # Get GPS position of each point
     x &lt;- rep(GPS$x[p], length(unique(df$ID)))
     y &lt;- rep(GPS$y[p], length(unique(df$ID)))
@@ -432,38 +433,45 @@ EE.calc.metrics_point &lt;- function(Events_corrected, Corrected_rasters, GPS, s
    last_day &lt;- df %&gt;%
      group_by(ID) %&gt;%
       summarize(last_date = max(Date), .groups = &quot;drop&quot;)  # Get the last date for each ID
-    # Join together by ID
+   # Get mean temperature per event
+    mean_value &lt;- df %&gt;%
+     group_by(ID) %&gt;%
+      summarize(mean_value = mean(value), .groups = &quot;drop&quot;) 
+   # Get median temperature per event
+    median_value &lt;- df %&gt;%
+     group_by(ID) %&gt;%
+      summarize(median_value = median(value), .groups = &quot;drop&quot;) 
+   # Get max temperature per event
+    max_value &lt;- df %&gt;%
+     group_by(ID) %&gt;%
+      summarize(max_value = max(value), .groups = &quot;drop&quot;) 
+    # Day of maximum
+    date_max_value &lt;- df %&gt;%
+      group_by(ID) %&gt;%
+      slice_max(order_by = value, n = 1, with_ties = FALSE) %&gt;%
+      select(ID, Date, max_value = value)
+    # Join together by ID (To optimise we could rbind all the df from df_list and avoid metrics loop, we would just have to create separated dataframe for each pixel at the end)
     result_df &lt;- data.frame(
      x = rep(x, length.out = nrow(duration)),  # Ensure matching row length
      y = rep(y, length.out = nrow(duration)),  # Ensure matching row length
-      ID = duration$ID,
-      Nb_days = duration$Nb_days,
-      first_day = first_day$first_date,
-      last_day = last_day$last_date
+     ID = duration$ID,
+     Nb_days = duration$Nb_days,
+     first_day = first_day$first_date,
+     last_day = last_day$last_date,
+     mean_value = mean_value$mean_value,
+     median_value = median_value$median_value,
+     max_value = max_value$max_value,
+     date_max_value = date_max_value$Date
    )
     return(result_df)
   })
 
-############### À ADAPTER DANS LE STYLE DU CODE JUSTE AU DESSUS :
-    mean_value &lt;- c()
-    median_value &lt;- c()
-    max_value &lt;- c()
-    min_value &lt;- c()
-    for (p in 1:length(df)){
-      print(p)
-      for (l in 1:length(df[[p]]$first_day)){
-        print(l)
-      date &lt;- as.character(as.Date(unlist(date_lists[[p]][l])))
-      mean_value &lt;- c(mean_value, mean(as.numeric(period_of_interest_values[p,date]), na.rm=TRUE))
-      median_value &lt;- c(median_value, median(as.numeric(period_of_interest_values[p,date]), na.rm=TRUE))
-      max_value &lt;- c(max_value, max(as.numeric(period_of_interest_values[p,date]), na.rm=TRUE))
-      min_value &lt;- c(min_value, min(as.numeric(period_of_interest_values[p,date]), na.rm=TRUE))
-      }
-    }
-    
-    warning(&quot;Shared &#39;eventnb&#39; between different posistions (GPS_name) don&#39;t necessarily indicates that the same event encompassed the two GPS positions. &#39;eventnb&#39; is proper to each GPS positions.&quot;)
-    return(df)
-  # For the all period I want : Total nb of day, Frequency, maximum intensity, mean and median intensity, sum of anomalies, date of maximum intensity, first date 1, last date 1
+  # OTHER PART TO DEVELOP : 
+  # For each pixels : 
+  # - anomalie cumulée par événements
+  # - catégories
+  # - onset rate, offset_rate (dans l&#39;événement et depuis une période donnée avant et après dont la durée et fixée par l&#39;utilisateur)
+  #For the all period I want : Frequency, maximum intensity, mean and median intensity, sum of anomalies, date of maximum intensity, first date 1, last date 1
 }</code></pre>
 
 

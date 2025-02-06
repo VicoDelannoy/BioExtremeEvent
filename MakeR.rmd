@@ -120,7 +120,6 @@ baseline_mean <- readRDS(here::here("Outputs", "baseline_mean.rds"))
 
 It provide a raw information for each day and each pixel without applying any definition of the Extreme Event. Of course, one may be interesting in applying a more restrictive definition of "Extreme Event". This will be done when BEE.calc.true_event will be used (later). This intermediate step is necessary to apply BEE.calc.true_event.
 
-The 29 of February is removed.
 
 ```{r chunk-5}
 binarized_EE <- BEE.calc.binarize(rast_name= ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above"
@@ -152,8 +151,7 @@ Delete short period above threshold from the list of extreme event and merge clo
 ```{r}
 # 5 minutes 56 s to run on 3 332 pixels and 10 227 days
 gc()
-# For Windows :
-result <- BEE.calc.true_event(binarized_EE, n = 5, d = 3)
+result <- BEE.calc.true_event(binarized_EE, n = 5, d = 3) 
 Corrected_rasters <- result$stacked_rasters_corrected
 Events_corrected <- result$Event_corrected
 saveRDS(Events_corrected, file = here::here("Outputs", "Events_corrected.rds"))

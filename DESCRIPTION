@@ -24,7 +24,8 @@ Depends:
 	terra,
 	tidymodels,
 	tidyverse,
-	reticulate
+	reticulate,
+	data.table
 Imports:
 	doParallel,
 	dplyr,
@@ -32,7 +33,6 @@ Imports:
 	ggplot2,
 	lubridate,
 	sf,
-	data.table,
 	purrr
 Remotes:
 	robwschlegel/heatwave3

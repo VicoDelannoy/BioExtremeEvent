@@ -416,22 +416,26 @@ want to detect 1 event of 10 days then a distinct event of 5 days
 instead of 2 events of 5 days only you can use : low complexity with
 <em>n</em> = 4 and <em>d</em> = 1)</p>
 <pre class="r"><code>BEE.calc.true_event &lt;- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL, p = NULL){ 
-    # Extract all rasters (If we have to think to a faster way we could filter so pixel that are alwayes NA (land) are not processed and we could create &quot;all_dates&quot; strating from scratch, only knowing firest day and last day and assuming there is no missing day)
-  all_rasters &lt;- list()
-  all_rasters_names &lt;- character()  
-  all_dates &lt;- character()
-  for (i in seq_along(binarized_EE)) { # go through each day
-    for (j in seq_along(names(binarized_EE[[i]]))) { # of each years
-     all_dates &lt;- c(all_dates, names(binarized_EE[[i]][[j]]))
-     raster &lt;- binarized_EE[[i]][[j]]
-     all_rasters[[length(all_rasters) + 1]] &lt;- raster
-     all_rasters_names &lt;- c(all_rasters_names, names(binarized_EE[[i]])[j])
-   }
-  }
-  all_dates &lt;- sort(as.Date(all_dates, format = &quot;%Y-%m-%d&quot;))  #sort all the dates available
-  start_date &lt;- min(all_dates, na.rm = TRUE)
-  #70.5 s
+    # Extract all rasters (If we have to think to a faster way we could filter so pixel that are alwayes NA (land) are not processed and we could create &quot;all_dates&quot; strating from scratch, only knowing firest day and last day and assuming there is no missing day) 
+  
+ all_data &lt;- mclapply(seq_along(binarized_EE), function(i) { # go through each day of a typical year
+    j_indices &lt;- seq(1,length(names(binarized_EE[[i]])),1)        # go through each years
+    list(
+      dates = unlist(lapply(j_indices, function(j) names(binarized_EE[[i]][[j]]))), # collect date
+      rasters = lapply(j_indices, function(j) binarized_EE[[i]][[j]]),              # collect associated raster
+      names = names(binarized_EE[[i]])[j_indices]                                   # collect names
+    )
+  }, mc.cores = floor(detectCores(logical = FALSE)*75/100))
+
+# Put results in a dedicated object
+  all_dates &lt;- unlist(lapply(all_data, `[[`, &quot;dates&quot;))
+  all_rasters &lt;- unlist(lapply(all_data, `[[`, &quot;rasters&quot;), recursive = FALSE)
+  all_rasters_names &lt;- unlist(lapply(all_data, `[[`, &quot;names&quot;))
+
+  start_date &lt;- min(all_dates, na.rm = TRUE) # for later when I&#39;ll give the possibility to only work on a subset of the time période
   end_date &lt;- max(all_dates, na.rm = TRUE)
+
+# Reorder informations in chronological order  
   sorted_indices &lt;- order(all_rasters_names) # get a list of the current position of the rasters : the first number tell you where is currently the raster that should be first in chronological order
   sorted_rasters &lt;- all_rasters[sorted_indices] #sort the rasters
   
@@ -471,26 +475,18 @@ instead of 2 events of 5 days only you can use : low complexity with
        pixel$Nb_days &lt;- rep(rle(pixel$ID)$lengths,rle(pixel$ID)$lengths)
        # add somting to the ID so it doesn&#39;t mess-up in between the pixel 
        pixel$ID &lt;- paste0(pix,&#39;_&#39;,pixel$ID) #pix is the pixel identifier
-       pixel &lt;- cbind(Date=all_dates, pixel)
        return(pixel)
     }
-  nb_cores &lt;- floor(detectCores(logical = FALSE) * 40 / 100)
-  if (nb_cores &lt;= 2) {
-    nb_cores &lt;- 1
-  }
-
-  Event_corrected &lt;- mclapply(1:nrow(pixel_time_series), function(c) { 
-   pix &lt;- c
-   intermediate_df &lt;- correct_lowcomplexity_n_d(
-     pixel_time_series[c,], 
-     n, 
-     d,
-     pix)
-    gc()
-    print(paste(&quot;Mémoire utilisée:&quot;, memory.size(), &quot;MB&quot;))
-    return(intermediate_df)
-    }, mc.cores = nb_cores)  # Correctement fermé et ajout de mc.cores
-  }
+    
+    Event_corrected &lt;- mclapply(1:nrow(pixel_time_series), function(c) { #one time serie of corrected event per pixel
+            pix &lt;- c
+            intermediate_df &lt;- correct_lowcomplexity_n_d(pixel_time_series[c,], 
+                                                         n, 
+                                                         d,
+                                                         pix)
+            return(intermediate_df)}, 
+            mc.cores = floor(detectCores(logical = FALSE)*75/100))
+    }
   
   if (!is.null(n) &amp; !is.null(d) &amp; !is.null(nbis) &amp; is.null(w) &amp; is.null(p)){
     #here add code for medium complexity
