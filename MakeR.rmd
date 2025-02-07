@@ -120,7 +120,6 @@ baseline_mean <- readRDS(here::here("Outputs", "baseline_mean.rds"))
 
 It provide a raw information for each day and each pixel without applying any definition of the Extreme Event. Of course, one may be interesting in applying a more restrictive definition of "Extreme Event". This will be done when BEE.calc.true_event will be used (later). This intermediate step is necessary to apply BEE.calc.true_event.
 
-
 ```{r chunk-5}
 binarized_EE <- BEE.calc.binarize(rast_name= ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above"
 
@@ -149,13 +148,11 @@ You can use the output to check which are the pixel more subject to peaks of you
 Delete short period above threshold from the list of extreme event and merge close periods above threshold. Provide informations on the amount of modifications.
 
 ```{r}
-# 5 minutes 56 s to run on 3 332 pixels and 10 227 days
+# 6 minutes s to run on 3 332 pixels and 10 227 days
 gc()
 result <- BEE.calc.true_event(binarized_EE, n = 5, d = 3) 
 Corrected_rasters <- result$stacked_rasters_corrected
 Events_corrected <- result$Event_corrected
-saveRDS(Events_corrected, file = here::here("Outputs", "Events_corrected.rds"))
-test_Events_corrected <- readRDS(here::here("Outputs/Events_corrected.rds"))
 gc()
 #testL <- as.Date.character(c("2022-11-25", "2022-11-26", "2022-11-27", "2022-11-28", "2022-11-29", "2022-11-30", "2022-12-01", "2022-12-02", "2022-12-03", "2022-12-04", "2022-12-05")) ; test <- Corrected_rasters[[names(Corrected_rasters) %in% as.character(testL)]] ;library(viridis) ; plot(sum(test),  col = viridis::viridis(4))  ; plot(Corrected_rasters["2022-11-30"])
 # saveRDS(result, file= here::here("Outputs/result.rds")) ; test_result <- readRDS(here::here("Outputs/result.rds"))
