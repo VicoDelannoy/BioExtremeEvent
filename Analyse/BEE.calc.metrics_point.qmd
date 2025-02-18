@@ -6,7 +6,7 @@ editor: visual
 ---
 
 ```{r}
-#start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds
+# start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds
 BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NULL, end_date=NULL){
   ########################################## WARNINGS ############################################################
   if ( is.null(start_date) | is.null(end_date)) {
@@ -36,12 +36,17 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NUL
 
    ########################################## CODE ############################################################
     #Extract values for the given GPS position 
-  GPS$pixel <- cellFromXY(Values, GPS)
+  GPS$pixel <- terra::cellFromXY(Values, GPS)
   df_list  <- lapply(GPS$pixel, function(p) Events_corrected[[p]])
   Values <- t(terra::extract(Values,GPS[,3]))
     
     # Subset both dataset so they match the timeframe provided with 'start_date' and 'end_date'.
+  Date <- rownames(Values)
   Values <- Values[which(as.Date(rownames(Values)) >= as.Date(start_date) & as.Date(rownames(Values)) <= as.Date(end_date)),]
+  df_list <- Map(function(df, col_idx){
+    df$Date <- Date
+    return(df)
+  }, df_list, seq_along(df_list))
   df_list <- map(df_list, ~ .x[.x$Date >= start_date & .x$Date <= end_date, ])
   # For each event I want : duration, maximum intensity, mean and median intensity, category, sum of anomalies, date of maximum intensity, position of the day of maximum intensity, mean increasing slop, mean decreasing slope, start_date, end_date
   ##Contrary to Events_corrected, Values didn't kept this information of which extreme event were merge together because they were separated by d days or less. Thus, we need to use Events corrected if we want to calculate a metric that describe an event.
@@ -66,55 +71,57 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NUL
 
   metrics <- lapply(1:length(df_list_only_1), function(p) { # Go through each pixel
     df <- df_list_only_1[[p]]
-    # Get GPS position of each point
-    x <- rep(GPS$x[p], length(unique(df$ID)))
-    y <- rep(GPS$y[p], length(unique(df$ID)))
-    # Get the ID of each event
-    ID <- unique(df$ID)
-    # Duration of each event (just keep unique values of Nb_days for each ID)
-    duration <- df %>%
+    df$Date <- as.Date(df$Date)
+    df <- df %>%
       group_by(ID) %>%
-     slice_head(n = 1) %>%  # Keep only the first row per ID, assuming Nb_days is constant per ID
-     select(ID, Nb_days)  # Keep only ID and Nb_days
-   # First day of each event
-   first_day <- df %>%
-     group_by(ID) %>%
-     summarize(first_date = min(Date), .groups = "drop")  # Get the first date for each ID
-   # Last day of each event
-   last_day <- df %>%
-     group_by(ID) %>%
-      summarize(last_date = max(Date), .groups = "drop")  # Get the last date for each ID
-   # Get mean temperature per event
-    mean_value <- df %>%
-     group_by(ID) %>%
-      summarize(mean_value = mean(value), .groups = "drop") 
-   # Get median temperature per event
-    median_value <- df %>%
-     group_by(ID) %>%
-      summarize(median_value = median(value), .groups = "drop") 
-   # Get max temperature per event
-    max_value <- df %>%
-     group_by(ID) %>%
-      summarize(max_value = max(value), .groups = "drop") 
-    # Day of maximum
-    date_max_value <- df %>%
-      group_by(ID) %>%
-      slice_max(order_by = value, n = 1, with_ties = FALSE) %>%
-      select(ID, Date, max_value = value)
-    # Join together by ID (To optimise we could rbind all the df from df_list and avoid metrics loop, we would just have to create separated dataframe for each pixel at the end)
-    result_df <- data.frame(
-     x = rep(x, length.out = nrow(duration)),  # Ensure matching row length
-     y = rep(y, length.out = nrow(duration)),  # Ensure matching row length
-     ID = duration$ID,
-     Nb_days = duration$Nb_days,
-     first_day = first_day$first_date,
-     last_day = last_day$last_date,
-     mean_value = mean_value$mean_value,
-     median_value = median_value$median_value,
-     max_value = max_value$max_value,
-     date_max_value = date_max_value$Date
-   )
-    return(result_df)
+      mutate(
+        # Get GPS position of each point
+        x = GPS$x[p],  
+        y = GPS$y[p],  
+    
+        # Get the ID of each event
+        event_ID = unique(ID),  
+    
+        # Duration of each event (assuming Nb_days is constant per ID)
+        Nb_days = first(Nb_days),  
+    
+        # First and last day of each event
+        first_date = as.Date(min(Date)),
+        last_date = as.Date(max(Date)),
+    
+        # Mean, median, max temperature per event
+        mean_value = mean(value),
+        median_value = median(value),
+        max_value = max(value),
+    
+        # Day of maximum temperature
+        date_max_value = as.Date(Date[which.max(value)]),
+    
+        # Onset rate
+        daily_rates = (lead(value) - value) / as.numeric(lead(Date) - Date),
+        ## raw
+        days_onset = as.numeric(date_max_value - first_date),
+        raw_onset_rate = (max_value - value[which(Date==first_date)]) / days_onset,
+        ## mean
+        mean_onset_rate = mean(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
+        ## Median onset rate 
+        median_onset_rate = median(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
+        ## Standard deviation
+        sd_onset_rate = sd(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
+    
+        # Offset rate
+        ## raw
+        days_offset = as.numeric(last_date - date_max_value),
+        raw_offset_rate = (value[which(Date==last_date)] - max_value) / days_offset,
+        ## mean
+        mean_offset_rate = mean(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
+        median_offset_rate = median(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
+        ## Standard deviation
+        sd_offset_rate = sd(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE)
+
+      ) %>%
+      ungroup()  # Pour éviter tout effet résiduel du groupement
+    return(df)
   })
 
   # OTHER PART TO DEVELOP : 

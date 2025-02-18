@@ -505,7 +505,7 @@ instead of 2 events of 5 days only you can use : low complexity with
   })
 
   stacked_rasters_corrected &lt;- rast(stacked_rasters_corrected)
-  names(stacked_rasters_corrected) &lt;- all_dates
+  names(stacked_rasters_corrected) &lt;- sort(all_dates)
 
   gc()
   
