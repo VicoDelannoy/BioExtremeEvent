@@ -73,7 +73,8 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
 
   # Fusionner les résultats pour optimiser la mémoire
   all_dates <- unlist(lapply(all_data, `[[`, "dates"), recursive = FALSE)
-  all_rasters <- do.call(c, lapply(all_data, `[[`, "rasters"))
+  all_rasters <- rast(lapply(all_data, `[[`, "rasters"))
+  #all_rasters <- do.call(c, lapply(all_data, `[[`, "rasters"))
   all_rasters_names <- unlist(lapply(all_data, `[[`, "dates"), recursive = FALSE)
   
   # Clean memory

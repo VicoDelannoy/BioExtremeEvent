@@ -29,7 +29,7 @@ BEE.data.load_Copernicus <- function(username,
     reticulate::use_virtualenv("CopernicusMarine", required = TRUE)
     py_install("copernicusmarine", pip = TRUE)
     # Check that it work, usually, if it doesn't works it is because Pyhton is nowhere in the system.
-    version <- system("python --version", intern = TRUE)
+    version <- system("python3 --version", intern = TRUE)
   
   if (length(version) == 0) {
     version <- system("python3 --version", intern = TRUE)

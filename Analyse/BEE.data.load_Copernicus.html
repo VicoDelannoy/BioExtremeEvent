@@ -380,7 +380,7 @@ download it from R.</p>
     reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
     py_install(&quot;copernicusmarine&quot;, pip = TRUE)
     # Check that it work, usually, if it doesn&#39;t works it is because Pyhton is nowhere in the system.
-    version &lt;- system(&quot;python --version&quot;, intern = TRUE)
+    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
   
   if (length(version) == 0) {
     version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)

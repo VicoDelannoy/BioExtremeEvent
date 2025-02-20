@@ -57,19 +57,20 @@ Detecting an 'extreme' event implies to know what are the normal conditions, thu
 ```{r}
 # username <- "vdela"
 # password <- "Marbec_2WAVE"
-ds <- BEE.data.load_Copernicus(username=username, password=password,
-                               dataset_id="cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021",
+ds <- BEE.data.load_Copernicus( username=username, password=password,
+  dataset_id="cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021",
   dataset_version="202411",
-  variables= list("analysed_sst"),
+  variables="analysed_sst",
   minimum_longitude=2.9,
   maximum_longitude=7.8,
   minimum_latitude=42,
   maximum_latitude=43.7,
-  start_datetime="1983-01-01T00:00:00",
+  start_datetime="1982-01-01T00:00:00",
   end_datetime="2024-12-31T00:00:00",
   coordinates_selection_method="strict-inside",
-  disable_progress_bar=FALSE,
+  disable_progress_bar=TRUE,
   output_directory = here::here("Data"))
+
 ```
 
 ## From NOAA
@@ -81,7 +82,7 @@ HERE I MUST ADD A WRAPPED VERSION OF HEATWAVE3
 You can start from here is your data are already in your computer.
 
 ```{r}
-ds <- rast("Data/cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_2.94E-7.80E_42.01N-43.67N_1983-01-01-2024-12-30.nc")
+ds <- rast("Data/cnmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_1982_2024.nc.nc")
 # Each layer name must be the corresponding date under YYYY-MM-DD format
 time(ds) <- as.Date(time(ds))
 names(ds) <- time(ds)
@@ -115,6 +116,28 @@ baseline_mean <- BEE.calc.baseline(rast_name = ds, end_date = "2010-12-31", thre
 saveRDS(baseline_mean, here::here("Outputs", "baseline_mean.rds"))
 baseline_mean <- readRDS(here::here("Outputs", "baseline_mean.rds"))
 
+
+#plot climatology in Frontignan
+baseline_qt90 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 
+baseline_qt10 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
+baseline_mean <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
+df_plot <- data.frame(doy=seq(1:366),
+                      qt10=t(terra::extract(baseline_qt10,507)), #608 is frontignant pixel
+                      mean=t(terra::extract(baseline_mean,507)),
+                      qt90=t(terra::extract(baseline_qt90,507)))
+mois_labels <- c("Jan", "Fév", "Mar", "Avr", "Mai", "Juin", 
+                 "Juil", "Août", "Sept", "Oct", "Nov", "Déc")
+mois_jours <- c(1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336)
+ggplot(df_plot, aes(x = doy)) +
+  geom_line(aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
+  geom_line(aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
+  geom_line(aes(y = qt90), color = "red3", linetype = "dashed", size = 1) +  # Qt90 en rouge en tirets
+  scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  # Labels mensuels
+  scale_y_continuous(breaks = seq(floor(min(df_plot)), ceiling(max(df_plot)), by = 1)) +  # Graduation par degré
+  labs(title = "Évolution des valeurs sur 366 jours",
+       x = "Mois",
+       y = "Température (°C)") +
+  theme_minimal()
 ```
 
 # 4. Binarize spatial data : This step test for each cell of the area whether the metric of the 'event' is above or 'bellow' the threshold.
@@ -166,8 +189,8 @@ BEE.calc.corrections(Events_corrected)
 The function bellow gives you basic metrics for a given GPS position, list of position, polygones or list of polygones.
 
 ```{r}
-GPS <- data.frame(x = c(3.875, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls
-                  y = c(43.375, 43.183, 42.781))
+GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls
+                  y = c(43.4287, 43.183, 42.781))
 points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31")
 
 # To sumarise by event :
@@ -182,6 +205,29 @@ Frioul  <- points_metrics[[2]] %>%
 Banyuls <- points_metrics[[3]] %>% 
   select(-value,-daily_rates) %>% 
   distinct(ID, .keep_all=TRUE)
+
+#Check that results are coherent
+temp_2022 <- t(terra::extract(ds[[which(2022==year(time(ds)))]], 507))
+temp_2023 <- t(terra::extract(ds[[which(2023==year(time(ds)))]], 507))
+df_plot$temp_2024 <- t(terra::extract(ds[[which(2024==year(time(ds)))]], 507))
+#non leap year
+df_plot$temp_2022 <- c(temp_2022[1:59], NA, temp_2022[60:365])
+df_plot$temp_2023 <- c(temp_2023[1:59], NA, temp_2023[60:365])
+ggplot(df_plot, aes(x = doy)) +
+  # Lignes pour la moyenne et les quartiles
+  geom_line(aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
+  geom_line(aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
+  geom_line(aes(y = qt90), color = "red3", linetype = "dashed", size = 1) +  # Qt90 en rouge en tirets
+  # Ajout des valeurs de ds entre le 1er janvier 2022 et le 31 décembre 2022
+  geom_line(aes(y = temp_2022), color = "black", size = 1) +  # Ligne noire pour ds
+  # Configuration des axes
+  scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  # Labels mensuels
+  scale_y_continuous(breaks = seq(floor(min(df_plot$temp_2022, na.rm=TRUE)), ceiling(max(df_plot$temp_2022, na.rm=TRUE)), by = 1)) +  # Graduation par degré
+  # Titres et étiquettes
+  labs(title = "Évolution des valeurs sur 366 jours",
+       x = "Mois",
+       y = "Température (°C)") +
+  theme_minimal()
 
 ```
 

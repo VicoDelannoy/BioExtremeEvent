@@ -133,9 +133,9 @@ BEE.calc.baseline <- function(rast_name, start_date=NULL, end_date=NULL, thresho
 
 
 ## Version 3
-rast_name = ds ; start_date=NULL; end_date = "1987-12-31" ; threshold = "qt"; quantile_value = 0.9 ; time_window = 5
+rast_name = ds ; start_date=NULL; end_date = "2010-12-31" ; threshold = "qt"; quantile_value = 0.9 ; time_window = 5 ; smooth_window=10
 ```{r}
-BEE.calc.baseline <- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value, time_window=5, smooth_window=10){
+BEE.calc.baseline <- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value=NULL, time_window=5, smooth_window=10){
   
   # Subset the dataset to the chosen strat_date and end-date if necessary
   if (is.null(start_date) | !is.null(end_date)){

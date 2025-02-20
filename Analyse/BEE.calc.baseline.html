@@ -493,9 +493,9 @@ option already existing in tapp function }</p>
 </div>
 <div id="version-3" class="section level2">
 <h2>Version 3</h2>
-<p>rast_name = ds ; start_date=“1991-01-01”; end_date = “2020-12-31” ;
-threshold = “qt”; quantile_value = 0.9 ; time_window = 5</p>
-<pre class="r"><code>BEE.calc.baseline &lt;- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value, time_window = 5){
+<p>rast_name = ds ; start_date=NULL; end_date = “2010-12-31” ; threshold
+= “qt”; quantile_value = 0.9 ; time_window = 5 ; smooth_window=10</p>
+<pre class="r"><code>BEE.calc.baseline &lt;- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value=NULL, time_window=5, smooth_window=10){
   
   # Subset the dataset to the chosen strat_date and end-date if necessary
   if (is.null(start_date) | !is.null(end_date)){
@@ -535,29 +535,29 @@ threshold = “qt”; quantile_value = 0.9 ; time_window = 5</p>
   if (threshold == &quot;qt&quot;){
     # function to calculate percentile on a specific time_window
     q_rolling &lt;- function(values, na.rm = TRUE) {
-      terra::quantile(values, probs = quantile_value, na.rm = na.rm, type=7)
+      terra::quantile(values, probs = quantile_value, na.rm = na.rm)
     }
-    
-  n_cores &lt;- detectCores() - floor(detectCores()*0.5)  # Use half of the cores
-  baseline_list &lt;- mclapply(1:366, function(i) {
+  baseline_list &lt;- lapply(1:366, function(i) {
       terra::app(rast_name[[doy_indices[[i]]]], fun = q_rolling)
-    }, mc.cores = n_cores)
+    })
   baseline &lt;- rast(baseline_list) #convert to Spatraster
   } else if (threshold == &quot;mean&quot;){        # if the baseline chosen is a mean value then enter loop bellow
-    n_cores &lt;- detectCores() - floor(detectCores()*0.5)  # Use half of the cores
-    baseline_list &lt;- mclapply(1:366, function(i) {
+    baseline_list &lt;- lapply(1:366, function(i) {
       terra::app(rast_name[[doy_indices[[i]]]], fun = mean)
-    }, mc.cores = n_cores)
+    })
   baseline &lt;- rast(baseline_list) #convert to Spatraster
   }   
   # Smooth the value with an 11 days moving average
   smooth_indices &lt;- vector(&quot;list&quot;, 366)
   for (s in 1:366) {
-    days_in_window &lt;- ((j - time_window):(j + time_window)) %% 366
+    days_in_window &lt;- ((s - smooth_window):(s + smooth_window)) %% 366
     days_in_window[days_in_window == 0] &lt;- 366  
-    smooth_indices[[j]] &lt;- days_in_window
+    smooth_indices[[s]] &lt;- days_in_window
   }
-  baseline &lt;- tapp(baseline, smooth_indices, fun = mean, na.rm = TRUE)
+  baseline &lt;- lapply(1:366, function(i) {
+    terra::app(baseline[[smooth_indices[[i]]]], fun = mean, na.rm = TRUE)
+    })
+  baseline &lt;- rast(baseline)
   return(baseline)
 }</code></pre>
 </div>
