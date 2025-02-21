@@ -122,7 +122,7 @@ baseline_qt90 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", en
 baseline_qt10 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
 baseline_mean <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
 df_plot <- data.frame(doy=seq(1:366),
-                      qt10=t(terra::extract(baseline_qt10,507)), #608 is frontignant pixel
+                      qt10=t(terra::extract(baseline_qt10,507)), #507 is frontignant pixel
                       mean=t(terra::extract(baseline_mean,507)),
                       qt90=t(terra::extract(baseline_qt90,507)))
 mois_labels <- c("Jan", "Fév", "Mar", "Avr", "Mai", "Juin", 
@@ -191,7 +191,7 @@ The function bellow gives you basic metrics for a given GPS position, list of po
 ```{r}
 GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls
                   y = c(43.4287, 43.183, 42.781))
-points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31")
+points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31", baseline_qt90, baseline_mean)
 
 # To sumarise by event :
 Frontignan <- points_metrics[[1]] %>% 
@@ -233,60 +233,3 @@ ggplot(df_plot, aes(x = doy)) +
 
 For instance, if you are intrested in marine heat wave you may want to apply Hobday et al. 2016 definition and only keeps the days above treshold when they belongs to a series of 5 days (or more) above threshold and you may want to group these event under a same event when they are distant from 3 days or less. For biological reasons mainly, you may want to apply a more specific definition of 'biologically extreme event'. To see options please look at : ???????????
 
-# ICI COMMENCE UN BROUILLON A REUTILISER POUR CALCULER LES METRICS
-
-The heatwaveR package has a very efficient couple of function to calculate baseline and identify extreme event according the definition of Hobday et al. 2016. The first function requires a df and not a spat raster thus, we wrapped conversion from SpatRAster to df and the 2 functions from heatwaveR under a unique function BEE.calc.baseline and BEE.calc.event UTILISER LES FONCTIONS DE HEATWAVER mais en faisant la parallélisation sur tous les pixels soit mêmes : Faire une liste de df (1 par pixel) puis appliquer ts2clm et detectevent en parallèle sur les différents éléments de la liste
-
-Si c'est trop complexe de relocaliser les pixels il faudra enlever le filtrage des pixels avec que des NA.
-
-```{r chunk-6}
-
-# Charger les packages nécessaires
-library(terra)
-library(heatwaveR)
-library(purrr)
-library(dplyr)
-library(tictoc)
-
-# Supposons que 'ds' est votre SpatRaster
-# ds <- rast("chemin/vers/votre/fichier.tif")
-tic()
-
-# Extraire les dates des noms des couches
-dates <- names(ds) %>% as.Date(format = "%Y-%m-%d")
-
-# Fonction pour traiter un pixel
-process_pixel <- function(pixel_values) {
-  # Ignorer les pixels non valides (tous NA)
-  if (all(is.na(pixel_values))) return(NULL)
-  
-  # Créer un dataframe avec les dates et les valeurs de température
-  df <- data.frame(t = dates, temp = pixel_values)
-  
-  # Appliquer ts2clm
-  clim <- ts2clm(df, climatologyPeriod = c(min(dates), max(dates)))
-  
-  # Détecter les événements de chaleur
-  detect_event(clim)
-}
-
-# Extraire les valeurs du raster sous forme de matrice
-pixel_matrix <- terra::values(ds)
-
-# Filtrer les pixels non valides (tous NA)
-valid_pixels <- apply(pixel_matrix, 1, function(x) !all(is.na(x)))
-pixel_matrix <- pixel_matrix[valid_pixels, ]
-
-# Activer le parallélisme
-plan(multisession, workers = parallel::detectCores() - 1)
-print(paste("Nombre de cœurs utilisés :", nbrOfWorkers()))
-# Appliquer la fonction en parallèle
-results <- future_map(asplit(pixel_matrix, 1), process_pixel, .progress = TRUE)
-
-toc()
-
-# results contient maintenant les résultats pour chaque pixel
-# Extraire les résultats et les erreurs
-results_list <- transpose(results)
-successful_results <- results_list$result
-```

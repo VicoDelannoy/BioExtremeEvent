@@ -3,11 +3,13 @@ title: "BEE.calc.metrics_point"
 author: "Vico"
 format: html
 editor: visual
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r}
 # start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds
-BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NULL, end_date=NULL){
+BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NULL, end_date=NULL, baseline_qt90, baseline_mean){
   ########################################## WARNINGS ############################################################
   if ( is.null(start_date) | is.null(end_date)) {
     warning("You didn't specify a begining date and a ending date (see argument 'start_date' and 'end_date'), the first date and last date in your time Values SpatRaster will be used.")
@@ -68,10 +70,17 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NUL
   
   #Create a list of dataframe to store the information using one element (df) per pixel and one row per event
   colnames(GPS)<-c("x","y", names(GPS[3]))
+  
+  #Get daily anomaly to baseline_qt90 and to baseline_mean
+  qt90 <- as.data.frame(t(terra::extract(baseline_qt90, GPS[,3])))
+  qt90$dates <-format(seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"), "%m-%d")
+  mean <- as.data.frame(t(terra::extract(baseline_mean, GPS[,3])))
+  mean$dates <- format(seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"), "%m-%d")
 
   metrics <- lapply(1:length(df_list_only_1), function(p) { # Go through each pixel
     df <- df_list_only_1[[p]]
     df$Date <- as.Date(df$Date)
+    df$dates <- format(as.Date(df$Date), "%m-%d")
     df <- df %>%
       group_by(ID) %>%
       mutate(
@@ -118,17 +127,69 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NUL
         median_offset_rate = median(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
         ## Standard deviation
         sd_offset_rate = sd(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE)
-
       ) %>%
-      ungroup()  # Pour éviter tout effet résiduel du groupement
+      ungroup()  
+    # Add daily baseline_qt90 and daily baseline_mean
+    df <- df %>%
+      left_join(qt90[, c("dates", paste0("V", as.character(p)))], by = "dates") %>%
+      rename(baseline_qt90 = paste0("V", as.character(p))) %>%
+      left_join(mean[, c("dates", paste0("V", as.character(p)))], by = "dates") %>%
+      rename(baseline_mean = paste0("V", as.character(p)))
+    # Calculate anomalies
+    df <- df %>%
+    mutate(
+      anomaly_qt90 = value - baseline_qt90,
+      anomaly_mean = value - baseline_mean,
+      anomaly_unit = baseline_qt90 - baseline_mean,
+      category = case_when(
+        anomaly_qt90 < anomaly_unit ~ "Category I",
+        anomaly_qt90 < 2 * anomaly_unit ~ "Category II",
+        anomaly_qt90 < 3 * anomaly_unit ~ "Category III",
+        anomaly_qt90 >= 3 * anomaly_unit ~ "Category IV",
+        TRUE ~ NA_character_
+      )
+    )
+    # Keep the maximum category reached by each event
+    category_order <- c("Category I", "Category II", "Category III", "Category IV")
+    df <- df %>%
+    mutate(category = factor(category, levels = category_order))
+    summary_stats <- df %>%
+    group_by(ID) %>%
+    summarise(
+      max_category = levels(category)[which.max(as.numeric(category))],  # Catégorie avec la plus grande valeur
+      .groups = 'drop'
+    )
+
+    # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to the ouputs + add maximal category of each event
+    summary_stats <- df %>%
+    group_by(ID) %>%
+    summarise(
+      mean_anomaly_qt90 = mean(anomaly_qt90, na.rm = TRUE),
+      sd_anomaly_qt90 = sd(anomaly_qt90, na.rm = TRUE),
+      max_category = names(sort(table(category), decreasing = TRUE))[1],  # Catégorie la plus fréquente
+      .groups = 'drop'
+    )
+    df <- df %>%
+    left_join(summary_stats, by = "ID")
+    
+    # Delete daily values that are not usefull to describe the full event
+    df <- df %>%
+    select(-baseline_qt90, -baseline_mean,-anomaly_mean, -anomaly_qt90, -anomaly_unit, -category) #daily values 
     return(df)
   })
-
+    
   # OTHER PART TO DEVELOP : 
   # For each pixels : 
   # - anomalie cumulée par événements
   # - catégories
-  # - onset rate, offset_rate (dans l'événement et depuis une période donnée avant et après dont la durée et fixée par l'utilisateur)
+  # - onset rate, offset_rate (dans l'événement et depuis une période donnée avant et après dont la durée est fixée par l'utilisateur)
   #For the all period I want : Frequency, maximum intensity, mean and median intensity, sum of anomalies, date of maximum intensity, first date 1, last date 1
 }
 ```
+
+The categorie of each event are determined according according Hobday et al. 2018 definition
+
+Category I : btw the 90th percentile and twice the value of the anomalies between mean value end 90th percentile. 
+Category II : btw twice and 3 times the anomalie 
+Category III : btw 3 times and four time the anomaly 
+Category IV : observed value are higher than four times the anomaly btw mean and 90th percentile + the mean value.

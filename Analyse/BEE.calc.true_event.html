@@ -427,7 +427,8 @@ instead of 2 events of 5 days only you can use : low complexity with
 
   # Fusionner les résultats pour optimiser la mémoire
   all_dates &lt;- unlist(lapply(all_data, `[[`, &quot;dates&quot;), recursive = FALSE)
-  all_rasters &lt;- do.call(c, lapply(all_data, `[[`, &quot;rasters&quot;))
+  all_rasters &lt;- rast(lapply(all_data, `[[`, &quot;rasters&quot;))
+  #all_rasters &lt;- do.call(c, lapply(all_data, `[[`, &quot;rasters&quot;))
   all_rasters_names &lt;- unlist(lapply(all_data, `[[`, &quot;dates&quot;), recursive = FALSE)
   
   # Clean memory

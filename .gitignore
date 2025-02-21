@@ -14,6 +14,7 @@ Data/
 # Session Data files
 .RData
 .RDataTmp
+.RDataTmp1
 # User-specific files
 .Ruserdata
 # Example code in package build process

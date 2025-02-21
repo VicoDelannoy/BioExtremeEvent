@@ -369,132 +369,10 @@ present.</li>
 <li>“<em>mean</em>” : calculate the mean value for each cell at the time
 resolution of the data set .</li>
 </ul>
-<div id="rast_name-ds-start_datenull-end_date-1987-12-31-threshold-qt-quantile_value-0.9-time_window-5" class="section level1">
+<div id="rast_name-ds-start_datenull-end_date-1987-12-31-threshold-qt-quantile_value-0.9-time_window-5-smooth_window10" class="section level1">
 <h1>rast_name = ds ; start_date=NULL; end_date = “1987-12-31” ;
-threshold = “qt”; quantile_value = 0.9 ; time_window = 5</h1>
-</div>
-<div id="time_window-5---11-days-centered-on-d-day" class="section level1">
-<h1>time_window = 5 &lt;-&gt; 11 days centered on d day</h1>
-<p>BEE.calc.baseline &lt;- function(rast_name, start_date=NULL,
-end_date=NULL, threshold, quantile_value, time_window = 5){</p>
-<p># Subset the dataset to the chosen strat_date and end-date if
-necessary if (!is.null(start_date) | !is.null(end_date)){ if (
-is.null(start_date) ){ start_date &lt;- names(rast_name)<span class="math display">\[1\]</span> warning(“You have provided an
-‘end_date’ but no ‘start_date’, first date of the dataset
-(”,start_date,“) have been used as first day of the baseline.” ) } if (
-is.null(end_date) ){ end_date &lt;- names(rast_name)<span class="math display">\[nlyr(rast_name)\]</span> warning(“You have
-provided a ‘start_date’ but no ‘end_date’, last date of the dataset (”,
-end_date,“) have been used as last day of the baseline.” ) } layer_dates
-&lt;- as.Date(names(ds)) selected_layers &lt;- which(layer_dates &gt;=
-start_date &amp; layer_dates &lt;= end_date) rast_name &lt;- ds<span class="math display">\[\[selected_layers\]</span>] }</p>
-<p>ncor = detectCores()-2 # count how many cores there are in the system
-and ask to use all of them except 2 cl =makeCluster(ncor) # create a
-cluster to do calculation in parallel using ncor</p>
-<p>if (threshold == “qt”){ # check which threshold was asked by the
-operator if (is.null(quantile_value)) {return(“Error : if you want to
-calculate the quantile at each point you need to precise which quantile
-in the argument : ex : quantile_value=90 for the 90th quantile. If you
-want to calculate the mean, use threshold=‘mean’.”)} if (quantile_value
-&lt; 0 | quantile_value &gt;1){ return(“Error : ‘quantile_value’
-argument must be between 0 and 1”)}</p>
-<pre><code>q =  function(x, na.rm = TRUE){   # define a function &#39;q&#39; to estimate the value of the quantile value  for each pixel of the raster (x must be a raster), NA are delete before calculation
-  return(quantile(x,quantile_value,na.rm=na.rm)) #quantile needs several arguments so it would be confusing to have this function directly in tapp + tapp is not directly compatible with complex function
-}
-
-baseline &lt;- tapp(rast_name,index = &quot;doy&quot;, fun = q, cores = cl) #tapp is a function from terra package that apply a function (here q) to the group of values from the same day of the year across all years available
-stopCluster(cl)}                    # close core cluster</code></pre>
-<p>else if (threshold == “mean”){ # if the baseline chosen is a mean
-value then enter loop bellow baseline &lt;- tapp(rast_name,index =
-“doy”, fun = mean, cores = cl) #directly uses the mean option already
-existing in tapp function stopCluster(cl)} # close core cluster
-return(baseline) }</p>
-<div id="version-2" class="section level2">
-<h2>Version 2</h2>
-<p>BEE.calc.baseline &lt;- function(rast_name, start_date=NULL,
-end_date=NULL, threshold, quantile_value, time_window = 5){</p>
-<p># Subset the dataset to the chosen strat_date and end-date if
-necessary if (is.null(start_date) | !is.null(end_date)){ if (
-is.null(start_date) ){ start_date &lt;- names(rast_name)[1] warning(“You
-have provided an ‘end_date’ but no ‘start_date’, first date of the
-dataset (”,start_date,“) have been used as first day of the baseline.” )
-} if ( is.null(end_date) ){ end_date &lt;-
-names(rast_name)[nlyr(rast_name)] warning(“You have provided a
-‘start_date’ but no ‘end_date’, last date of the dataset (”, end_date,“)
-have been used as last day of the baseline.” ) } } ## cut rast_name to
-only keep the part between start_date and end_date dates &lt;-
-as.Date(time(rast_name)) to_keep &lt;- which(dates &gt;=
-as.Date(start_date) &amp; dates &lt;= as.Date(end_date)) rast_name &lt;-
-rast_name[[to_keep]] # terra::tapp can be apply to a specific subset of
-layers and the layers can be called by there index. Lets create a list
-of indexes : ## 1. Identify leap year in the dataset is_leap_year &lt;-
-function(years) { return((years %% 4 == 0 &amp; years %% 100 != 0) |
-(years %% 400 == 0)) } ### 2. Get all the dates availbale in the
-Spatraster dates &lt;- as.Date(time(rast_name)) # Dates years &lt;-
-as.integer(format(dates, “%Y”)) # Years doy &lt;-
-as.integer(format(dates, “%j”)) # Days of the year ### Check for leap
-year leap_years &lt;- is_leap_year(years) #check for each day if it
-belongs to a leap year or not #doy_max &lt;- ifelse(leap_years, 366,
-365) # adapte the modulo (bellow) to fit the length of the each year #
-Indices vector (366 DOY possibles) doy_indices &lt;- vector(“list”,
-366)</p>
-<p>## 3. Go trough each days of a 366 days year for (j in 1:366) { #
-Deal with the 29th of febuary (supposed to be the 60th day of the year
-when existing) if (j &lt;60) { # Get all the DOY in the time_window (DOY
-- window_size à DOY + window_size) days_in_window &lt;- ((j -
-time_window):(j + time_window)) %% 365 ## %% 366 is a ‘modulo’ which
-mean that when a number reach 366 it is converted to 0 and the series
-that over from 0, 1, 2… days_in_window[days_in_window == 0] &lt;- 365 #
-Correction to avoid 0 value for the DOY selected_layers &lt;- which(doy
-%in% days_in_window) doy_indices[[j]] &lt;- selected_layers } } if (j ==
-60) { for (y in seq(1,length(unique(years)),1)){ if
-(is_leap_year(unique(years))[y]){ # if it is not a leap_year, we run
-normal script but store it under doy 61 so the doy stay align between
-leap year (366) and non leap year (365) # Get all the DOY in the
-time_window (DOY - window_size à DOY + window_size) days_in_window &lt;-
-((j - time_window):(j + time_window)) %% 366 ## %% 366 is a ‘modulo’
-which mean that when a number reach 366 it is converted to 0 and the
-series that over from 0, 1, 2… days_in_window[days_in_window == 0] &lt;-
-366 # Correction to avoid 0 value for the DOY</p>
-<pre><code>    # Generate the index for those days
-    selected_layers &lt;- which(doy %in% days_in_window)
-    doy_indices[[j+1]] &lt;- selected_layers
-        }
-        if (is_leap_year(unique(years))[y]){ #if it is a leap_year we run normal script but store it under doy 60
-          days_in_window &lt;- ((j - time_window):(j + time_window)) %% 366 ## %% 366 is a &#39;modulo&#39; which mean that when a number reach 366 it is converted to 0 and the series that over from 0, 1, 2...
-          days_in_window[days_in_window == 0] &lt;- 366  # Correction to avoid 0 value for the DOY
-  
-    # Generate the index for those days
-          selected_layers &lt;- which(doy %in% days_in_window)
-          doy_indices[[j+1]] &lt;- selected_layers
-      }
-    }
-    if (j != 60 &amp; j &gt; 60) {
-    # Get all the DOY in the time_window (DOY - window_size à DOY + window_size)
-    days_in_window &lt;- ((j - time_window):(j + time_window)) %% 366 ## %% 366 is a &#39;modulo&#39; which mean that when a number reach 366 it is converted to 0 and the series that over from 0, 1, 2...
-    days_in_window[days_in_window == 0] &lt;- 366  # Correction to avoid 0 value for the DOY
-  
-    # Generate the index for those days
-    selected_layers &lt;- which(doy %in% days_in_window)
-    doy_indices[[j+1]] &lt;- selected_layers
-  }
-        
-        
-  
-  </code></pre>
-<p>if (threshold == “qt”){ # function to calculate percentile on a
-specific time_window q_rolling &lt;- function(values, na.rm = TRUE) {
-quantile(values, probs = quantile_value, na.rm = na.rm, type=7) }
-baseline &lt;- terra::tapp(rast_name, doy_index_list, fun = q_rolling) }
-else if (threshold == “mean”){ # if the baseline chosen is a mean value
-then enter loop bellow baseline &lt;- terra::tapp(rast_name, index =
-doy_index_list, fun = mean, width = time_window) #directly uses the mean
-option already existing in tapp function }</p>
-<p>return(baseline) }</p>
-</div>
-<div id="version-3" class="section level2">
-<h2>Version 3</h2>
-<p>rast_name = ds ; start_date=NULL; end_date = “2010-12-31” ; threshold
-= “qt”; quantile_value = 0.9 ; time_window = 5 ; smooth_window=10</p>
+threshold = “qt”; quantile_value = 0.9 ; time_window = 5;
+smooth_window=10</h1>
 <pre class="r"><code>BEE.calc.baseline &lt;- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value=NULL, time_window=5, smooth_window=10){
   
   # Subset the dataset to the chosen strat_date and end-date if necessary
@@ -560,7 +438,6 @@ option already existing in tapp function }</p>
   baseline &lt;- rast(baseline)
   return(baseline)
 }</code></pre>
-</div>
 </div>
 
 

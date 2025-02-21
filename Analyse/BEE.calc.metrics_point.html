@@ -356,7 +356,7 @@ display: none;
 
 
 <pre class="r"><code># start_date &lt;- &quot;2022-01-01&quot; ; end_date &lt;- &quot;2023-12-31&quot; ; Values &lt;- ds
-BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS, start_date=NULL, end_date=NULL){
+BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS, start_date=NULL, end_date=NULL, baseline_qt90, baseline_mean){
   ########################################## WARNINGS ############################################################
   if ( is.null(start_date) | is.null(end_date)) {
     warning(&quot;You didn&#39;t specify a begining date and a ending date (see argument &#39;start_date&#39; and &#39;end_date&#39;), the first date and last date in your time Values SpatRaster will be used.&quot;)
@@ -417,6 +417,12 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS, start_date=
   
   #Create a list of dataframe to store the information using one element (df) per pixel and one row per event
   colnames(GPS)&lt;-c(&quot;x&quot;,&quot;y&quot;, names(GPS[3]))
+  
+  #Get daily anomaly to baseline_qt90 and to baseline_mean
+  qt90 &lt;- as.data.frame(t(terra::extract(baseline_qt90, GPS[,3])))
+  qt90$dates &lt;- format(seq(as.Date(&quot;2024-01-01&quot;), as.Date(&quot;2024-12-31&quot;), by = &quot;day&quot;), &quot;%m-%d&quot;)
+  mean &lt;- as.data.frame(t(terra::extract(baseline_mean, GPS[,3])))
+  mean$dates &lt;- format(seq(as.Date(&quot;2024-01-01&quot;), as.Date(&quot;2024-12-31&quot;), by = &quot;day&quot;), &quot;%m-%d&quot;)
 
   metrics &lt;- lapply(1:length(df_list_only_1), function(p) { # Go through each pixel
     df &lt;- df_list_only_1[[p]]
@@ -467,19 +473,93 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS, start_date=
         median_offset_rate = median(daily_rates[Date &gt;= date_max_value &amp; Date &lt;= last_date], na.rm = TRUE),
         ## Standard deviation
         sd_offset_rate = sd(daily_rates[Date &gt;= date_max_value &amp; Date &lt;= last_date], na.rm = TRUE)
-
       ) %&gt;%
       ungroup()  # Pour éviter tout effet résiduel du groupement
     return(df)
   })
-
+    
+        
+        
   # OTHER PART TO DEVELOP : 
   # For each pixels : 
   # - anomalie cumulée par événements
   # - catégories
-  # - onset rate, offset_rate (dans l&#39;événement et depuis une période donnée avant et après dont la durée et fixée par l&#39;utilisateur)
+  # - onset rate, offset_rate (dans l&#39;événement et depuis une période donnée avant et après dont la durée est fixée par l&#39;utilisateur)
   #For the all period I want : Frequency, maximum intensity, mean and median intensity, sum of anomalies, date of maximum intensity, first date 1, last date 1
 }</code></pre>
+<div id="annexe-fonction-to-identify-the-categorie-of-each-event-according-hobday-et-al.-2018" class="section level1">
+<h1>annexe fonction to identify the categorie of each event according
+Hobday et al. 2018</h1>
+<p>Category I : btw the 90th percentile and twice the value of the
+anomalies between mean value end 90th percentile. Category II : btw
+twice and 3 times the anomalie Category II : btw 3 times and four time
+the anomaly Category IV : observed value are higher than four times the
+anomaly btw mean and 90th percentile + the mean value.</p>
+<p>Le code ci-dessous fonctionne mais n’est pas très élégant : #
+Anomalies to 90th qt ## associate to each day of ‘df_list_only_1’ the
+value of the 90th percentile ### get the values of the 90th percentile
+associated to dates qt90 &lt;-
+as.data.frame(t(terra::extract(baseline_qt90,GPS[,3]))) qt90<span class="math inline">\(dates = as.vector(format(seq(as.Date(paste0(2024,
+&quot;-01-01&quot;)), as.Date(paste0(2024, &quot;-12-31&quot;)), by =
+&quot;day&quot;), &quot;%m-%d&quot;))
+      ### add to df_list_only_1 dataframe a list of dates
+      df_list_only_1 &lt;- lapply(df_list_only_1, function(df) {
+          df\)</span>dates &lt;- format(as.Date(df<span class="math inline">\(Date), &quot;%m-%d&quot;)
+          return(df)
+      })
+      ### merge df_list_only1 and qt90
+      p &lt;- 1
+      df_list_only_1_v2 &lt;- lapply(df_list_only_1, function(df) {
+        df &lt;- merge(df, qt90[, c(&quot;dates&quot;,
+paste0(&quot;V&quot;, as.character(p)))], by = &quot;dates&quot;, all.x
+= TRUE)
+        p &lt;&lt;- p + 1
+        return(df)
+      })
+      ## get the anomalies
+      df_list_only_1_v2 &lt;- lapply(df_list_only_1_v2, function (df){
+        df\)</span>anomaly_qt90 &lt;- df$value - df[,8] return(df)
+})</p>
+<pre><code># Anomalies to mean value
+  ## associate to each day of &#39;df_list_only_1&#39; the value of the 90th percentile
+    ### get the values of the 90th percentile associated to dates
+    mean &lt;- as.data.frame(t(terra::extract(baseline_mean,GPS[,3])))
+    mean$dates = as.vector(format(seq(as.Date(paste0(2024, &quot;-01-01&quot;)), as.Date(paste0(2024, &quot;-12-31&quot;)), by = &quot;day&quot;), &quot;%m-%d&quot;))
+    ### merge df_list_only1 and mean
+    p &lt;- 1  
+    df_list_only_1_v2 &lt;- lapply(df_list_only_1_v2, function(df) {
+      df &lt;- merge(df, mean[, c(&quot;dates&quot;, paste0(&quot;V&quot;, as.character(p)))], by = &quot;dates&quot;, all.x = TRUE)
+      p &lt;&lt;- p + 1  
+      return(df)
+    })
+    ## get the anomalies
+    df_list_only_1_v2 &lt;- lapply(df_list_only_1_v2, function (df){
+      df$anomaly_mean &lt;- df$value - df[,8] 
+      return(df)
+    }) # V1.x is the baseline_qt90, V1.y is the baseline_mean
+ # Calculate the anomalie &#39;unit&#39; for each day (the value used as reference to determine the event category)
+    df_list_only_1_v2 &lt;- lapply(df_list_only_1_v2, function(df){
+      df$anomaly_unit &lt;- df[,8] - df[,10] #baseline_qt90-baseline_mean
+      return(df)
+    })
+ # Identify the category
+  for (p in seq(1:length(df_list_only_1_v2))){ 
+    for (d in 1:length(df_list_only_1_v2[[p]]$Date)){
+      if (df_list_only_1_v2[[p]]$anomaly_qt90[d] &lt; df_list_only_1_v2[[p]]$anomaly_unit[d]){
+        df_list_only_1_v2[[p]]$category[d] &lt;- c(&quot;Category I&quot;)
+      }
+      if (df_list_only_1_v2[[p]]$anomaly_qt90[d] &gt;= df_list_only_1_v2[[p]]$anomaly_unit[d] &amp; df_list_only_1_v2[[p]]$anomaly_qt90[d] &lt; df_list_only_1_v2[[p]]$anomaly_unit[d]*2){
+        df_list_only_1_v2[[p]]$category[d] &lt;- c(&quot;Category II&quot;)
+      }
+      if (df_list_only_1_v2[[p]]$anomaly_qt90[d] &gt;= df_list_only_1_v2[[p]]$anomaly_unit[d]*2 &amp; df_list_only_1_v2[[p]]$anomaly_qt90[d] &lt; df_list_only_1_v2[[p]]$anomaly_unit[d]*3){
+        df_list_only_1_v2[[p]]$category[d] &lt;- c(&quot;Category III&quot;)
+      }
+      if (df_list_only_1_v2[[p]]$anomaly_qt90[d] &gt;= df_list_only_1_v2[[p]]$anomaly_unit[d]*3){
+        df_list_only_1_v2[[p]]$category[d] &lt;- c(&quot;Category IV&quot;)
+      }
+    }
+  }</code></pre>
+</div>
 
 
 

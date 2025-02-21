@@ -356,61 +356,6 @@ display: none;
 
 
 <p>#rast_name= ds; baseline=baseline_qt90; direction = “above”</p>
-<p>BEE.calc.binarize &lt;- function(rast_name, baseline, direction)
-{</p>
-<p>if(class(baseline) == “SpatRaster”){ new_extent &lt;- ext(rast_name)
-# Retrieve the extent of rast_name baseline &lt;- resample(baseline,
-rast_name, method = “near”) # Change the extent to match that of
-rast_name #baseline &lt;- crop(baseline, new_extent, snap = “in”) # Crop
-to obtain the same area as rast_name time_list_exp &lt;- time(rast_name,
-format=“days”) # Retrieve the dates time_list_base &lt;-
-generate_month_day(2024) # Create dates in the format %m.%d
-names(rast_name) &lt;- time_list_exp # Rename the layers with the dates
-names(baseline) &lt;- time_list_base # Rename the layers with the dates
-delta &lt;- binarize_spat(rast_name, baseline, direction) # Binarize the
-pixels to 1 &amp; 0 (function from the packacge itself, in R_functions)
-/! this part doesn’t check if the value is above for five consecutive
-days or any duration provided through daysEE, defined in
-Small_shaping_function delta_list &lt;- RastToList(delta) # Create a
-list of SpatRaster by date in the format %d.%m return(delta_list) #
-Output the list }</p>
-<p>if(class(baseline) == “numeric”){ time_list_exp &lt;- time(rast_name,
-format=“days”) # Retrieve the dates names(rast_name) &lt;- time_list_exp
-# Rename the layers with the dates if (direction == “above”){ delta
-&lt;- ifel(rast_name &lt; baseline, 0,1) # Binarize the cells based on
-the condition } if (direction == “bellow”){ delta &lt;- ifel(rast_name
-&lt; baseline, 1,0) # Binarize the cells based on the condition }
-delta_list &lt;- RastToList(delta) # Create a list of SpatRaster by date
-in the format %d.%m return(delta_list) # Output the list } }</p>
-<p>================ Here bellow are the function used in
-BEE.calc.binarize ======================================== # Generate a
-list of date (format %m.%d) for a year</p>
-<p>generate_month_day &lt;- function(year) { days_per_month &lt;- c(31,
-28 + (year %% 4 == 0 &amp; (year %% 100 != 0 | year %% 400 == 0)), 31,
-30, 31, 30, 31, 31, 30, 31, 30, 31) months &lt;- sprintf(“%02d”,
-rep(1:12, days_per_month)) days &lt;- sprintf(“%02d”,
-unlist(sapply(days_per_month, seq_len))) return(paste(months, days, sep
-= “.”)) }</p>
-<div id="binarise-spatrasters-cells-with-1-0-if-true-or-false-to-a-reference-condition" class="section level1">
-<h1>Binarise SpatRaster’s cells with 1 &amp; 0 if true or false to a
-reference condition</h1>
-<p>binarize_spat &lt;- function(exp, base, direction=“above”){ delta
-&lt;- exp - base if(direction == “above”){ delta &lt;- ifel(delta &lt;=
-0, 0, 1) } if(direction == “bellow”){ delta &lt;- ifel(delta &lt;= 0, 0,
-1) } return(delta) }</p>
-</div>
-<div id="create-a-list-from-a-spatraster-with-the-date-format-m.d-as-lists-items" class="section level1">
-<h1>Create a list from a SpatRaster with the date (format %m.%d) as
-list’s items</h1>
-<p>RastToList &lt;- function(x) { md &lt;- generate_month_day(2024)
-indices_strata &lt;- list() noms_strata &lt;- names(x) for (i in
-unique(md)) { indices &lt;- which(grepl(paste0(i, “$”), noms_strata)) if
-(length(indices) == 0) { next } indices_strata<span class="math display">\[\[i\]</span>] &lt;- indices }
-return(lapply(indices_strata, FUN = function(y) { indices &lt;- x<span class="math display">\[\[y\]</span>] })) }</p>
-</div>
-<div id="version2" class="section level1">
-<h1>Version2</h1>
-<p>#rast_name= ds; baseline=baseline_qt90; direction = “above”</p>
 <pre class="r"><code>BEE.calc.binarize &lt;- function(rast_name, baseline, direction) {
 
   if(class(baseline) == &quot;SpatRaster&quot;){
@@ -430,10 +375,10 @@ return(lapply(indices_strata, FUN = function(y) { indices &lt;- x<span class="ma
     time_list_exp &lt;- time(rast_name, format=&quot;days&quot;) # Retrieve the dates
     names(rast_name) &lt;- time_list_exp # Rename the layers with the dates
     if (direction == &quot;above&quot;){
-      delta &lt;- ifel(rast_name &lt; baseline, 0,1) # Binarize the cells based on the condition
+      delta &lt;- terra::ifel(rast_name &lt; baseline, 0,1) # Binarize the cells based on the condition
       }
     if (direction == &quot;bellow&quot;){
-      delta &lt;- ifel(rast_name &lt; baseline, 1,0) # Binarize the cells based on the condition
+      delta &lt;- terra::ifel(rast_name &lt; baseline, 1,0) # Binarize the cells based on the condition
     }
     delta_list &lt;- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
     return(delta_list) # Output the list
@@ -448,8 +393,7 @@ list of date (format %m.%d) for a year</p>
   days &lt;- sprintf(&quot;%02d&quot;, unlist(sapply(days_per_month, seq_len)))
   return(paste(months, days, sep = &quot;.&quot;))
 }</code></pre>
-</div>
-<div id="binarise-spatrasters-cells-with-1-0-if-true-or-false-to-a-reference-condition-1" class="section level1">
+<div id="binarise-spatrasters-cells-with-1-0-if-true-or-false-to-a-reference-condition" class="section level1">
 <h1>Binarise SpatRaster’s cells with 1 &amp; 0 if true or false to a
 reference condition</h1>
 <p>obs &lt;- rast_name ; base &lt;- baseline_qt90</p>
@@ -473,25 +417,18 @@ reference condition</h1>
   base_extended &lt;- rast(base_list) 
   time(base_extended) &lt;- dates
   #calculate anomalia
-  subtract_layers &lt;- function(c) {
-    obs_layer &lt;- obs[[c]]
-    base_layer &lt;- base_extended[[c]]
-    diff_layer &lt;- obs_layer - base_layer
-    retune(diff_layer)
-  }
-  n_cores &lt;- floor(detectCores()*0.5)  # Use half of the cores 
-  delta &lt;- mclapply(1:300, subtract_layers, mc.cores = n_cores)
+  delta &lt;- obs - base_extended
 
   if(direction == &quot;above&quot;){
-    delta &lt;- ifel(delta &lt;= 0, 0, 1)
+    delta &lt;- terra::ifel(delta &lt;= 0, 0, 1)
   }
   if(direction == &quot;bellow&quot;){
-    delta &lt;- ifel(delta &lt;= 0, 0, 1)
+    delta &lt;- terra::ifel(delta &lt;= 0, 1, 0)
   }
   return(delta)
 }</code></pre>
 </div>
-<div id="create-a-list-from-a-spatraster-with-the-date-format-m.d-as-lists-items-1" class="section level1">
+<div id="create-a-list-from-a-spatraster-with-the-date-format-m.d-as-lists-items" class="section level1">
 <h1>Create a list from a SpatRaster with the date (format %m.%d) as
 list’s items</h1>
 <pre class="r"><code>RastToList &lt;- function(x) {
