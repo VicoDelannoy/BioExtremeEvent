@@ -189,10 +189,9 @@ BEE.calc.corrections(Events_corrected)
 The function bellow gives you basic metrics for a given GPS position, list of position, polygones or list of polygones.
 
 ```{r}
-GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls
+GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls, Monaco
                   y = c(43.4287, 43.183, 42.781))
-points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31", baseline_qt90, baseline_mean)
-
+points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31", baseline_qt90, baseline_mean, group_by_event = TRUE)
 # To sumarise by event :
 Frontignan <- points_metrics[[1]] %>% 
   select(-value,-daily_rates) %>% 
@@ -229,7 +228,49 @@ ggplot(df_plot, aes(x = doy)) +
        y = "Température (°C)") +
   theme_minimal()
 
+
+# Represent the events :
+## rbind dataset
+Frontignan$site <- rep("Frontignan",length(Frontignan$Original_value))
+Frioul$site <- rep("Frioul",length(Frioul$Original_value))
+Banyuls$site <- rep("Banyuls",length(Banyuls$Original_value))
+All <- rbind(Frontignan,Frioul,Banyuls)
+#plot
+ggplot(All, aes(x = dates, y = max_anomaly_qt90, size = Nb_days, color = site)) +
+  geom_point(alpha = 0.7) +  # Ajoute des points avec un peu de transparence
+  scale_size(range = c(2, 10)) +  # Ajuste la taille des bulles
+  labs(title = "Caractérisation des vagues de chaleurs",
+       x = "Dates",
+       y = "Anomalie maximum (par rapport au 90eme percentile",
+       size = "Nb_days",
+       color = "Site") +
+  theme_minimal() +  # Applique un style épuré
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+#ACP
+variables_acp <- All %>%
+  select(Nb_days, days_onset, mean_onset_rate,mean_anomaly_qt90, dates) %>%
+  mutate(dates = as.Date(dates, format = "%m-%d")) %>%  # Convertir en date (mais sans année)
+  mutate(dates = as.numeric(format(dates, "%j"))) 
+variables_acp <- variables_acp %>%
+  drop_na()
+variables_acp_scaled <- scale(variables_acp)
+acp_result <- prcomp(variables_acp_scaled, center = TRUE, scale. = TRUE)
+summary(acp_result)
+factoextra::fviz_eig(acp_result)
+# Graphique des individus
+fviz_pca_ind(acp_result, 
+             label = "none", # Pas de labels pour les points
+             habillage = All$site, # Colorer selon le site si pertinent
+             addEllipses = TRUE, # Ajouter des ellipses par groupe
+             repel = TRUE) 
+
+# Graphique des variables
+fviz_pca_var(acp_result, 
+             col.var = "cos2", # Coloration selon la qualité de représentation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE) 
 ```
 
 For instance, if you are intrested in marine heat wave you may want to apply Hobday et al. 2016 definition and only keeps the days above treshold when they belongs to a series of 5 days (or more) above threshold and you may want to group these event under a same event when they are distant from 3 days or less. For biological reasons mainly, you may want to apply a more specific definition of 'biologically extreme event'. To see options please look at : ???????????
-

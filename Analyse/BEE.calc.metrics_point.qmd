@@ -9,7 +9,10 @@ editor_options:
 
 ```{r}
 # start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds
-BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NULL, end_date=NULL, baseline_qt90, baseline_mean){
+BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, 
+                                   start_date=NULL, end_date=NULL, 
+                                   baseline_qt90, baseline_mean, 
+                                   group_by_event=TRUE){
   ########################################## WARNINGS ############################################################
   if ( is.null(start_date) | is.null(end_date)) {
     warning("You didn't specify a begining date and a ending date (see argument 'start_date' and 'end_date'), the first date and last date in your time Values SpatRaster will be used.")
@@ -105,11 +108,13 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NUL
     
         # Day of maximum temperature
         date_max_value = as.Date(Date[which.max(value)]),
+        
+        #Daily rates
+        daily_rates = (lead(value) - value) / as.numeric(lead(Date) - Date),
     
         # Onset rate
-        daily_rates = (lead(value) - value) / as.numeric(lead(Date) - Date),
-        ## raw
         days_onset = as.numeric(date_max_value - first_date),
+        ## raw
         raw_onset_rate = (max_value - value[which(Date==first_date)]) / days_onset,
         ## mean
         mean_onset_rate = mean(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
@@ -119,8 +124,8 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NUL
         sd_onset_rate = sd(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
     
         # Offset rate
-        ## raw
         days_offset = as.numeric(last_date - date_max_value),
+        ## raw
         raw_offset_rate = (value[which(Date==last_date)] - max_value) / days_offset,
         ## mean
         mean_offset_rate = mean(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
@@ -166,15 +171,25 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NUL
     summarise(
       mean_anomaly_qt90 = mean(anomaly_qt90, na.rm = TRUE),
       sd_anomaly_qt90 = sd(anomaly_qt90, na.rm = TRUE),
+      max_anomaly_qt90 = max(anomaly_qt90, na.rm = TRUE),
+      mean_anomaly_mean= mean(anomaly_mean, na.rm = TRUE),
+      sd_anomaly_mean = sd(anomaly_mean, na.rm = TRUE),
+      max_anomaly_mean = max(anomaly_mean, na.rm = TRUE),
       max_category = names(sort(table(category), decreasing = TRUE))[1],  # Catégorie la plus fréquente
       .groups = 'drop'
     )
     df <- df %>%
     left_join(summary_stats, by = "ID")
     
-    # Delete daily values that are not usefull to describe the full event
+    
+    if (group_by_event) {
     df <- df %>%
-    select(-baseline_qt90, -baseline_mean,-anomaly_mean, -anomaly_qt90, -anomaly_unit, -category) #daily values 
+      # Delete daily values that are not usefull to describe the full event
+      select(-baseline_qt90, -baseline_mean, -anomaly_mean, -anomaly_qt90, -anomaly_unit, -category) %>%
+      distinct(ID, .keep_all = TRUE)  # Une seule ligne par ID
+  } else {
+    df <- df 
+  }
     return(df)
   })
     
@@ -189,7 +204,4 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, start_date=NUL
 
 The categorie of each event are determined according according Hobday et al. 2018 definition
 
-Category I : btw the 90th percentile and twice the value of the anomalies between mean value end 90th percentile. 
-Category II : btw twice and 3 times the anomalie 
-Category III : btw 3 times and four time the anomaly 
-Category IV : observed value are higher than four times the anomaly btw mean and 90th percentile + the mean value.
+Category I : btw the 90th percentile and twice the value of the anomalies between mean value end 90th percentile. Category II : btw twice and 3 times the anomalie Category III : btw 3 times and four time the anomaly Category IV : observed value are higher than four times the anomaly btw mean and 90th percentile + the mean value.
