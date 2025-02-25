@@ -184,7 +184,7 @@ gc()
 BEE.calc.corrections(Events_corrected)
 ```
 
-# 6. Get metrics related to time using detect_event() from heatwaveR package.
+# 6. Get metrics related to time.
 
 The function bellow gives you basic metrics for a given GPS position, list of position, polygones or list of polygones.
 
@@ -273,4 +273,14 @@ fviz_pca_var(acp_result,
              repel = TRUE) 
 ```
 
-For instance, if you are intrested in marine heat wave you may want to apply Hobday et al. 2016 definition and only keeps the days above treshold when they belongs to a series of 5 days (or more) above threshold and you may want to group these event under a same event when they are distant from 3 days or less. For biological reasons mainly, you may want to apply a more specific definition of 'biologically extreme event'. To see options please look at : ???????????
+#7. Get metrics related to space.
+```{r}
+list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-01-01", end_date = "2024-12-31") # 1 minutes 35 to run on 3 years
+list_morpho_metrics_all_pixels <- list_morpho_metrics[[1]]
+list_morpho_metrics_by_patch <- list_morpho_metrics[[2]]
+
+# Calculate mean distance to escape from an extreme event
+dist_to_escape <- BEE.calc.escape(Corrected_rasters, coords = GPS[1,c(1,2)])
+```
+
+

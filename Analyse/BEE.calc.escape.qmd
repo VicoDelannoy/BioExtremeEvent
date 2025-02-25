@@ -1,0 +1,53 @@
+---
+title: "BEE.calc.escape"
+author: "Victoria"
+format: html
+editor: visual
+---
+
+@description This function calculate the shortest distance, mediane distance, mean distance and average distance to escape form an extreme event 'as the crow files'.
+
+@param Corrected_rasters is a binarized Spatraster (obtained using result <- BEE.calc.true_event(binarized_EE, n = 5, d = 3) and Corrected_rasters <- result$stacked_rasters_corrected). (0 outside of event, 1 extreme event, NA land or missing data)
+@param start_date and end_date defines the timeframe in during which you want to analyse distance to escape. If no dates are provided, computation will be done on all days_provided
+@param Set account_all = 'TRUE' if you want to perform calculations using all the days. Use account = 'FALSE' when you want to calculate only for the days when your reference point is experiencing an extreme event.
+
+@note all distance metrics are limited by the size of the Spatraster your are providing.
+
+```{r}
+# start_date = "2022-01-01"; end_date = "2024-12-31"; coords = GPS[1,c(1,2)] ; account_all=FALSE
+BEE.calc.escape(Corrected_rasters, start_date = NULL, end_date = NULL, coords, account_all){
+  #Subset the timeframe
+  if (!is.null(start_date) | !is.null(end_date)){
+    ## Check that date format matches
+    format_start_date <- guess_formats(start_date, orders = c("dmy", "ymd", "mdy"))
+    format_end_date <- guess_formats(end_date, orders = c("dmy", "ymd", "mdy"))
+    format_layers_names <- guess_formats(names(Corrected_rasters[[1]]), orders = c("dmy", "ymd", "mdy"))
+    same_format <- all(format_start_date %in% format_layers_names)
+    same_format <- c(same_format, all(format_end_date %in% format_layers_names))
+    if(any(same_format==FALSE)){
+      warning("The format of start_date or end_date does not match the format of the dates in Corrected_raster. Please run names(Corrected_raster[[1]]) to check the required format.")
+      stop()
+    }
+    else{
+      ## Retrive
+      start_date <- ifelse(is.null(start_date), names(Corrected_rasters[[1]]), start_date)
+      end_date <- ifelse(is.null(end_date), names(Corrected_rasters[[nlyr(Corrected_rasters)]]), end_date)
+      rasters <- Corrected_rasters[[which(names(Corrected_rasters) >= start_date & names(Corrected_rasters) <= end_date)]]
+    }
+  }
+  if (is.null(start_date) & is.null(end_date)){
+    ## Adjust variable name to match the rest of the function
+  rasters <- Corrected_rasters 
+  }
+  
+  if(account_all==FALSE){
+    EE<-as.vector(terra::extract(rasters, coords))
+    rasters <- rasters[[which(EE==1)]]
+  }
+  lapply(rasters, function(x){
+    r_dist <- distance(x, target = 0, unit = "km")
+  })
+  
+}
+```
+

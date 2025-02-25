@@ -3,18 +3,19 @@ title: "BEE.calc.metrics_morpho"
 author: "Victoria and Nicolas C"
 format: html
 editor: visual
+editor_options: 
+  chunk_output_type: console
 ---
 
 @description This function give the morphological metrics for an extreme event Corrected_raster is the SpatRaster you want to analyze (it needs to be be binarise with the mhw function)
 
-@param Corrected_raster the SpatRaster you want to analyse @param Output is the way you want your data to be its either a SpatRaster or a Data frame @param Coord id a two columns matrix or data frame with x and y gps coordinates @param start_date and end_date allows to perform the analysis on a specific time_frame, this allows to save computation time. @return if output = "patch" you get a SpatRaster with all the metrics for each cells of the SpatRaster . OR @return if output = "local" to get a Data frame with the metrics for coord
+@param Corrected_raster the SpatRaster you want to analyse @param Output is the way you want your data to be its either a SpatRaster or a Data frame @param Coord id a two columns matrix or data frame with x and y gps coordinates @param start_date and end_date allows to perform the analysis on a specific time_frame, this allows to save computation time. 
 
 @note Your SpatRaster need to be binarised with the mhw function before you put it in this function, you also may want to apply
 
-# output <- "patch" ; coords <- GPS[c(1,2),1] ; start_date <- "2022-01-01" ; end_date <- "2023-12-31"
-# output <- "local"
+#start_date <- "2022-01-01" ; end_date <- "2023-12-31"
 ```{r}
-BEE.calc.metrics_morpho <- function(Corrected_rasters, output, coord, start_date = NULL, end_date = NULL) {
+BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_date = NULL) {
   # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)){
     ## Check that date format matches
@@ -39,280 +40,98 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, output, coord, start_date
   rasters <- Corrected_rasters 
   }
 
-  if (output == "patch") {
-    # Identify the patches of MHW, detect all the neigbouring pixel with a value of 1, when a pixel value is 0 or NA, it is considered as a boundaries of a patch. Patches are detected each day and a tracking of patches though time is not currently available.
-    patch_list <- lapply(rasters, FUN = function(one_layer){
-      patch <- terra::patches(one_layer, directions = 8, zeroAsNA = T, allowGaps = T)
-      return(patch)
-    })
-    # Calculate metrics for each patch
-    data_list <- list()
-    for (i in seq_along(patch_list)) {   # To run tests use : x <- rasters[[105]]
-      x <- patch_list[[i]]
-      data <- xyFromCell(x, 1:ncell(x)) 
-      data <- as.data.frame(data)
-      data <- cbind.data.frame(data, values(x)) 
-      data <- cbind.data.frame(data, cellSize(x)) 
-      ## Identify pixel on the boundaries of a patches and add the column to the df 'data'
-      boundary <-
-        as.data.frame(terra::boundaries(x, directions = 8))
-        boundary <- boundary %>%
-          rename(boundary = patches)
-      data <- merge(data, boundary, by = "row.names", all = TRUE)
-      data <- data %>%
-        dplyr::select(-Row.names)
-      ## Calculate metrics for each patches  
-      metrics <- data %>%
-        group_by(patches) %>%
-          summarise(area = sum(area),
-                    boundary = sum(boundary)) %>%
-                    filter(!is.nan(patches)) %>%
-                    rename(patch_id = patches)
-        
-      core_area <- data %>%
-        filter(boundary == 0) %>%
-        group_by(patches) %>%
-        summarise(core_area = sum(area)) %>%
-        filter(!is.nan(patches)) %>%
-        rename(patch_id = patches) # patches with no cores area are abscent from this df
-        
-      metrics <- left_join(metrics, core_area, by = "patch_id")
-        
-      metrics <- metrics %>%
-        group_by(patch_id) %>%
-        mutate(area_index = core_area / area)
-        
-        
-      n_pixel <- data %>%
-        group_by(patches) %>%
-        summarise(n_pixel = sum(n())) %>%
-        mutate(pixel_tot = sum(n_pixel),
-               cover_percent = n_pixel / pixel_tot) %>%
-          filter(!is.nan(patches)) %>%
-          dplyr::select(-patches)
-        
-      metrics <- cbind.data.frame(metrics, n_pixel)
-      metrics <- metrics %>%
-        mutate(core_pixel = n_pixel - boundary) %>%
-        relocate(core_pixel, .before = pixel_tot)
-        
-      polygon <- as.polygons(x, aggregate = T, round = F)
-      perim <- as.data.frame(terra::perim(polygon))
-      perim <- perim %>%
-        rename(perimeter = `terra::perim(polygon)`)
-        
-      metrics <- cbind.data.frame(metrics, perim)
+  patch_list <- lapply(rasters, FUN = function(rasters){
+    patch <- patches(rasters, directions = 8, zeroAsNA = T, allowGaps = T)
+    return(patch)
+  })
+    
+  dist <- lapply(patch_list, FUN = function(x){ # x <- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
+    vals <- values(x)
+    vals <- vals[!is.nan(vals)]
+    if (any(vals== 0)) {
+        dist <- terra::distance(x, target = 1, exclude = NaN, unit = "km")
+        } else {
+        values(x)<- NaN
+        dist <- x
+        }
+    return(dist)
+  })
+    
+    
+  dist_list <- lapply(patch_list, function(x) { # x <- patch_list[[1]]
+    # Create a df with on row per pixel
+    vals <- values(x)
+    cell_size <- values(cellSize(x))[,1]
+    boundary <- terra::boundaries(x, directions = 8)
+    coordonates <- xyFromCell(x, 1:ncell(x))
+
+    data <- data.table(
+      x = coordonates[,1],
+      y = coordonates[,2],
+      values = vals,
+      cell_size = cell_size,
+      boundary = values(terra::boundaries(x, directions = 8))
+    ) %>% rename(patch_id = values.patches , 
+                  boundary = boundary.patches)
       
-      if (length(polygon) == 0) {
-        metrics <- metrics %>%
-          group_by(patch_id) %>%
-          mutate(
-            PAR = boundary / n_pixel,
-            shape_index = (0.25 * boundary / (n_pixel) ^ 0.5),
-            FCD = (
-              2 * log(0.25 * boundary, base = exp(1)) / log(n_pixel, base = exp(1))
-            )
-          )
+    data[, length_boundary := sum(boundary), by = patch_id]
+    data[, patch_area := sum(cell_size), by = patch_id]
+    data[, core_area := sum(cell_size * (boundary == 0)), by = patch_id]
+    data[, area_index := core_area / patch_area]
+    data[, n_pixel := .N, by = patch_id]  
+    data[, pixel_tot := sum(unique(n_pixel))]
+    data[, cover_percent := n_pixel / pixel_tot]
+    data[, core_pixel := n_pixel - length_boundary]
+        
+    polygon <- as.polygons(x, aggregate = T, round = F)
+    perim <- data.table(perimeter = terra::perim(polygon))
+
+    id <- data[!is.nan(patch_id), .(patch_id = unique(patch_id))]
+        
+    perim[, patch_id := id]
+        
+    data <- merge(data, perim, by = "patch_id", all.x = TRUE)
+        
+    data <- data %>%
+      select(-cell_size,-pixel_tot)
+        
+    if (length(polygon) == 0) {
+        data[,perim_area_ratio := length_boundary / n_pixel, by = patch_id]
+        data[,shape_index := (0.25 * length_boundary / (n_pixel) ^ 0.5), by = patch_id]
+        data[,fract_corel_dim := (
+          2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
+          ), by = patch_id]
+
       } else {
         centro <- terra::centroids(polygon, TRUE)
         centro <- terra::extract(x, centro, xy = TRUE)
         centro <- centro %>%
-          dplyr::select(x, y) %>%
-          rename(centroid_x = x,
-                  centroid_y = y)
+          dplyr::select(patches, x, y) %>%
+          rename(
+            centroid_x = x,
+            centroid_y = y,
+            patch_id = patches)
+        data <- merge(data, centro, by = "patch_id", all.x = TRUE)
           
-        metrics <- cbind.data.frame(metrics, centro)
-          
-        metrics <- metrics %>%
-          group_by(patch_id) %>%
-          mutate(
-            PAR = boundary / n_pixel,
-            shape_index = (0.25 * boundary / (n_pixel) ^ 0.5),
-            FCD = (
-              2 * log(0.25 * boundary, base = exp(1)) / log(n_pixel, base = exp(1))
-            )
-          )
-      }
-      data_list[[i]] <- metrics
-    }
-  }
+        data[,perim_area_ratio := length_boundary / n_pixel, by = patch_id]
+        data[,shape_index := (0.25 * length_boundary / (n_pixel) ^ 0.5), by = patch_id]
+        data[,fract_corel_dim := (
+          2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
+          ), by = patch_id]
+        }
+      return(data)
+    })
   
-  else if (output == "local") { 
-    patch_list <- lapply(rasters, FUN = function(rasters){
-      patch <- patches(rasters, directions = 8, zeroAsNA = T, allowGaps = T)
-      return(patch)
-    })
-    patch_list <- terra::cellFromXY(patch_list, matrix(coords, ncol = 2))
-    ## ESSAYER AVEC UN FOR I IN SEQ ALONG PATCH_LIST
-    dist <- lapply(patch_list, FUN = function(x){ # x <- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
-      x <- terra::cellFromXY(x, matrix(coords, ncol = 2))
-      dist_list <- list()
-      vals <- values(x)
-      vals <- vals[!is.nan(vals)]
-      dist <- if (any(vals== 0)) {
-          dist_list[[i]] <- terra::distance(x, target = 0, exclude = NaN, unit = "km")
-          } else {
-          values(x)<- NaN
-          dist_list[[i]] <- x[[i]]
-          }
-      return(dist_list)
-    })
-    
-    
-    data_list <- lapply(patch_list, function(x) {
-      data_list <- list()
-      
-      n <- names(x)
-      
-      for (i in n) {
-        data <- xyFromCell(x[[i]], 1:ncell(x[[i]]))
-        data <- as.data.frame(data)
-        data <- cbind.data.frame(data, terra::values(x[[i]]))
-        data <- cbind.data.frame(data, cellSize(x[[i]]))
-               # data <- merge(data, cellSize(x[[i]]),by ="row.names", all.x = T)
-
-        boundary <-
-          as.data.frame(terra::boundaries(x[[i]], directions = 8))
-        boundary <- boundary %>%
-          rename(boundary = !!sym(as.character(i)))
-        data <- merge(data, boundary, by = "row.names", all = TRUE)
-        metrics <- data %>%
-          dplyr::select(-Row.names) %>%
-          group_by(!!sym(as.character(i))) %>%
-          mutate(length_boundary = sum(boundary),
-                 patch_area = sum(area)) %>%
-          rename(patch_id = !!sym(as.character(i)))
-        
-        core_area <- metrics %>%
-          filter(boundary == 0) %>%
-          group_by(patch_id) %>%
-          summarise(core_area = sum(area))
-        
-        metrics <- left_join(metrics, core_area, by = c("patch_id"))
-        
-        metrics <- metrics %>%
-          group_by(patch_id) %>%
-          mutate(area_index = core_area / patch_area)
-        
-        
-        metrics <- metrics %>%
-          group_by(patch_id) %>%
-          mutate(n_pixel = sum(n())) %>%
-          ungroup() %>%
-          mutate(pixel_tot = sum(unique(n_pixel))) %>%
-          group_by(patch_id) %>%
-          mutate(cover_percent = n_pixel / pixel_tot)
-        
-        metrics <- metrics %>%
-          mutate(core_pixel = n_pixel - length_boundary) %>%
-          relocate(core_pixel, .before = pixel_tot)
-        
-        polygon <- as.polygons(x[[i]], aggregate = T, round = F)
-        perim <- as.data.frame(terra::perim(polygon))
-        perim <- perim %>%
-          rename(perimeter = `terra::perim(polygon)`)
-        
-        id <- metrics %>%
-          ungroup() %>%
-          dplyr::select(patch_id) %>%
-          filter(!is.nan(patch_id)) %>%
-          distinct()
-        
-        perim <- cbind.data.frame(perim, id)
-        
-        metrics <- left_join(metrics, perim, by = c("patch_id"))
-        
-        metrics <- metrics %>%
-          select(-area,-pixel_tot)
-        
-        if (length(polygon) == 0) {
-          metrics <- metrics %>%
-            group_by(patch_id) %>%
-            mutate(
-              perim_area_ratio = length_boundary / n_pixel,
-              shape_index = (0.25 * length_boundary / (n_pixel) ^ 0.5),
-              fract_corel_dim = (
-                2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
-              )
-            )
-          metrics <- rast(metrics, type = "xyz")
-          
-          data_list[[i]] <- metrics
-        } else {
-          centro <- terra::centroids(polygon, TRUE)
-          centro <- terra::extract(x, centro, xy = TRUE)
-          centro <- centro %>%
-            dplyr::select(!!sym(as.character(i)), x, y) %>%
-            rename(
-              centroid_x = x,
-              centroid_y = y,
-              patch_id = !!sym(as.character(i))
-            )
-          
-          metrics <- left_join(metrics, centro, by = c("patch_id"))
-          
-          metrics <- metrics %>%
-            group_by(patch_id) %>%
-            mutate(
-              perim_area_ratio = length_boundary / n_pixel,
-              shape_index = (0.25 * length_boundary / (n_pixel) ^ 0.5),
-              fract_corel_dim = (
-                2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
-              )
-            )
-          
-          metrics <- rast(metrics, type = "xyz")
-          
-          data_list[[i]] <- metrics
-        }
-      }
-      return(data_list)
-    })
-    data_final <- lapply(data_list, FUN = function(x){
-      n <- names(x)
-      data_final <- list()
-      for (i in n) {
-        indice <- i
-        indice <- paste0("", substr(indice, start = 6, stop = 10))
-        indice <- gsub("-",".",indice)
-        crs(x[[i]]) <- crs(dist[[indice]][[i]])
-        add(x[[i]]) <- dist[[indice]][[i]]
-        GPS_metrics <- extract(x[[i]], coord, xy = TRUE)
-        GPS_metrics <- GPS_metrics%>%
-          rename(dist_escape = !!sym(as.character(i)))
-        data_final[[i]] <- GPS_metrics
-      }
-      return(data_final)
-    })
-    
-    data_final <- lapply(data_final, FUN = function(y){
-      n <- names(y)
-      output <- list()
-      for (i in n) {
-        if (("centroid_x" %in% colnames(y[[i]]))){
-          centro <- y[[i]]%>%
-            select(centroid_x, centroid_y)
-          
-          dist_centro <- distance(as.matrix(coord), as.matrix(centro), lonlat = TRUE, pairwise = TRUE)
-          dist_centro <- as.data.frame(dist_centro)
-          output[[i]] <- cbind.data.frame(y[[i]], dist_centro)
-        } else {
-          
-          output[[i]] <- y[[i]]
-        }
-      } 
-      return(output)
-    })
-  }
-  if(!is.null(date)){
-    for(i in date){
-      list_filter <- data_final[i]
-    }
-    return(list_filter)
-  }
-  else{
-    return(data_final)
-  }
+  names(dist_list)<- time(rasters) 
+  
+  # Summarise by patch
+  data_summarised <- lapply(dist_list, function(x){ # x <- dist_list[[1]]
+    x <- unique(x, by = "patch_id")
+    x[,':='(x=NULL,y=NULL)]
+      return(x)
+  })
+  list_outputs <- list(dist_list,data_summarised)
+  return(list_outputs)
 }
 
 ```
