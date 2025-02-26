@@ -260,14 +260,14 @@ acp_result <- prcomp(variables_acp_scaled, center = TRUE, scale. = TRUE)
 summary(acp_result)
 factoextra::fviz_eig(acp_result)
 # Graphique des individus
-fviz_pca_ind(acp_result, 
+factoextra::fviz_pca_ind(acp_result, 
              label = "none", # Pas de labels pour les points
              habillage = All$site, # Colorer selon le site si pertinent
              addEllipses = TRUE, # Ajouter des ellipses par groupe
              repel = TRUE) 
 
 # Graphique des variables
-fviz_pca_var(acp_result, 
+factoextra::fviz_pca_var(acp_result, 
              col.var = "cos2", # Coloration selon la qualité de représentation
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
              repel = TRUE) 
@@ -280,7 +280,8 @@ list_morpho_metrics_all_pixels <- list_morpho_metrics[[1]]
 list_morpho_metrics_by_patch <- list_morpho_metrics[[2]]
 
 # Calculate mean distance to escape from an extreme event
-dist_to_escape <- BEE.calc.escape(Corrected_rasters, coords = GPS[1,c(1,2)])
+dist_to_escape <- BEE.calc.escape(Corrected_rasters, coords = GPS[1,c(1,2)], account_all=FALSE, start_date = "2022-01-01", end_date = "2024-12-31")
+summary_dist <- dist_to_escape[[2]]
 ```
 
 
