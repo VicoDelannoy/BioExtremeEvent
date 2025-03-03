@@ -13,8 +13,8 @@ editor_options:
 
 @note all distance metrics are limited by the size of the Spatraster your are providing.
 
-```{r}
-# start_date = "2022-01-01"; end_date = "2024-12-31"; coords = GPS[1,c(1,2)] ; account_all=FALSE
+
+#; coords = GPS[1,c(1,2)] ; account_all=FALSE
 BEE.calc.escape<- function(data, 
                            start_date = NULL, end_date = NULL, 
                            coords, 
@@ -88,4 +88,45 @@ BEE.calc.escape<- function(data,
     }
   }
 }
+
+
+# Test en utilisant Events_corrected
+```{r}
+# true_event_output <- result ; start_date = "2022-01-01"; end_date = "2024-12-31" ; pixel = 507 ; account_all_days = "events_all"
+BEE.calc.escape(true_event_output, 
+                start_date = NULL, end_date = NULL, 
+                pixel = all, # a vector with x,y coordinates or a df of x,y coordinates or "all" if you want to comute distance metrics for all pixels
+                account_all_days = "events_all"){ # TRUE = mean distance will be based on distances from all days in the time frame, "events_all" = compute one mean distance per events, including all days belonging to this event event if they are a '0' day, "events_1" compute one mean distance per events, excluding the days that belong to  an event are bellow thershold., FALSE = give on mean value for all days that are above thershold (1).
+
+### Recreate a Spatraster using Events_corrected. In this list, there are one df per pixel and on raw per dates
+## Get data and shell
+  data <- true_event_output[[2]]
+  shell <- true_event_output[[1]]
+## Select timeframe of interest to save computation time later
+  # Check that dates from the two products of result match
+  if (length(data[[1]]$Original_value) != nlyr(shell)){
+    warning("The two elements you provided as 'true_event_output don't cover the same number of days, please use the output of BEE.calc.true_event.")
+  }
+  date_indices <- match(c(start_date, end_date), names(shell))
+  dates <- names(shell)[date_indices[1]:date_indices[2]]
+  data <- lapply(data, function(df){
+    df <- df[first_day:last_day,]
+    return(df)
+  })
+  shell <- shell[[dates]]
+  # Create a spat_raster that store the ID of the events
+  # For all pixel 
+
+  for (i in seq_along(data)){
+    event <- data[[i]]$ID
+    # Transforme ID of NA event to NA
+    if (is.na(data[[i]]$Cleanned_value[1])){
+      event <- rep(NA, length(data[[i]]$ID))
+    }
+    if (any(data[[i]]$Cleanned_value == 0, na.rm=TRUE)) {
+    event[which(data[[i]]$Cleanned_value == 0)] <- data[[i]]$Cleanned_value[which(data[[i]]$Cleanned_value == 0)]
+    }
+  }
+}
 ```
+

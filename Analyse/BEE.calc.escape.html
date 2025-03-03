@@ -9,10 +9,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Victoria and Nicolas C" />
+<meta name="author" content="Victoria" />
 
 
-<title>BEE.calc.metrics_morpho</title>
+<title>BEE.calc.escape</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,144 +349,109 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.calc.metrics_morpho</h1>
-<h4 class="author">Victoria and Nicolas C</h4>
+<h1 class="title toc-ignore">BEE.calc.escape</h1>
+<h4 class="author">Victoria</h4>
 
 </div>
 
 
-<p><span class="citation">@description</span> This function give the
-morphological metrics for an extreme event Corrected_raster is the
-SpatRaster you want to analyze (it needs to be be binarise with the mhw
-function)</p>
-<p><span class="citation">@param</span> Corrected_raster the SpatRaster
-you want to analyse <span class="citation">@param</span> Output is the
-way you want your data to be its either a SpatRaster or a Data frame
-<span class="citation">@param</span> Coord id a two columns matrix or
-data frame with x and y gps coordinates <span class="citation">@param</span> start_date and end_date allows to perform
-the analysis on a specific time_frame, this allows to save computation
-time.</p>
-<p><span class="citation">@note</span> Your SpatRaster need to be
-binarised with the mhw function before you put it in this function, you
-also may want to apply</p>
-<p>#start_date &lt;- “2022-01-01” ; end_date &lt;- “2023-12-31”</p>
-<pre class="r"><code>BEE.calc.metrics_morpho &lt;- function(Corrected_rasters, start_date = NULL, end_date = NULL) {
-  # Retrive the dataframe if required
-  if (!is.null(start_date) | !is.null(end_date)){
-    ## Check that date format matches
-    format_start_date &lt;- guess_formats(start_date, orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
-    format_end_date &lt;- guess_formats(end_date, orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
-    format_layers_names &lt;- guess_formats(names(Corrected_rasters[[1]]), orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
-    same_format &lt;- all(format_start_date %in% format_layers_names)
-    same_format &lt;- c(same_format, all(format_end_date %in% format_layers_names))
-    if(any(same_format==FALSE)){
-      warning(&quot;The format of start_date or end_date does not match the format of the dates in Corrected_raster. Please run names(Corrected_raster[[1]]) to check the required format.&quot;)
-      stop()
+<p><span class="citation">@description</span> This function calculate
+the mediane distance, mean distance and standard deviation of distance
+to escape form an extreme event ‘as the crow files’ (but avoiding NA
+pixels) through time for a given GPS position or for all pixels.</p>
+<p><span class="citation">@param</span> data is Corrected_rasters, a
+binarized Spatraster (BEE.calc.true_event(binarized_EE, n = 5, d =
+3)<span class="math display">\[\[&quot;stacked_rasters_corrected&quot;\]</span>]).
+(0 outside of event, 1 extreme event, NA land or missing data) OR
+Events_corrected, a list of df (obtained using
+BEE.calc.true_event(binarized_EE, n = 5, d = 3)<span class="math display">\[\[&quot;Event_corrected&quot;\]</span>] ) <span class="citation">@param</span> start_date and end_date defines the
+timeframe in during which you want to analyse distance to escape. If no
+dates are provided, computation will be done on all days_provided <span class="citation">@param</span> Set account_all_days = ‘TRUE’ if you want
+to perform calculations using all the days. Use account = ‘FALSE’ when
+you want to calculate only for the days when your reference point is
+experiencing an extreme event. By default, account_all_days is set on
+FALSE <span class="citation">@param</span> compute_by_event allows to
+specify if you want your result by extreme event or for the whole time
+periode specified. <span class="citation">@param</span> coords=NULL by
+defaults, values will be computed for all pixels of the raster, if your
+resolution is high and spatial exent is wide, this may be long. If you
+provide coordinate in decimal degrees (vector or df), values will only
+be computed for the given point.</p>
+<p><span class="citation">@note</span> all distance metrics are limited
+by the size of the Spatraster your are providing.</p>
+<pre class="r"><code># start_date = &quot;2022-01-01&quot;; end_date = &quot;2024-12-31&quot;; coords = GPS[1,c(1,2)] ; account_all=FALSE
+BEE.calc.escape&lt;- function(data, 
+                           start_date = NULL, end_date = NULL, 
+                           coords, 
+                           account_all_days = FALSE, 
+                           compute_by_event = FALSE){
+  ##############################################################################
+  ################### data &lt;- Corrected_rasters ################################
+  ##############################################################################
+  if (class(data[1])==&quot;SpatRaster&quot;){
+    #Check that compute_by_event = FALSE, Corrected_rasters is not the right data set to cumpute by event
+    if (compute_by_event == TRUE){
+      warning(&quot;The dataset you provided is not in the expected format to compute distance by extreme event. \n If you don&#39;t want to compute the distances metrics by extreme event, please withdraw your argument &#39;compute_by_event=TRUE&#39; or set &#39;compute_by_event=FALSE&quot;)
     }
-    else{
-      ## Retrive
-      start_date &lt;- ifelse(is.null(start_date), names(Corrected_rasters[[1]]), start_date)
-      end_date &lt;- ifelse(is.null(end_date), names(Corrected_rasters[[nlyr(Corrected_rasters)]]), end_date)
-      rasters &lt;- Corrected_rasters[[which(names(Corrected_rasters) &gt;= start_date &amp; names(Corrected_rasters) &lt;= end_date)]]
+    #Subset the timeframe
+    if (!is.null(start_date) | !is.null(end_date)){
+      ## Check that date format matches
+      format_start_date &lt;- guess_formats(start_date, orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
+      format_end_date &lt;- guess_formats(end_date, orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
+      format_layers_names &lt;- guess_formats(names(data[[1]]), orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
+      same_format &lt;- all(format_start_date %in% format_layers_names)
+      same_format &lt;- c(same_format, all(format_end_date %in% format_layers_names))
+      if(any(same_format==FALSE)){
+        warning(&quot;The format of start_date or end_date does not match the format of the dates in Corrected_raster. Please run names(Corrected_raster[[1]]) to check the required format.&quot;)
+        stop()
+      }
+      else{
+        ## Retrive
+        start_date &lt;- ifelse(is.null(start_date), names(data[[1]]), start_date)
+        end_date &lt;- ifelse(is.null(end_date), names(data[[nlyr(data)]]), end_date)
+        rasters &lt;- data[[which(names(data) &gt;= start_date &amp; names(data) &lt;= end_date)]]
+      }
+    }
+    if (is.null(start_date) &amp; is.null(end_date)){
+      ## Adjust variable name to match the rest of the function
+      rasters &lt;- data 
+    }
+    
+    ############################################################################
+    ##################### coords &lt;- GPS[1,c(1,2)] ##############################
+    if(!is.null(coords)){
+      ##################### account_all &lt;- False ###############################
+      if(account_all==FALSE){
+        # subset the days for which your reference point is experiencing an EE
+        pixel_of_interest &lt;- terra::cellFromXY(rasters, coords)
+        EE&lt;-as.vector(terra::extract(rasters, pixel_of_interest))
+        rasters &lt;- rasters[[which(EE==1)]]
+      }
+      distances &lt;- lapply(rasters, function(x){ # x &lt;- rasters[[1]]
+        # compute for each non NA pixel the shortest distance to a pixel of value 0, NA pixels are avoided
+        r_dist &lt;- terra::gridDist(x, target=0) #rasters unit is degrees -&gt; results will be in meters
+        return(r_dist)
+      })
+      message(&quot;This function use terra::gridDist. If your data are in degrees (lon/lat) or in meters, terra::gridDist output is in meters, for better lisibility, we converted it to kilometers. If you have any doupts, please check ?terra::gridDist()&quot;)
+      distances &lt;- rast(distances) # transform to Spatraster
+      distances &lt;- terra::extract(distances, pixel_of_interest)
+      #convert to data.table
+      distances &lt;- data.table(dates = colnames(distances)[-1],
+                              daily_shortest_dist = t(distances)[-1])
+      dist &lt;- data.table(Nb_days_pixel_1 = length(distances$dates),
+                         Nb_days_no_escape = length( distances$daily_shortest_dist[ which( is.na(distances$daily_shortest_dist) ) ] ),
+                         Mean_dist = mean(distances$daily_shortest_dist, na.rm=TRUE)/1000,
+                         Sd_dist = sd(distances$daily_shortest_dist, na.rm=TRUE)/1000,
+                         Median_dist = median(distances$daily_shortest_dist, na.rm=TRUE)/1000,
+                         Min_dist = min(distances$daily_shortest_dist, na.rm=TRUE)/1000,
+                         Max_dist = max(distances$daily_shortest_dist, na.rm=TRUE)/1000,
+                         First_quart = quantile(x = distances$daily_shortest_dist, na.rm=TRUE)[2]/1000,
+                         Thrid_quart =quantile(x = distances$daily_shortest_dist, na.rm=TRUE)[4]/1000)
+      dist &lt;- as.data.frame(dist)
+      output &lt;- list(distances_all_days=distances,dist_summary=dist)
+      return(output)
     }
   }
-  if (is.null(start_date) &amp; is.null(end_date)){
-    ## Adjust variable name to match the rest of the function
-  rasters &lt;- Corrected_rasters 
-  }
-
-  patch_list &lt;- lapply(rasters, FUN = function(rasters){
-    patch &lt;- patches(rasters, directions = 8, zeroAsNA = T, allowGaps = T)
-    return(patch)
-  })
-    
-  dist &lt;- lapply(patch_list, FUN = function(x){ # x &lt;- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
-    vals &lt;- values(x)
-    vals &lt;- vals[!is.nan(vals)]
-    if (any(vals== 0)) {
-        dist &lt;- terra::distance(x, target = 1, exclude = NaN, unit = &quot;km&quot;)
-        } else {
-        values(x)&lt;- NaN
-        dist &lt;- x
-        }
-    return(dist)
-  })
-    
-    
-  dist_list &lt;- lapply(patch_list, function(x) { # x &lt;- patch_list[[1]]
-    # Create a df with on row per pixel
-    vals &lt;- values(x)
-    cell_size &lt;- values(cellSize(x))[,1]
-    boundary &lt;- terra::boundaries(x, directions = 8)
-    coordonates &lt;- xyFromCell(x, 1:ncell(x))
-
-    data &lt;- data.table(
-      x = coordonates[,1],
-      y = coordonates[,2],
-      values = vals,
-      cell_size = cell_size,
-      boundary = values(terra::boundaries(x, directions = 8))
-    ) %&gt;% rename(patch_id = values.patches , 
-                  boundary = boundary.patches)
-      
-    data[, length_boundary := sum(boundary), by = patch_id]
-    data[, patch_area := sum(cell_size), by = patch_id]
-    data[, core_area := sum(cell_size * (boundary == 0)), by = patch_id]
-    data[, area_index := core_area / patch_area]
-    data[, n_pixel := .N, by = patch_id]  
-    data[, pixel_tot := sum(unique(n_pixel))]
-    data[, cover_percent := n_pixel / pixel_tot]
-    data[, core_pixel := n_pixel - length_boundary]
-        
-    polygon &lt;- as.polygons(x, aggregate = T, round = F)
-    perim &lt;- data.table(perimeter = terra::perim(polygon))
-
-    id &lt;- data[!is.nan(patch_id), .(patch_id = unique(patch_id))]
-        
-    perim[, patch_id := id]
-        
-    data &lt;- merge(data, perim, by = &quot;patch_id&quot;, all.x = TRUE)
-        
-    data &lt;- data %&gt;%
-      select(-cell_size,-pixel_tot)
-        
-    if (length(polygon) == 0) {
-        data[,perim_area_ratio := length_boundary / n_pixel, by = patch_id]
-        data[,shape_index := (0.25 * length_boundary / (n_pixel) ^ 0.5), by = patch_id]
-        data[,fract_corel_dim := (
-          2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
-          ), by = patch_id]
-
-      } else {
-        centro &lt;- terra::centroids(polygon, TRUE)
-        centro &lt;- terra::extract(x, centro, xy = TRUE)
-        centro &lt;- centro %&gt;%
-          dplyr::select(patches, x, y) %&gt;%
-          rename(
-            centroid_x = x,
-            centroid_y = y,
-            patch_id = patches)
-        data &lt;- merge(data, centro, by = &quot;patch_id&quot;, all.x = TRUE)
-          
-        data[,perim_area_ratio := length_boundary / n_pixel, by = patch_id]
-        data[,shape_index := (0.25 * length_boundary / (n_pixel) ^ 0.5), by = patch_id]
-        data[,fract_corel_dim := (
-          2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
-          ), by = patch_id]
-        }
-      return(data)
-    })
-  
-  names(dist_list)&lt;- time(rasters) 
-  
-  # Summarise by patch
-  data_summarised &lt;- lapply(dist_list, function(x){ # x &lt;- dist_list[[1]]
-    x &lt;- unique(x, by = &quot;patch_id&quot;)
-    x[,&#39;:=&#39;(x=NULL,y=NULL)]
-      return(x)
-  })
-  list_outputs &lt;- list(dist_list,data_summarised)
-  return(list_outputs)
 }</code></pre>
 
 

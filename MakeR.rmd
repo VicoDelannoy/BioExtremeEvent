@@ -172,7 +172,7 @@ You can use the output to check which are the pixel more subject to peaks of you
 Delete short period above threshold from the list of extreme event and merge close periods above threshold. Provide informations on the amount of modifications.
 
 ```{r}
-# 6 minutes s to run on 3 332 pixels and 10 227 days
+# 7 minutes 40 s to run on 3 332 pixels and 15 706 days
 gc()
 result <- BEE.calc.true_event(binarized_EE, n = 5, d = 3) 
 Corrected_rasters <- result$stacked_rasters_corrected
@@ -234,15 +234,15 @@ ggplot(df_plot, aes(x = doy)) +
 Frontignan$site <- rep("Frontignan",length(Frontignan$Original_value))
 Frioul$site <- rep("Frioul",length(Frioul$Original_value))
 Banyuls$site <- rep("Banyuls",length(Banyuls$Original_value))
-All <- rbind(Frontignan,Frioul,Banyuls)
+All <- rbind(Frontignan,Frioul,Banyuls) %>% filter(mean_anomaly_qt90 > 0)
 #plot
-ggplot(All, aes(x = dates, y = max_anomaly_qt90, size = Nb_days, color = site)) +
+ggplot(All, aes(x = format(date_max_value, "%m-%d"), y = mean_anomaly_qt90, size = Nb_days, color = site)) +
   geom_point(alpha = 0.7) +  # Ajoute des points avec un peu de transparence
   scale_size(range = c(2, 10)) +  # Ajuste la taille des bulles
   labs(title = "Caractérisation des vagues de chaleurs",
        x = "Dates",
-       y = "Anomalie maximum (par rapport au 90eme percentile",
-       size = "Nb_days",
+       y = "Anomalie moyenne (par rapport au 90eme percentile)",
+       size = "Day of the maximum value",
        color = "Site") +
   theme_minimal() +  # Applique un style épuré
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -274,14 +274,16 @@ factoextra::fviz_pca_var(acp_result,
 ```
 
 #7. Get metrics related to space.
+
 ```{r}
 list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-01-01", end_date = "2024-12-31") # 1 minutes 35 to run on 3 years
 list_morpho_metrics_all_pixels <- list_morpho_metrics[[1]]
 list_morpho_metrics_by_patch <- list_morpho_metrics[[2]]
 
+# summarise for a given heatwave and a given pixel (ex: 507)
+
+
 # Calculate mean distance to escape from an extreme event
 dist_to_escape <- BEE.calc.escape(Corrected_rasters, coords = GPS[1,c(1,2)], account_all=FALSE, start_date = "2022-01-01", end_date = "2024-12-31")
 summary_dist <- dist_to_escape[[2]]
 ```
-
-

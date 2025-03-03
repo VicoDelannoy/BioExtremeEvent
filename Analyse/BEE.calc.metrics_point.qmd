@@ -8,7 +8,7 @@ editor_options:
 ---
 
 ```{r}
-# start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds
+# start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
 BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, 
                                    start_date=NULL, end_date=NULL, 
                                    baseline_qt90, baseline_mean, 
@@ -63,14 +63,6 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
     return(df)
   }, df_list, seq_along(df_list))
   
-  #Delete the information related to days bellow threshold (to save computation time)
-  event_to_delete_list <- lapply(df_list, function(df) {
-  unique(df[which(df$Cleanned_value == 0),"ID"])})
-  df_list_only_1 <- lapply(seq_along(df_list), function(p) { # we need to save the data that correspond to value above threshold in a specific object beacause we may want to optimize the function so it test the onset rate before the event start (and thus we will need values bellow threshold as well)
-    df_list[[p]] %>%
-    filter(!(ID %in% event_to_delete_list[[p]]))
-  })
-  
   #Create a list of dataframe to store the information using one element (df) per pixel and one row per event
   colnames(GPS)<-c("x","y", names(GPS[3]))
   
@@ -80,8 +72,8 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
   mean <- as.data.frame(t(terra::extract(baseline_mean, GPS[,3])))
   mean$dates <- format(seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"), "%m-%d")
 
-  metrics <- lapply(1:length(df_list_only_1), function(p) { # Go through each pixel
-    df <- df_list_only_1[[p]]
+  metrics <- lapply(1:length(df_list), function(p) { # Go through each pixel
+    df <- df_list[[p]]
     df$Date <- as.Date(df$Date)
     df$dates <- format(as.Date(df$Date), "%m-%d")
     df <- df %>%

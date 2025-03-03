@@ -15,6 +15,7 @@ Only two threshold can be set :
 -   "*mean*" : calculate the mean value for each cell at the time resolution of the data set .
 
 # rast_name = ds ; start_date=NULL; end_date = "1987-12-31" ; threshold = "qt"; quantile_value = 0.9 ; time_window = 5; smooth_window=10
+
 ```{r}
 BEE.calc.baseline <- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value=NULL, time_window=5, smooth_window=10){
   
@@ -83,4 +84,3 @@ BEE.calc.baseline <- function(rast_name, start_date=NULL, end_date=NULL, thresho
 }
 
 ```
-

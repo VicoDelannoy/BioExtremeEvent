@@ -9,11 +9,12 @@ editor_options:
 
 @description This function give the morphological metrics for an extreme event Corrected_raster is the SpatRaster you want to analyze (it needs to be be binarise with the mhw function)
 
-@param Corrected_raster the SpatRaster you want to analyse @param Output is the way you want your data to be its either a SpatRaster or a Data frame @param Coord id a two columns matrix or data frame with x and y gps coordinates @param start_date and end_date allows to perform the analysis on a specific time_frame, this allows to save computation time. 
+@param Corrected_raster the SpatRaster you want to analyse @param Output is the way you want your data to be its either a SpatRaster or a Data frame @param Coord id a two columns matrix or data frame with x and y gps coordinates @param start_date and end_date allows to perform the analysis on a specific time_frame, this allows to save computation time.
 
 @note Your SpatRaster need to be binarised with the mhw function before you put it in this function, you also may want to apply
 
 #start_date <- "2022-01-01" ; end_date <- "2023-12-31"
+
 ```{r}
 BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_date = NULL) {
   # Retrive the dataframe if required
