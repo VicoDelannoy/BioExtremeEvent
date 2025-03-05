@@ -16,7 +16,7 @@ editor_options:
 #start_date <- "2022-01-01" ; end_date <- "2023-12-31"
 
 ```{r}
-BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_date = NULL) {
+BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_date = NULL, patch_per_pix = FALSE) {
   # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)){
     ## Check that date format matches
@@ -46,17 +46,17 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     return(patch)
   })
     
-  dist <- lapply(patch_list, FUN = function(x){ # x <- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
-    vals <- values(x)
-    vals <- vals[!is.nan(vals)]
-    if (any(vals== 0)) {
-        dist <- terra::distance(x, target = 1, exclude = NaN, unit = "km")
-        } else {
-        values(x)<- NaN
-        dist <- x
-        }
-    return(dist)
-  })
+  # dist <- lapply(patch_list, FUN = function(x){ # x <- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
+  #   vals <- values(x)
+  #   vals <- vals[!is.nan(vals)]
+  #   if (any(vals== 0)) {
+  #       dist <- terra::distance(x, target = 1, exclude = NaN, unit = "km")
+  #       } else {
+  #       values(x)<- NaN
+  #       dist <- x
+  #       }
+  #   return(dist)
+  # })
     
     
   dist_list <- lapply(patch_list, function(x) { # x <- patch_list[[1]]
@@ -65,6 +65,7 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     cell_size <- values(cellSize(x))[,1]
     boundary <- terra::boundaries(x, directions = 8)
     coordonates <- xyFromCell(x, 1:ncell(x))
+    d <- time(x)
 
     data <- data.table(
       x = coordonates[,1],
@@ -119,9 +120,10 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
         data[,fract_corel_dim := (
           2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
           ), by = patch_id]
+        data[, date := d] 
         }
       return(data)
-    })
+    }) # one dt per pixel
   
   names(dist_list)<- time(rasters) 
   
@@ -131,8 +133,24 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     x[,':='(x=NULL,y=NULL)]
       return(x)
   })
-  list_outputs <- list(dist_list,data_summarised)
-  return(list_outputs)
+  
+  # Add a list of patch_ID per pixel (/!\ there are several patch_ID per EE because we cannot do spatio-temporal analysis here)
+  if (patch_per_pix == TRUE) {
+  pixels_nb <- seq(1,nrow(dist_list[[1]]))
+  dist_tab <- bind_rows(dist_list)
+  setDT(dist_tab)
+  dist_tab[,pixel_ID := rep(pixels_nb, length(dist_list))]
+  dist_tab[, date_patch := ifelse(is.nan(patch_id), NaN, paste0(date, '_', as.character(patch_id)))]
+  matching <- dist_tab[, .(patch_ID = list(date_patch)), by = pixel_ID]
+  patch_list <- rast(patch_list)
+  names(patch_list) <- time(rasters)
+  output <- list(data_summarised, patch_list, matching)
+  return(output)
+  }
+  patch_list <- rast(patch_list)
+  names(patch_list) <- time(rasters)
+  output <- list(data_summarised, patch_list)  
+  return(output)
 }
 
 ```

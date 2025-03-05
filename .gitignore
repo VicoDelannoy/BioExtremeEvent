@@ -15,6 +15,7 @@ Data/
 .RData
 .RDataTmp
 .RDataTmp1
+.RDataTmp2
 # User-specific files
 .Ruserdata
 # Example code in package build process
