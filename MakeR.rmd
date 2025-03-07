@@ -288,6 +288,6 @@ test_fronti <- lapply(seq_along(test_fronti), function(i){
 test_fronti <- bind_rows(test_fronti) %>% filter(pixel==507)
 
 # Calculate mean distance to escape from an extreme event
-dist_to_escape <- BEE.calc.escape(Corrected_rasters, coords = GPS[1,c(1,2)], account_all=FALSE, start_date = "2022-01-01", end_date = "2024-12-31")
-summary_dist <- dist_to_escape[[2]]
+dist_to_escape <- BEE.calc.escape(result, pixel = GPS, start_date = "2022-01-01", end_date = "2024-12-31", account_all_days = "each_event")
+
 ```
