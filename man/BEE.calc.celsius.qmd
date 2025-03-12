@@ -14,11 +14,11 @@ BEE.calc.celsius <- function(YourSpatRaster) {
 #'@BEE.calc.celsius
 #'@description
 #' Function that detects whether pixel value of a SpatRaster are in Celsius, Kelvin or Fahrenheit and makes conversion to the international unit 'Celsius' if necessary.   
-#' @param YourSpatRaster
+#'@param YourSpatRaster
 #' YourSpatRaster is the SpatRaster containning temperature data and for which you want to check the unit and convert values to celsius. 
-#' @return YourSpatRaster 
+#'@return YourSpatRaster 
 #' Your SpatRaster with values corrected to celsius and 'unit' metadata updated to 'Celsisus'.
-#' @export
+#'@export
 
   
   # Get the unit of each layer.
