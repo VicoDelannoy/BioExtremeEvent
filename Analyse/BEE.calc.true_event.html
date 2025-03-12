@@ -425,12 +425,10 @@ instead of 2 events of 5 days only you can use : low complexity with
     )
   })
 
-  # Fusionner les résultats pour optimiser la mémoire
+  # Merge data to save memory
   all_dates &lt;- unlist(lapply(all_data, `[[`, &quot;dates&quot;), recursive = FALSE)
   all_rasters &lt;- rast(lapply(all_data, `[[`, &quot;rasters&quot;))
-  #all_rasters &lt;- do.call(c, lapply(all_data, `[[`, &quot;rasters&quot;))
   all_rasters_names &lt;- unlist(lapply(all_data, `[[`, &quot;dates&quot;), recursive = FALSE)
-  
   # Clean memory
   rm(all_data)
   gc()
@@ -439,9 +437,11 @@ instead of 2 events of 5 days only you can use : low complexity with
   end_date &lt;- max(all_dates, na.rm = TRUE)
 
   # Reorder informations in chronological order :
+  ## get a list of the raster layers
   all_rasters &lt;- lapply(1:nlyr(all_rasters), function(i) all_rasters[[i]])
   ## Transforme SpatRaster to list of rasters so it is easier to modify the order.
-  sorted_indices &lt;- order(all_rasters_names) # get a list of the current position of the rasters : the first number tell you where is currently the raster that should be first in chronological order
+  sorted_indices &lt;- order(all_rasters_names) 
+  ## get a list of the current position of the rasters : the first number tell you where is currently the raster that should be first in chronological order
   sorted_rasters &lt;- all_rasters[sorted_indices] #sort the rasters
   
   # Transform the list of sorted raster into a multilayers raster to be able to use terra:extract on cells
@@ -449,49 +449,43 @@ instead of 2 events of 5 days only you can use : low complexity with
   pixel_time_series &lt;- terra::extract(stacked_rasters, 1:ncell(stacked_rasters)) #one row per pixel, 1 column per time step
   # Transform to character the series of value for each pixels
 
-  if (!is.null(n) &amp; !is.null(d) &amp; is.null(nbis) &amp; is.null(w) &amp; is.null(p)){ # here add code for low complexity
+  if (!is.null(n) &amp; !is.null(d) &amp; is.null(nbis) &amp; is.null(w) &amp; is.null(p)){ # code for low complexity
 
-    Event_corrected &lt;- data.frame()
-    
-    correct_lowcomplexity_n_d &lt;- function(pixel_values, n, d, pix){ # pixel_values &lt;- pixel_time_series[1,] and pix=1; &quot;pix&quot; is a dynamic argument that is automatically indexed when calling the function, it identify each pixels (~ each rows of pixel_time_series)
-       pixel_values &lt;- as.numeric(pixel_values)
+    correct_lowcomplexity_n_d &lt;- function(pixel_time_series, c, n, d, pix){ # pixel_values &lt;- pixel_time_series[1,] and pix=1; &quot;pix&quot; is a dynamic argument that is automatically indexed when calling the function, it identify each pixels (~ each rows of pixel_time_series)
+      
+       pixel_values &lt;- as.numeric(pixel_time_series[c, ])
        rle_series &lt;- rle(pixel_values) 
       # Clean isolated &#39;1&#39;
-       One_to_0 &lt;- which(rle_series$values == 1 &amp; rle_series$lengths &lt; n) #replace isolated &#39;1&#39; (series &lt; n ) by 0
-       rle_series$values[One_to_0] &lt;- 0
-       pixel_values_cleanned &lt;- inverse.rle(rle_series) 
+       One_to_0 &lt;- which(rle_series$values == 1 &amp; rle_series$lengths &lt; n) #list isolated &#39;1&#39; (series &lt; n ) by 0
+       rle_series$values[One_to_0] &lt;- 0 # replace isolated 1 by 0
+       pixel_values_cleanned &lt;- inverse.rle(rle_series) # values of each pixel trough time
        rle_series_cleanned &lt;- rle(unlist(pixel_values_cleanned)) # re-identify the series of 0, this way series of zeros are re-defined to include 0 and 1 transformed to 0 in one same serie when they are next to each other.
-       pixel &lt;- data.frame(Original_value = as.vector(pixel_values), #need to go through a dataframe because I don&#39;t know how to modify the ID directly in rle object
+       pixel &lt;- data.table::data.table(Original_value = as.vector(pixel_values), #need to go through a dataframe because I don&#39;t know how to modify the ID directly in rle object
                            Cleanned_value = unlist(pixel_values_cleanned),
                            ID = rep(seq_along(rle_series_cleanned$lengths), rle_series_cleanned$lengths),
                            Nb_days = rep(rle_series_cleanned$lengths, rle_series_cleanned$lengths))
   
       # Rename event that should gathered because they are separated by d days (or less) bellow threshold
-       zero_series &lt;- unique(pixel$ID[pixel$Cleanned_value == 0 &amp; pixel$Nb_days &lt;= d]) #identify series of 0 shorter than d (or equal to d)
+       zero_series &lt;- unique(pixel$ID[(is.na(pixel$Cleanned_value) | pixel$Cleanned_value ==0) &amp; pixel$Nb_days &lt;= d]) #identify series of 0 or NA shorter than d (or equal to d) This imply that a sequence of NA shorter than d will not be considered as a limit of event
        zero_series &lt;- setdiff(zero_series,c(1,max(pixel$ID))) # withdraw the beginning and end of the timeserie as it cannot be surrounded by &#39;1&#39; values
        to_modify &lt;- sort(c(zero_series, zero_series + 1))  #list of futur index to rename zero series and one series under one same name when necessary, using the first one serie&#39;s name (only when 0 serie length &lt;=d)
        modifier &lt;- zero_series-1 #sequence of one before the short sequence of 0, &lt;-&gt; the sequence of one that will be merge with the next sequence of 1
        replacement_map &lt;- setNames(rep(modifier, each = 2), to_modify) # associate the ID value to replace (firt line) with the value of replacement (second line)
-       pixel$ID &lt;- ifelse(
-          pixel$ID %in% names(replacement_map),  # Check if ID modification is requiered
-          as.numeric(replacement_map[as.character(pixel$ID)]),  # If so -&gt; replace
-          pixel$ID ) # If not -&gt; keep the existing one
-       # re-calculate number of days :
-       pixel$Nb_days &lt;- rep(rle(pixel$ID)$lengths,rle(pixel$ID)$lengths)
-       # add somting to the ID so it doesn&#39;t mess-up in between the pixel 
-       pixel$ID &lt;- paste0(pix,&#39;_&#39;,pixel$ID) #pix is the pixel identifier
+       # Here above, if you have something like 111110111110111110 you will get aaabb as ID instead of aaaaa to adress this issue, I&#39;ve added the lines bellow :
+       pixel[, ID := ifelse(ID %in% names(replacement_map), as.numeric(replacement_map[as.character(ID)]), ID)]
+       pixel[, Nb_days := rep(rle(ID)$lengths, rle(ID)$lengths)]
+       pixel[, ID := paste0(pix, &#39;_&#39;, ID)]
        return(pixel)
     }
+    pixel_time_series &lt;- as.data.table(pixel_time_series)
     gc()
-    Event_corrected &lt;- mclapply(1:nrow(pixel_time_series), function(c) { #one time serie of corrected event per pixel
-            pix &lt;- c
-            intermediate_df &lt;- correct_lowcomplexity_n_d(pixel_time_series[c,], 
-                                                         n, 
-                                                         d,
-                                                         pix)
-            return(intermediate_df)}, 
-            mc.cores = floor(detectCores(logical = FALSE)*30/100))
+
+    Event_corrected &lt;- list()
+    for (c in 1:nrow(pixel_time_series)){ # Here a loop works better than a mcapply because mcapply copies the data.table in each cores, which takes time and uses RAM.
+      pix &lt;- c
+      Event_corrected[[c]] &lt;- correct_lowcomplexity_n_d(pixel_time_series, c, n, d, pix)
     }
+  }
   
   if (!is.null(n) &amp; !is.null(d) &amp; !is.null(nbis) &amp; is.null(w) &amp; is.null(p)){
     #here add code for medium complexity

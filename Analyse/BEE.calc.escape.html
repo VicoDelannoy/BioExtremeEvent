@@ -379,80 +379,170 @@ provide coordinate in decimal degrees (vector or df), values will only
 be computed for the given point.</p>
 <p><span class="citation">@note</span> all distance metrics are limited
 by the size of the Spatraster your are providing.</p>
-<pre class="r"><code># start_date = &quot;2022-01-01&quot;; end_date = &quot;2024-12-31&quot;; coords = GPS[1,c(1,2)] ; account_all=FALSE
-BEE.calc.escape&lt;- function(data, 
-                           start_date = NULL, end_date = NULL, 
-                           coords, 
-                           account_all_days = FALSE, 
-                           compute_by_event = FALSE){
-  ##############################################################################
-  ################### data &lt;- Corrected_rasters ################################
-  ##############################################################################
-  if (class(data[1])==&quot;SpatRaster&quot;){
-    #Check that compute_by_event = FALSE, Corrected_rasters is not the right data set to cumpute by event
-    if (compute_by_event == TRUE){
-      warning(&quot;The dataset you provided is not in the expected format to compute distance by extreme event. \n If you don&#39;t want to compute the distances metrics by extreme event, please withdraw your argument &#39;compute_by_event=TRUE&#39; or set &#39;compute_by_event=FALSE&quot;)
-    }
-    #Subset the timeframe
-    if (!is.null(start_date) | !is.null(end_date)){
-      ## Check that date format matches
-      format_start_date &lt;- guess_formats(start_date, orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
-      format_end_date &lt;- guess_formats(end_date, orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
-      format_layers_names &lt;- guess_formats(names(data[[1]]), orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
-      same_format &lt;- all(format_start_date %in% format_layers_names)
-      same_format &lt;- c(same_format, all(format_end_date %in% format_layers_names))
-      if(any(same_format==FALSE)){
-        warning(&quot;The format of start_date or end_date does not match the format of the dates in Corrected_raster. Please run names(Corrected_raster[[1]]) to check the required format.&quot;)
-        stop()
-      }
-      else{
-        ## Retrive
-        start_date &lt;- ifelse(is.null(start_date), names(data[[1]]), start_date)
-        end_date &lt;- ifelse(is.null(end_date), names(data[[nlyr(data)]]), end_date)
-        rasters &lt;- data[[which(names(data) &gt;= start_date &amp; names(data) &lt;= end_date)]]
-      }
-    }
-    if (is.null(start_date) &amp; is.null(end_date)){
-      ## Adjust variable name to match the rest of the function
-      rasters &lt;- data 
-    }
+<div id="test-en-utilisant-events_corrected" class="section level1">
+<h1>Test en utilisant Events_corrected</h1>
+<pre class="r"><code># true_event_output &lt;- result ; start_date = &quot;2022-01-01&quot;; end_date = &quot;2024-12-31&quot; ; pixel = &quot;all&quot; ; account_all_days = &quot;each_event&quot;
+BEE.calc.escape&lt;- function(true_event_output, 
+                start_date = NULL, end_date = NULL, 
+                pixel, 
+                account_all_days) { 
+# pixel is a vector with x,y coordinates or a df of x,y coordinates or &quot;all&quot; if you want to compute distance metrics for all pixels in the raster provided through true_event_output
+# account_all_days = TRUE : mean distance will be based on distances from all days in the time frame (belonging to an extreme event or not), &quot;each_event&quot; = compute one mean distance per events, including all days belonging to this event event if they are a &#39;0&#39; day, &quot;all_events&quot; compute one mean distance accounting only for days that belong to an EE.
+
+### Recreate a Spatraster using Events_corrected. In this list, there are one df per pixel and one raw per dates
+## Get data and shell
+  data &lt;- true_event_output[[2]]
+  shell &lt;- true_event_output[[1]]
+## Select timeframe of interest to save computation time later
+  # Check that dates from the two products of result match
+  if (length(data[[1]]$Original_value) != nlyr(shell)){
+    warning(&quot;The two elements you provided as &#39;true_event_output don&#39;t cover the same number of days, please use the output of BEE.calc.true_event.&quot;)
+  }
+  date_indices &lt;- match(c(start_date, end_date), names(shell))
+  dates &lt;- names(shell)[date_indices[1]:date_indices[2]]
+  data &lt;- lapply(data, function(df){
+    df &lt;- df[date_indices[1]:date_indices[2],]
+    return(df)
+  })
+  
+  # compute distances for every pixel for one time frame
+  rasters &lt;- subset(true_event_output$stacked_rasters_corrected, as.numeric(which(names(true_event_output$stacked_rasters_corrected)&gt;=start_date &amp; names(true_event_output$stacked_rasters_corrected) &lt;= end_date)))
+  distances &lt;- lapply(rasters, function(x){ # x &lt;- rasters[[1]]
+    # compute for each non NA pixel the shortest distance to a pixel of value 0, NA pixels are avoided
+    r_dist &lt;- terra::gridDist(x, target=0) #rasters unit is degrees -&gt; results will be in meters
+    return(r_dist)
+  })
+   message(&quot;This function use terra::gridDist. If your data are in degrees (lon/lat) or in meters, terra::gridDist output is in meters. If you have any doupts, please check ?terra::gridDist()&quot;)
+  distances &lt;- rast(distances) # transform to Spatraster
+  
+  if (as.character(pixel)[1] == &quot;all&quot;){
+    pixels_to_do &lt;- seq_along(data)
     
-    ############################################################################
-    ##################### coords &lt;- GPS[1,c(1,2)] ##############################
-    if(!is.null(coords)){
-      ##################### account_all &lt;- False ###############################
-      if(account_all==FALSE){
-        # subset the days for which your reference point is experiencing an EE
-        pixel_of_interest &lt;- terra::cellFromXY(rasters, coords)
-        EE&lt;-as.vector(terra::extract(rasters, pixel_of_interest))
-        rasters &lt;- rasters[[which(EE==1)]]
+  }
+  if (class(pixel)==&quot;vector&quot; | class(pixel)==&quot;data.frame&quot; ){
+    pixels_to_do &lt;- terra::cellFromXY(true_event_output$stacked_rasters_corrected,pixel)
+  }
+  if (account_all_days==TRUE){
+    dist_final &lt;- data.table()
+  }
+  if (account_all_days==&quot;each_event&quot; | account_all_days==&quot;all_events&quot; ){
+    dist_final &lt;- list()  
+    position &lt;- 0
+  }
+  
+  for (i in pixels_to_do){
+    # In true_event output[[2]] There is an alternation btw ID corresponding to an event above threshold (in absolut) and bellow threshold. To identify which ones belong to which category, we can calculate the % on 1 in odd ID position and in even ID position to see which ones are the event above threshold.
+    dist_values &lt;- terra::extract(distances, i)
+    #convert to data.table
+    dist_values&lt;- data.table(dates = colnames(dist_values),
+                          daily_shortest_dist = t(dist_values)) %&gt;%
+      rename(daily_shortest_dist = daily_shortest_dist.V1)
+    if (all(is.na(dist_values$daily_shortest_dist))){
+      dist_values[,Event_ID := NA]
+      dist_values[,Nb_days_no_escape := NA]
+      dist_values[,Mean_dist := NA]
+      dist_values[,Sd_dist := NA]
+      dist_values[,Median_dist := NA]
+      dist_values[,Min_dist := NA]
+      dist_values[,Max_dist := NA]
+      dist_values[,First_quart := NA]
+      dist_values[,Third_quart := NA]
+        if (account_all_days==TRUE){
+          dist_final &lt;- rbind(dist_final, dist_values)
+        }
+        if (account_all_days==&quot;each_event&quot; | account_all_days==&quot;all_events&quot; ){
+          position &lt;- position+1
+          dist_final[[position]] &lt;- dist_values
+        }
+    }
+    else{
+      if (account_all_days == &quot;each_event&quot;){
+      # Kepp only the lines corresponding to a true EE 
+      odd &lt;- seq(1, by = 2, length(unique(data[[i]]$ID)))
+      even &lt;- seq(2, by = 2, length(unique(data[[i]]$ID)))
+      odd &lt;- unique(data[[i]]$ID)[odd]
+      even &lt;- unique(data[[i]]$ID)[even]
+      p_odd &lt;- mean(data[[i]]$Cleanned_value[which(data[[i]]$ID %in% odd)])
+      p_even &lt;- mean(data[[i]]$Cleanned_value[which(data[[i]]$ID %in% even)])
+      true_event_IDs &lt;- list(odd, even)[[which.max(c(p_odd, p_even))]] #return the ID of the event above threshold
+      # in data, row are in order (by date) and the first row represent start_date and the last_one represent end_date. We can use this to know 
+      index &lt;- as.numeric(which(data[[i]]$ID %in% true_event_IDs))
+      # Then subset true_event_output[[2]] to keep only those dates
+      dist_values &lt;- dist_values[index] # NA when they are no escape in the are of the rasters
+      # Then calculate distance to escape for those days
+      dist_values[,Event_ID := data[[i]]$ID[which(data[[i]]$ID %in% true_event_IDs)]]
+      # Resume by Event_ID
+      dist_values &lt;- dist_values[, .(
+                        pixel = i,
+                        date_start = min(dates),
+                        date_end = max(dates),
+                        Nb_days_no_escape = unique(length(daily_shortest_dist[ which( is.na(daily_shortest_dist))]), by = &quot;Event_ID&quot;),
+                        Mean_dist = unique(mean(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Sd_dist = unique(sd(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Median_dist = unique(median(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Min_dist = unique(min(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Max_dist = unique(max(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        First_quart = unique(quantile(x = daily_shortest_dist, na.rm=TRUE)[2], by = &quot;Event_ID&quot;),
+                        Third_quart = unique(quantile(x = daily_shortest_dist, na.rm=TRUE)[3], by = &quot;Event_ID&quot;)
+                        ), by = Event_ID]
+    position &lt;- position+1
+    dist_final[[position]] &lt;- dist_values
+    }
+    if (account_all_days == TRUE){
+      dist_values[,Event_ID := data[[i]]$ID]
+      # Resume by Event_ID
+      dist_values &lt;- dist_values[, .(
+                        pixel = i,
+                        date_start = min(dates),
+                        date_end = max(dates),
+                        Nb_days_no_escape = unique(length(daily_shortest_dist[ which( is.na(daily_shortest_dist))]), by = &quot;Event_ID&quot;),
+                        Mean_dist = unique(mean(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Sd_dist = unique(sd(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Median_dist = unique(median(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Min_dist = unique(min(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Max_dist = unique(max(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        First_quart = unique(quantile(x = daily_shortest_dist, na.rm=TRUE)[2], by = &quot;Event_ID&quot;),
+                        Third_quart = unique(quantile(x = daily_shortest_dist, na.rm=TRUE)[3], by = &quot;Event_ID&quot;)
+                        ), by = Event_ID]
+      dist_final &lt;- rbind(dist_final, dist_values)
+    }
+    if (account_all_days == &quot;all_events&quot;){
+      # Kepp only the lines corresponding to a true EE 
+      odd &lt;- seq(1, by = 2, length(unique(data[[i]]$ID)))
+      even &lt;- seq(2, by = 2, length(unique(data[[i]]$ID)))
+      odd &lt;- unique(data[[i]]$ID)[odd]
+      even &lt;- unique(data[[i]]$ID)[even]
+      p_odd &lt;- mean(data[[i]]$Cleanned_value[which(data[[i]]$ID %in% odd)])
+      p_even &lt;- mean(data[[i]]$Cleanned_value[which(data[[i]]$ID %in% even)])
+      true_event_IDs &lt;- list(odd, even)[[which.max(c(p_odd, p_even))]] #return the ID of the event above threshold
+      # in data, row are in order (by date) and the first row represent start_date and the last_one represent end_date. We can use this to know 
+      index &lt;- as.numeric(which(data[[i]]$ID %in% true_event_IDs))
+      # Then subset true_event_output[[2]] to keep only those dates
+      dist_values &lt;- dist_values[index] # NA when they are no escape in the are of the rasters
+      # Then calculate distance to escape for those days
+      dist_values[,Event_ID := data[[i]]$ID[which(data[[i]]$ID %in% true_event_IDs)]]
+      # Resume by Event_ID
+      dist_values &lt;- dist_values[, .(
+                        pixel = i,
+                        date_start = min(dates),
+                        date_end = max(dates),
+                        Nb_days_no_escape = unique(length(daily_shortest_dist[ which( is.na(daily_shortest_dist))]), by = &quot;Event_ID&quot;),
+                        Mean_dist = unique(mean(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Sd_dist = unique(sd(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Median_dist = unique(median(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Min_dist = unique(min(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        Max_dist = unique(max(daily_shortest_dist, na.rm=TRUE), by = &quot;Event_ID&quot;),
+                        First_quart = unique(quantile(x = daily_shortest_dist, na.rm=TRUE)[2], by = &quot;Event_ID&quot;),
+                        Third_quart = unique(quantile(x = daily_shortest_dist, na.rm=TRUE)[3], by = &quot;Event_ID&quot;)
+                        ), by = Event_ID]
+      position &lt;- position+1
+      dist_final[[position]] &lt;- dist_values
       }
-      distances &lt;- lapply(rasters, function(x){ # x &lt;- rasters[[1]]
-        # compute for each non NA pixel the shortest distance to a pixel of value 0, NA pixels are avoided
-        r_dist &lt;- terra::gridDist(x, target=0) #rasters unit is degrees -&gt; results will be in meters
-        return(r_dist)
-      })
-      message(&quot;This function use terra::gridDist. If your data are in degrees (lon/lat) or in meters, terra::gridDist output is in meters, for better lisibility, we converted it to kilometers. If you have any doupts, please check ?terra::gridDist()&quot;)
-      distances &lt;- rast(distances) # transform to Spatraster
-      distances &lt;- terra::extract(distances, pixel_of_interest)
-      #convert to data.table
-      distances &lt;- data.table(dates = colnames(distances)[-1],
-                              daily_shortest_dist = t(distances)[-1])
-      dist &lt;- data.table(Nb_days_pixel_1 = length(distances$dates),
-                         Nb_days_no_escape = length( distances$daily_shortest_dist[ which( is.na(distances$daily_shortest_dist) ) ] ),
-                         Mean_dist = mean(distances$daily_shortest_dist, na.rm=TRUE)/1000,
-                         Sd_dist = sd(distances$daily_shortest_dist, na.rm=TRUE)/1000,
-                         Median_dist = median(distances$daily_shortest_dist, na.rm=TRUE)/1000,
-                         Min_dist = min(distances$daily_shortest_dist, na.rm=TRUE)/1000,
-                         Max_dist = max(distances$daily_shortest_dist, na.rm=TRUE)/1000,
-                         First_quart = quantile(x = distances$daily_shortest_dist, na.rm=TRUE)[2]/1000,
-                         Thrid_quart =quantile(x = distances$daily_shortest_dist, na.rm=TRUE)[4]/1000)
-      dist &lt;- as.data.frame(dist)
-      output &lt;- list(distances_all_days=distances,dist_summary=dist)
-      return(output)
     }
   }
+  return(dist_final)
 }</code></pre>
+</div>
 
 
 

@@ -370,7 +370,7 @@ time.</p>
 binarised with the mhw function before you put it in this function, you
 also may want to apply</p>
 <p>#start_date &lt;- “2022-01-01” ; end_date &lt;- “2023-12-31”</p>
-<pre class="r"><code>BEE.calc.metrics_morpho &lt;- function(Corrected_rasters, start_date = NULL, end_date = NULL) {
+<pre class="r"><code>BEE.calc.metrics_morpho &lt;- function(Corrected_rasters, start_date = NULL, end_date = NULL, patch_per_pix = FALSE) {
   # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)){
     ## Check that date format matches
@@ -400,17 +400,17 @@ also may want to apply</p>
     return(patch)
   })
     
-  dist &lt;- lapply(patch_list, FUN = function(x){ # x &lt;- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
-    vals &lt;- values(x)
-    vals &lt;- vals[!is.nan(vals)]
-    if (any(vals== 0)) {
-        dist &lt;- terra::distance(x, target = 1, exclude = NaN, unit = &quot;km&quot;)
-        } else {
-        values(x)&lt;- NaN
-        dist &lt;- x
-        }
-    return(dist)
-  })
+  # dist &lt;- lapply(patch_list, FUN = function(x){ # x &lt;- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
+  #   vals &lt;- values(x)
+  #   vals &lt;- vals[!is.nan(vals)]
+  #   if (any(vals== 0)) {
+  #       dist &lt;- terra::distance(x, target = 1, exclude = NaN, unit = &quot;km&quot;)
+  #       } else {
+  #       values(x)&lt;- NaN
+  #       dist &lt;- x
+  #       }
+  #   return(dist)
+  # })
     
     
   dist_list &lt;- lapply(patch_list, function(x) { # x &lt;- patch_list[[1]]
@@ -419,6 +419,7 @@ also may want to apply</p>
     cell_size &lt;- values(cellSize(x))[,1]
     boundary &lt;- terra::boundaries(x, directions = 8)
     coordonates &lt;- xyFromCell(x, 1:ncell(x))
+    d &lt;- time(x)
 
     data &lt;- data.table(
       x = coordonates[,1],
@@ -473,9 +474,10 @@ also may want to apply</p>
         data[,fract_corel_dim := (
           2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
           ), by = patch_id]
+        data[, date := d] 
         }
       return(data)
-    })
+    }) # one dt per pixel
   
   names(dist_list)&lt;- time(rasters) 
   
@@ -485,8 +487,24 @@ also may want to apply</p>
     x[,&#39;:=&#39;(x=NULL,y=NULL)]
       return(x)
   })
-  list_outputs &lt;- list(dist_list,data_summarised)
-  return(list_outputs)
+  
+  # Add a list of patch_ID per pixel (/!\ there are several patch_ID per EE because we cannot do spatio-temporal analysis here)
+  if (patch_per_pix == TRUE) {
+  pixels_nb &lt;- seq(1,nrow(dist_list[[1]]))
+  dist_tab &lt;- bind_rows(dist_list)
+  setDT(dist_tab)
+  dist_tab[,pixel_ID := rep(pixels_nb, length(dist_list))]
+  dist_tab[, date_patch := ifelse(is.nan(patch_id), NaN, paste0(date, &#39;_&#39;, as.character(patch_id)))]
+  matching &lt;- dist_tab[, .(patch_ID = list(date_patch)), by = pixel_ID]
+  patch_list &lt;- rast(patch_list)
+  names(patch_list) &lt;- time(rasters)
+  output &lt;- list(data_summarised, patch_list, matching)
+  return(output)
+  }
+  patch_list &lt;- rast(patch_list)
+  names(patch_list) &lt;- time(rasters)
+  output &lt;- list(data_summarised, patch_list)  
+  return(output)
 }</code></pre>
 
 

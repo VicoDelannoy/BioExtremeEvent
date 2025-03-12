@@ -9,15 +9,27 @@ This funciton check that the spat rasters unit for temperature is Celsius, if no
 
 ```{r}
 BEE.calc.celsius <- function(YourSpatRaster) {
+  
+#'Convert temperature data to Celsius
+#'@BEE.calc.celsius
+#'@description
+#' Function that detects whether pixel value of a SpatRaster are in Celsius, Kelvin or Fahrenheit and makes conversion to the international unit 'Celsius' if necessary.   
+#' @param YourSpatRaster
+#' YourSpatRaster is the SpatRaster containning temperature data and for which you want to check the unit and convert values to celsius. 
+#' @return YourSpatRaster 
+#' Your SpatRaster with values corrected to celsius and 'unit' metadata updated to 'Celsisus'.
+#' @export
+
+  
   # Get the unit of each layer.
-  units_count <- units(YourSpatRaster)
+  units_count <- terra::units(YourSpatRaster)
   # Check that no layer contain several unit.
   if (any(sapply(units_count, length) != 1)) {
     warning("No unit or multiple units were detected for some layers. Plot raster[[1]] to verify if a unit is provided, and ensure that there are no multiple values assigned to a single pixel in your raster.")
     return(NULL)
   }
   # Check that all layers have the same unit.
-  unit <- unique(units_count)
+  unit <- terra::unique(units_count)
   if (length(unit) > 1) {
     warning("Units differ between layers. If you have merged layers from different datasets, ensure that all layers measure the same parameter and that the units are consistent across datasets before merging.")
     return(NULL)
@@ -30,29 +42,29 @@ BEE.calc.celsius <- function(YourSpatRaster) {
   }
   # Store original metadata for later
   original_metadata <- list(
-    time = time(YourSpatRaster), 
-    crs = crs(YourSpatRaster),    
-    extent = ext(YourSpatRaster)  
+    time = terra::time(YourSpatRaster),
+    crs = terra::crs(YourSpatRaster),
+    extent = terra::ext(YourSpatRaster)
   )
   # Convert from kelvin to celsius
   if (tolower(unit) %in% c("kelvin", "k")) {
-    YourSpatRaster <- app(YourSpatRaster, function(x) x - 273.15)  # conversion en celsius
-    units(YourSpatRaster) <- "Celsius" # This unfortunately delete other metadata
+    YourSpatRaster <- terra::app(YourSpatRaster, function(x) x - 273.15)  # conversion en celsius
+    terra::units(YourSpatRaster) <- "Celsius" # This unfortunately delete other metadata
     #restore other metadata
-    time(YourSpatRaster) <- original_metadata$time
-    crs(YourSpatRaster) <- original_metadata$crs
-    ext(YourSpatRaster) <- original_metadata$extent
+    terra::time(YourSpatRaster) <- original_metadata$time
+    terra::crs(YourSpatRaster) <- original_metadata$crs
+    terra::ext(YourSpatRaster) <- original_metadata$extent
     warning("Your data were in Kelvin and have been converted to Celsius using: former value - 273.15 = new value.")
     return(YourSpatRaster)
   }
   # Convert from Fahrenheit to celsius
   if (tolower(unit) %in% c("fahrenheit", "f")) {
-    YourSpatRaster <- app(YourSpatRaster, function(x) round((x - 32) * (5 / 9), digits = 3))  # conversion en celsius
-    units(YourSpatRaster) <- "Celsius" # This unfortunately delete other metadata
+    YourSpatRaster <- terra::app(YourSpatRaster, function(x) terra::round((x - 32) * (5 / 9), digits = 3))  # conversion en celsius
+    terra::units(YourSpatRaster) <- "Celsius" # This unfortunately delete other metadata
     #restore other metadata
-    time(YourSpatRaster) <- original_metadata$time
-    crs(YourSpatRaster) <- original_metadata$crs
-    ext(YourSpatRaster) <- original_metadata$extent
+    terra::time(YourSpatRaster) <- original_metadata$time
+    terra::crs(YourSpatRaster) <- original_metadata$crs
+    terra::ext(YourSpatRaster) <- original_metadata$extent
     warning("Your data were in Fahrenheit and have been converted to Celsius using: round((former value - 32)*(5/9), digits = 3) = new value.")
     return(YourSpatRaster)
   }

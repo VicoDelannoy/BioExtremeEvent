@@ -355,7 +355,7 @@ display: none;
 </div>
 
 
-<pre class="r"><code># start_date &lt;- &quot;2022-01-01&quot; ; end_date &lt;- &quot;2023-12-31&quot; ; Values &lt;- ds
+<pre class="r"><code># start_date &lt;- &quot;2022-01-01&quot; ; end_date &lt;- &quot;2023-12-31&quot; ; Values &lt;- ds ; GPS &lt;- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
 BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS, 
                                    start_date=NULL, end_date=NULL, 
                                    baseline_qt90, baseline_mean, 
@@ -410,14 +410,6 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
     return(df)
   }, df_list, seq_along(df_list))
   
-  #Delete the information related to days bellow threshold (to save computation time)
-  event_to_delete_list &lt;- lapply(df_list, function(df) {
-  unique(df[which(df$Cleanned_value == 0),&quot;ID&quot;])})
-  df_list_only_1 &lt;- lapply(seq_along(df_list), function(p) { # we need to save the data that correspond to value above threshold in a specific object beacause we may want to optimize the function so it test the onset rate before the event start (and thus we will need values bellow threshold as well)
-    df_list[[p]] %&gt;%
-    filter(!(ID %in% event_to_delete_list[[p]]))
-  })
-  
   #Create a list of dataframe to store the information using one element (df) per pixel and one row per event
   colnames(GPS)&lt;-c(&quot;x&quot;,&quot;y&quot;, names(GPS[3]))
   
@@ -427,8 +419,8 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
   mean &lt;- as.data.frame(t(terra::extract(baseline_mean, GPS[,3])))
   mean$dates &lt;- format(seq(as.Date(&quot;2024-01-01&quot;), as.Date(&quot;2024-12-31&quot;), by = &quot;day&quot;), &quot;%m-%d&quot;)
 
-  metrics &lt;- lapply(1:length(df_list_only_1), function(p) { # Go through each pixel
-    df &lt;- df_list_only_1[[p]]
+  metrics &lt;- lapply(1:length(df_list), function(p) { # Go through each pixel
+    df &lt;- df_list[[p]]
     df$Date &lt;- as.Date(df$Date)
     df$dates &lt;- format(as.Date(df$Date), &quot;%m-%d&quot;)
     df &lt;- df %&gt;%

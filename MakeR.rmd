@@ -19,7 +19,7 @@ editor_options:
 #                                                                                                  
 ```
 
-This file is the main skeleton of the package BioExtremEvent (BEE) and guide you through the different steps of analysis. Most of the functions use 'mclapply', which is only able to parallelize calculations on macOS and Linux. If you're running the code on Windows, computation time may be longer.
+This file is the main skeleton of the package BioExtremEvent (BEE) and guide you through the different steps of analysis. 
 
 # 1. Load dependencies and associated functions
 
