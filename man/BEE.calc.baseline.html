@@ -373,7 +373,21 @@ resolution of the data set .</li>
 <h1>rast_name = ds ; start_date=NULL; end_date = “1987-12-31” ;
 threshold = “qt”; quantile_value = 0.9 ; time_window = 5;
 smooth_window=10</h1>
-<pre class="r"><code>BEE.calc.baseline &lt;- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value=NULL, time_window=5, smooth_window=10){
+<pre class="r"><code>#&#39; Calculate baseline value for each pixel.
+#&#39; @BEE.calc.baseline
+#&#39; @param rast_name the SpatRaster containing the values to use to calculate baseline. It must have a date per layer.
+#&#39; @param start_date the date to use as the first day of your reference period. It must be in YYYY-MM-DD format.
+#&#39; @param end_date the date to use as the last day of your reference period. It must be in YYYY-MM-DD format.
+#&#39; @param threshold tells whether you want to use a percentile or the mean of the observed value as threshold. Accepted arguments are &quot;qt&quot; to specify you want to compute a percentile of the observed values in the reference timeframe. Or &quot;mean&quot; if you wnat to use the mean of observed values in the timeframe provided as threshold. 
+#&#39; @param quantile_value indicates the percentile value you want to use. It must be between 0 and 1.
+#&#39; @param time_window number of days you want to account on each size of day &#39;d&#39; to calculate the threshold value on &#39;d&#39; day. For instance time_window = 5 means that the value from day d - 5 days, day d and until day d + of all years between start_date and end_date will be use to calculate the threshold at day d of the year.
+#&#39; @param smooth_window half the number of days minus one that you want to use to smooth you baseline in time. For instance, smooth_window = 10 minutes the final value at day &#39;d&#39; will be the mean of the baseline values calculate for day d - 10 to d + 10 (elven values). 
+#&#39;
+#&#39; @returns a SpatRaster with on day of the year per layer (366 layers), having the same extent, pixel resolution and crs than the provided SpatRaster.
+#&#39; @export
+#&#39;
+
+BEE.calc.baseline &lt;- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value=NULL, time_window=5, smooth_window=10){
   
   # Subset the dataset to the chosen strat_date and end-date if necessary
   if (is.null(start_date) | !is.null(end_date)){

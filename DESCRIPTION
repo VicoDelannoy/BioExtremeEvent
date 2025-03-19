@@ -27,11 +27,11 @@ Depends:
 	reticulate,
 	data.table
 Imports:
-	doParallel,
-	dplyr,
-	foreach,
-	ggplot2,
-	lubridate,
-	sf
+    doParallel,
+    dplyr,
+    foreach,
+    ggplot2,
+    lubridate,
+    sf
 Remotes:
 	robwschlegel/heatwave3

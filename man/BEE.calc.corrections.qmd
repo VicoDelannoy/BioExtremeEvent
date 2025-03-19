@@ -18,10 +18,18 @@ analyze_changes <- function(dataframe) {
   total_ones <- sum(dataframe$Original_value == 1, na.rm = TRUE)
   total_zeros <- sum(dataframe$Original_value == 0, na.rm = TRUE)
   
+  # Count NA
+  total_NA <- sum(is.na(dataframe$Original_value))
+  total_not_NA <- sum(!is.na(dataframe$Original_value))
+  tot_value <- total_not_NA + total_NA
+  
  return(data.frame(one_to_zero = one_to_zero,
               zero_to_one = zero_to_one,
               total_ones = total_ones,
-              total_zeros = total_zeros))
+              total_zeros = total_zeros,
+              total_NA = total_NA,
+              total_not_NA = total_not_NA,
+              tot_value = tot_value))
 }
 #Apply to the list of dataframe
 results = c()
@@ -44,7 +52,7 @@ BEE.calc.corrections <- function(Events_corrected) {
   percentage_zero_to_one <- abs_zero_to_one * 100 / abs_0
   
   #Calculate mean per year and pixel
-  total_nb_info = nrow(Events_corrected[[1]])*length(Events_corrected) #nb pixel * nb days (or month if monthly time resolution)
+  total_nb_info = sum(results_df$total_not_NA)
   abs_one_to_zero_Ymean <- abs_one_to_zero * 100 / total_nb_info # 6% of information (days*pixel) have been changed 
   abs_1_Ymean <- abs_1 / total_nb_info
   #sd_1_Ymean <- as.numeric(sd(results_df$total_ones, na.rm=TRUE)) / total_nb_info # variability of being 1 among the pixel
@@ -52,8 +60,6 @@ BEE.calc.corrections <- function(Events_corrected) {
   abs_zero_to_one_Ymean <- abs_zero_to_one / total_nb_info
   abs_0_Ymean <- abs_0 / total_nb_info
   sd_1to0_Ymean <- as.numeric(sd(results_df$zero_to_one, na.rm=TRUE))  # corrections among the pixel
-  
-  message("This function doesn't account for NA values, please ensure your data contains a limited amount of NA values.")
   
 cat(
   "Absolut values for the whole area and whole time period :","\n",
@@ -68,7 +74,12 @@ cat(
   "Standard deviation of corrections among pixel(1 to 0):","\n",sd_1to0_Ymean, "%","\n",
   "Mean percentage of pixel value bellow thershold :",  "\n",abs_0_Ymean*100,"%", "\n",
   "Mean percentage of corrections to 1 ", "\n",abs_zero_to_one_Ymean, "%", "\n",
-  "Standard deviation of corrections among pixel (0 to 1)", "\n",sd_1to0_Ymean,"%","\n"
+  "Standard deviation of corrections among pixel (0 to 1)", "\n",sd_1to0_Ymean,"%","\n",
+  "\n",
+  "NA values in your dataset :","\n",
+  "Total number of NA values :", sum(results_df$total_NA),"\n",
+  "Total number of pixel that are always NA :", sum(sapply(Events_corrected, function(df) all(is.na(df$Original_value)))),"\n",
+  "Total number of NA values excluding those from pixels that are always NA :", sum(results_df$total_NA)-sum(sapply(Events_corrected, function(df) all(is.na(df$Original_value))))*length(Events_corrected[[1]]$Original_value),"\n"  # total NA value - number of pixels that alwayes are NA * number of days in the time serie
 )
 
 }

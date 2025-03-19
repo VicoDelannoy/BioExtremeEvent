@@ -8,6 +8,7 @@ editor_options:
 ---
 
 #rast_name= ds; baseline=baseline_qt90; direction = "above"
+
 ```{r}
 BEE.calc.binarize <- function(rast_name, baseline, direction) {
 
@@ -19,6 +20,19 @@ BEE.calc.binarize <- function(rast_name, baseline, direction) {
     time_list_base <- generate_month_day(2024) # Create dates in the format %m.%d for a leap year
     names(rast_name) <- time_list_exp # Rename the layers with the dates
     names(baseline) <- time_list_base # Rename the layers with the dates
+    # Check if there is a fourth hidden dimension. For instance there could be several depths or several altitudes which would result in several layer having the same dates and thus the same length.
+    if (any(table(time(rast_name))!=1)){ #at least one date has several layers
+      rep <- sum(table(time(rast_name)))/length(table(time(rast_name)))
+      if (rep==round(rep)){# all dates are repeted the same number of time
+        rast_list <- list()
+        n <- nlyr(rast_name)
+        for (l in seq(1,length(unique(time(rast_name))))){
+          layers <- seq(l,n,rep)
+          rast_list[[l]]<-rast_name[[layers]]
+        } #il faut ensuite appliquer binarize_spat à chaque élément de la list rast_list
+      }
+    }
+    
     delta <- binarize_spat(rast_name, baseline, direction) # Binarize the pixels to 1 & 0 (function from the packacge itself, see bellow) /!\ this part doesn't check if the value is above for five consecutive days or any duration
     delta_list <- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
     return(delta_list) # Output the list
@@ -52,7 +66,7 @@ generate_month_day <- function(year) {
 
 # Binarise SpatRaster's cells with 1 & 0 if true or false to a reference condition
 
-obs <- rast_name ; base <- baseline_qt90
+obs \<- rast_name ; base \<- baseline_qt90
 
 ```{r}
 binarize_spat <- function(obs, base, direction="above"){

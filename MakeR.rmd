@@ -19,7 +19,7 @@ editor_options:
 #                                                                                                  
 ```
 
-This file is the main skeleton of the package BioExtremEvent (BEE) and guide you through the different steps of analysis. 
+This file is the main skeleton of the package BioExtremEvent (BEE) and guide you through the different steps of analysis.
 
 # 1. Load dependencies and associated functions
 
@@ -50,7 +50,7 @@ sapply(files.source, function(file) {
 
 # 2. Get your data ready
 
-Detecting an 'extreme' event implies to know what are the normal conditions, thus, it is recommended to provide a 30 years times series. This can be painful to download manually from Copernicus Marine Data center or NOAA website as they often limit the amount of rasters that can be download. Therefore, here bellow are two functions to download data from R. They allows data to be dowloaded much faster ;) - BEE.data.Load_Copernicus is a wrapper from the python function "CopernicusMarine". - BEE.data.Load_NOAA is wrapper of some code coming from the heatwaveR package. - You can also download your raster manually on any website, make sure to use a NetCDF format and to stack your rasters without gaps in the time serie.
+Detecting an 'extreme' event implies to know what are the normal conditions, thus, it is recommended to provide a 30 years times series. This can be painful to download manually from Copernicus Marine Data center or NOAA website as they often limit the amount of rasters that can be download. Therefore, here bellow are two functions to download data from R. They allows data to be downloaded much faster ;) - BEE.data.Load_Copernicus is a wrapper from the python function "CopernicusMarine". - BEE.data.Load_NOAA is wrapper of some code coming from the heatwaveR package. - You can also download your raster manually on any website, make sure to use a NetCDF format and to stack your rasters without gaps in the time serie.
 
 ## From Copernicus
 
@@ -83,12 +83,17 @@ You can start from here is your data are already in your computer.
 
 ```{r}
 ds <- rast("Data/cnmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_1982_2024.nc.nc")
-# Each layer name must be the corresponding date under YYYY-MM-DD format
 time(ds) <- as.Date(time(ds))
 names(ds) <- time(ds)
+
+ds2 <- rast("Data/med-cmcc-tem-rean-d_1741965343789.nc")
+time(ds2) <- as.Date(time(ds2))
+names(ds2) <- time(ds2)
+# Each layer name must be the corresponding date under YYYY-MM-DD format
+
 ```
 
-## Convert to Celsius
+## Convert to Celsius with *"BEE.calc.celsius"*
 
 If your using the package to work on temperature raster, you can check that the unit is Celsius (and make conversion if necessary) using the function bellow.
 
@@ -96,31 +101,21 @@ If your using the package to work on temperature raster, you can check that the 
 ds <- BEE.calc.celsius(ds)
 ```
 
-# 3. Calculate a baseline value for each cell in your dataset using one of two methods with "*EE.calc.baseline"* :
+# 3. Calculate a baseline value for each cell in your dataset using one of two methods with *"BEE.calc.baseline"* :
 
--   [Dynamic Baseline]{.underline} (Seasonal Threshold): Compute the a percentile of daily mean values for each cell and each day of a "theoretical year" across the entire time series. Percentile must be beetwen 0 and 1. Example: For daily data from 1981–2020, this creates 365 threshold values per grid cell, one for each day of the year. Use case: Broad studies (e.g., comparing community responses or regions). Note : if you want to study data bellow the seasonal mean you must calculate a baseline for the first quantile (in case distribution is not symmetric around the mean). Example : value = 0.1 to study the 10 percent lowest value.
+-   [Dynamic Baseline]{.underline} (Seasonal Threshold): Compute a percentile of daily mean values for each cell and each day across the entire time series. Percentile must be between 0 and 1. Example: For daily data from 1981–2020, this creates 365 threshold values per grid cell, one for each day of the year. Use case: Broad studies (e.g., comparing community responses or regions). Note : if you want to study data bellow the seasonal mean you must calculate a baseline for the first quantile (in case distribution is not symmetric around the mean). Example : value = 0.1 to study the 10 percent lowest value.
 
 -   [Mean Baseline]{.underline} : Use a mean value or a constant temperature value based on biological or ecological relevance (see later part XX). Example: A mortality threshold that does not vary by season or location. Use case: Specific models or questions focused on fixed biological limits.
 
--   [Fixed Threshold]{.underline} (Biological Threshold): you can set an absolute value as a threshold directly in EE.calc.binarized.
+-   [Fixed Threshold]{.underline} (Biological Threshold): you can set an absolute value as a threshold directly in *"BEE.calc.binarized"*.
 
--   start_date and end_date are NULL if no date provided. Warning, dates but be under "YYYY-MM-DD" format.
+-   start_date and end_date are NULL if no date provided. Warning, dates must be under "YYYY-MM-DD" format.
 
 ```{r}
-# Dynamic Baseline ; 1 minutes 40 s to run on 3 332 pixels and 10 227 days
-baseline_qt90 <- BEE.calc.baseline(rast_name = ds, start_date = "1991-01-01", end_date = "2020-12-31", threshold = "qt", quantile_value = 0.9, smooth_window = 7) 
-saveRDS(baseline_qt90, here::here("Outputs", "baseline_qt90.rds"))
-baseline_qt90 <- readRDS(here::here("Outputs", "baseline_qt90.rds"))
-# Mean Basline 
-baseline_mean <- BEE.calc.baseline(rast_name = ds, end_date = "2010-12-31", threshold = "mean", quantile_value = NULL)
-saveRDS(baseline_mean, here::here("Outputs", "baseline_mean.rds"))
-baseline_mean <- readRDS(here::here("Outputs", "baseline_mean.rds"))
-
-
-#plot climatology in Frontignan
 baseline_qt90 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 
 baseline_qt10 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
 baseline_mean <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
+# PLot climatology in Frontignan
 df_plot <- data.frame(doy=seq(1:366),
                       qt10=t(terra::extract(baseline_qt10,507)), #507 is frontignant pixel
                       mean=t(terra::extract(baseline_mean,507)),
@@ -148,6 +143,8 @@ It provide a raw information for each day and each pixel without applying any de
 binarized_EE <- BEE.calc.binarize(rast_name= ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above"
 
 # plot(baseline_qt90[[1]]) ; plot(binarized_EE$`01.01`$`1983-01-01`)
+
+binarized_EE2 <- BEE.calc.binarize(rast_name= ds2, baseline=baseline_qt90, direction = "above")
 ```
 
 You can use the output to check which are the pixel more subject to peaks of your studdied parameter :
@@ -182,6 +179,17 @@ gc()
 # saveRDS(result, file= here::here("Outputs/result.rds")) ; test_result <- readRDS(here::here("Outputs/result.rds"))
 #Check settings
 BEE.calc.corrections(Events_corrected)
+
+# ds2
+gc()
+result2 <- BEE.calc.true_event(binarized_EE2, n = 5, d = 3) 
+Corrected_rasters2 <- result2$stacked_rasters_corrected
+Events_corrected2 <- result2$Event_corrected
+gc()
+#testL <- as.Date.character(c("2022-11-25", "2022-11-26", "2022-11-27", "2022-11-28", "2022-11-29", "2022-11-30", "2022-12-01", "2022-12-02", "2022-12-03", "2022-12-04", "2022-12-05")) ; test <- Corrected_rasters[[names(Corrected_rasters) %in% as.character(testL)]] ;library(viridis) ; plot(sum(test),  col = viridis::viridis(4))  ; plot(Corrected_rasters["2022-11-30"])
+# saveRDS(result, file= here::here("Outputs/result.rds")) ; test_result <- readRDS(here::here("Outputs/result.rds"))
+#Check settings
+BEE.calc.corrections(Events_corrected2)
 ```
 
 # 6. Get metrics related to time.

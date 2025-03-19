@@ -38,10 +38,18 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
            abs(GPS[2]) >= abs(Values_extent$ymin))){
    warning("At least one latitude coordinate falls outside the extent of the SpatRaster containing the binarized corrected events. Ensure the second column of the dataframe contains valid latitude (y) values for analysis.")
   }
+  # Check that one of the GPS position is not in a pixel that is always an NA (it may indicates that it falls in an area that is not interesting for the study)
+  NA_pixels <- which(sapply(Events_corrected, function(df) all(is.na(df$Original_value)))) # List of pixel that are always NA 
+  GPS$pixel <- terra::cellFromXY(Values, GPS) # List of the pixels corresponding to the GPS position provided
+  if (any(GPS$pixel %in% NA_pixels)){
+    wrong_position <- which(GPS$pixel %in% NA_pixels)
+    message("Problematic GPS positions:\n")
+    message(capture.output(print(GPS[wrong_position, ])))
+    }
+
 
    ########################################## CODE ############################################################
-    #Extract values for the given GPS position 
-  GPS$pixel <- terra::cellFromXY(Values, GPS)
+    #Extract values for the given GPS position
   df_list  <- lapply(GPS$pixel, function(p) Events_corrected[[p]])
   Values <- t(terra::extract(Values,GPS[,3]))
     

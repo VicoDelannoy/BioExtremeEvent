@@ -366,6 +366,19 @@ display: none;
     time_list_base &lt;- generate_month_day(2024) # Create dates in the format %m.%d for a leap year
     names(rast_name) &lt;- time_list_exp # Rename the layers with the dates
     names(baseline) &lt;- time_list_base # Rename the layers with the dates
+    # Check if there is a fourth hidden dimension. For instance there could be several depths or several altitudes which would result in several layer having the same dates and thus the same length.
+    if (any(table(time(rast_name))!=1)){ #at least one date has several layers
+      rep &lt;- sum(table(time(rast_name)))/length(table(time(rast_name)))
+      if (rep==round(rep)){# all dates are repeted the same number of time
+        rast_list &lt;- list()
+        n &lt;- nlyr(rast_name)
+        for (l in seq(1,length(unique(time(rast_name))))){
+          layers &lt;- seq(l,n,rep)
+          rast_list[[l]]&lt;-rast_name[[layers]]
+        } #il faut ensuite appliquer binarize_spat à chaque élément de la list rast_list
+      }
+    }
+    
     delta &lt;- binarize_spat(rast_name, baseline, direction) # Binarize the pixels to 1 &amp; 0 (function from the packacge itself, see bellow) /!\ this part doesn&#39;t check if the value is above for five consecutive days or any duration
     delta_list &lt;- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
     return(delta_list) # Output the list
