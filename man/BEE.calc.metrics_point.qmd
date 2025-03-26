@@ -62,7 +62,7 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
     df$Date <- Date
     return(df)
   }, df_list, seq_along(df_list))
-  df_list <- purr::map(df_list, ~ .x[.x$Date >= start_date & .x$Date <= end_date, ])
+  df_list <- purrr::map(df_list, ~ .x[.x$Date >= start_date & .x$Date <= end_date, ])
   # For each event I want : duration, maximum intensity, mean and median intensity, category, sum of anomalies, date of maximum intensity, position of the day of maximum intensity, mean increasing slop, mean decreasing slope, start_date, end_date
   ##Contrary to Events_corrected, Values didn't kept this information of which extreme event were merge together because they were separated by d days or less. Thus, we need to use Events corrected if we want to calculate a metric that describe an event.
   
