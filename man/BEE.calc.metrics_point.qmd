@@ -51,13 +51,14 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
 
 
    ########################################## CODE ############################################################
-    #Extract values for the given GPS position
+  #Extract values for the given GPS position
   df_list  <- lapply(GPS$pixel, function(p) Events_corrected[[p]])
   Values <- t(terra::extract(Values,GPS[,3]))
     
     # Subset both dataset so they match the timeframe provided with 'start_date' and 'end_date'.
   Date <- rownames(Values)
   Values <- Values[which(as.Date(rownames(Values)) >= as.Date(start_date) & as.Date(rownames(Values)) <= as.Date(end_date)),]
+  Values <- as.matrix(Values)
   df_list <- Map(function(df, col_idx){
     df$Date <- Date
     return(df)
@@ -69,7 +70,7 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
   #Merge df_list and Values
   df_list <- Map(function(df, col_idx) {
     # Ad to each dataframe the corresponding column of pixel value
-    df$value <- Values[,col_idx]  # col_idx is he idee  
+    df$value <- Values[,col_idx]  # col_idx is the id  
     return(df)
   }, df_list, seq_along(df_list))
   
