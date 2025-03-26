@@ -25,7 +25,8 @@ Depends:
 	tidymodels,
 	tidyverse,
 	reticulate,
-	data.table
+	data.table,
+	purr
 Imports:
     doParallel,
     dplyr,

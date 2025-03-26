@@ -5,7 +5,7 @@ format: html
 editor: visual
 ---
 
-This funciton check that the SpatRasters unit for temperature is Celsius, if not, it does the conversion from kelvin/fahrenheit to celsius or return an error message if the unit is not Celsius or Kelvin or Fahrenheit. It is design for '.nc' files.
+This function check that the SpatRasters unit for temperature is Celsius, if not, it does the conversion from kelvin/fahrenheit to celsius or return an error message if the unit is not Celsius or Kelvin or Fahrenheit. It is design for '.nc' files.
 
 ```{r}
 BEE.calc.celsius <- function(YourSpatRaster) {
@@ -53,7 +53,7 @@ BEE.calc.celsius <- function(YourSpatRaster) {
   # Check that the unit is not already Celsius
   if (unit %in% c("Celsius", "celsius", "°C", "°c", "c", "C", "degrees_C","degrees_c")) {
     print("Your dataset is already in celsius, there is no need to use this function.")
-    return(NULL)
+    return(YourSpatRaster)
   }
   # Store original metadata for later
   original_metadata <- list(

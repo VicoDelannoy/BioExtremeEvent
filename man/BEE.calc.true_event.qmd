@@ -60,6 +60,7 @@ case that lead to 2 distinct events :
 
 0 0 0 0 0 1 1 1 1 1 0 1 1 1 1 0 0 0 0 0 1 1 1 1 1 0 0 0 0 0 (if you want to detect 1 event of 10 days then a distinct event of 5 days instead of 2 events of 5 days only you can use : low complexity with *n* = 4 and *d* = 1)
 
+BEE.calc.true_event is not designed to work on 4D data (time + spatial 3D).
 ```{r}
 BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL, p = NULL){ 
     # Extract all rasters (If we have to think to a faster way we could filter so pixel that are always NA (land) are not processed and we could create "all_dates" starting from scratch, only knowing first day and last day and assuming there is no missing day) 

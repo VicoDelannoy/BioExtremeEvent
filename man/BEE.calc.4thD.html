@@ -9,10 +9,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Victoria" />
+<meta name="author" content="Victoria Delannoy" />
 
 
-<title>BEE.calc.baseline</title>
+<title>BEE.calc.4thD</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,111 +349,47 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.calc.baseline</h1>
-<h4 class="author">Victoria</h4>
+<h1 class="title toc-ignore">BEE.calc.4thD</h1>
+<h4 class="author">Victoria Delannoy</h4>
 
 </div>
 
 
-<p><em>BEE.calc.baseline</em> : Creates a baseline from a SpatRaster by
-compiling cell data according to the chosen threshold</p>
-<p>Only two threshold can be set :</p>
-<ul>
-<li>“<em>qt</em>” : calculate the value of the 90th percentile for each
-cell at the time resolution of the dataset. For instance, it calculate
-the value of the threshold for each day of a theoretical year if the
-data has a daily resolution or for each month if data has a monthly
-resolution. To simplify analysis, the 29th of February is deleted if
-present.</li>
-<li>“<em>mean</em>” : calculate the mean value for each cell at the time
-resolution of the data set .</li>
-</ul>
-<p>BEE.calc.baseline is not designed to work on 4D data (time + spatial
-3D).</p>
-<div id="rast_name-ds-start_datenull-end_date-1987-12-31-threshold-qt-quantile_value-0.9-time_window-5-smooth_window10" class="section level1">
-<h1>rast_name = ds ; start_date=NULL; end_date = “1987-12-31” ;
-threshold = “qt”; quantile_value = 0.9 ; time_window = 5;
-smooth_window=10</h1>
-<pre class="r"><code>#&#39; Calculate baseline value for each pixel.
-#&#39; @BEE.calc.baseline
-#&#39; @param rast_name the SpatRaster containing the values to use to calculate baseline. It must have a date per layer.
-#&#39; @param start_date the date to use as the first day of your reference period. It must be in YYYY-MM-DD format.
-#&#39; @param end_date the date to use as the last day of your reference period. It must be in YYYY-MM-DD format.
-#&#39; @param threshold tells whether you want to use a percentile or the mean of the observed value as threshold. Accepted arguments are &quot;qt&quot; to specify you want to compute a percentile of the observed values in the reference timeframe. Or &quot;mean&quot; if you wnat to use the mean of observed values in the timeframe provided as threshold. 
-#&#39; @param quantile_value indicates the percentile value you want to use. It must be between 0 and 1.
-#&#39; @param time_window number of days you want to account on each size of day &#39;d&#39; to calculate the threshold value on &#39;d&#39; day. For instance time_window = 5 means that the value from day d - 5 days, day d and until day d + of all years between start_date and end_date will be use to calculate the threshold at day d of the year.
-#&#39; @param smooth_window half the number of days minus one that you want to use to smooth you baseline in time. For instance, smooth_window = 10 minutes the final value at day &#39;d&#39; will be the mean of the baseline values calculate for day d - 10 to d + 10 (elven values). 
-#&#39;
-#&#39; @returns a SpatRaster with on day of the year per layer (366 layers), having the same extent, pixel resolution and crs than the provided SpatRaster.
-#&#39; @export
-#&#39;
-
-BEE.calc.baseline &lt;- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value=NULL, time_window=5, smooth_window=10){
+<p>baseline &lt;- baseline_qt90 ; data_4D &lt;- ds2 ; start_date &lt;-
+“2022-06-01” ; end_date &lt;- “2022-09-01” ; day &lt;- “2022-01-26” ;
+GPS &lt;- GPS[,c(1,2)]</p>
+<pre class="r"><code>BEE.calc.4thD &lt;- function(baseline, data_4D, start_date, end_date, day = NULL, GPS){
+  # Check if analysis is required for a single day
+  if (!is.null(day)){
+    message(&quot;You have specified a single day to analyse (&#39;day&#39; argument) if you want to do the analysis for several day, withdraw this argument&quot;)
+  }
+  if (is.null(day)){
+    # Subset the dataset to the chosen strat_date and end-date if necessary
+    if (is.null(start_date) | !is.null(end_date)){
+      if ( is.null(start_date) ){
+        start_date &lt;- names(data_4D)[1]
+        warning(&quot;You have provided an &#39;end_date&#39; but no &#39;start_date&#39;, first date of the dataset (&quot;,start_date,&quot;) have been used as first day of the baseline.&quot;  )
+      }
+      if ( is.null(end_date) ){
+        end_date &lt;- names(data_4D)[nlyr(rast_name)]
+        warning(&quot;You have provided a &#39;start_date&#39; but no &#39;end_date&#39;, last date of the dataset (&quot;, end_date,&quot;) have been used as last day of the baseline.&quot;  )
+      }
+    }
+    # Cut rast_name to only keep the part between start_date and end_date
+    dates &lt;- as.Date(time(data_4D))
+    to_keep &lt;- which(dates &gt;= as.Date(start_date) &amp; dates &lt;= as.Date(end_date))
+    data_4D &lt;- data_4D[[to_keep]]
+  }
   
-  # Subset the dataset to the chosen strat_date and end-date if necessary
-  if (is.null(start_date) | !is.null(end_date)){
-    if ( is.null(start_date) ){
-      start_date &lt;- names(rast_name)[1]
-      warning(&quot;You have provided an &#39;end_date&#39; but no &#39;start_date&#39;, first date of the dataset (&quot;,start_date,&quot;) have been used as first day of the baseline.&quot;  )
-    }
-    if ( is.null(end_date) ){
-      end_date &lt;- names(rast_name)[nlyr(rast_name)]
-      warning(&quot;You have provided a &#39;start_date&#39; but no &#39;end_date&#39;, last date of the dataset (&quot;, end_date,&quot;) have been used as last day of the baseline.&quot;  )
+  if(!is.null(day)){
+    dates &lt;- as.Date(time(data_4D))
+    to_keep &lt;- which(dates == as.Date(day))
+    data_4D &lt;- data_4D[[to_keep]]
+    for( p in seq(1,length(GPS[,1])) ){
+      data_4D_binarized &lt;- BEE.calc.binarize(rast_name = data_4D, baseline = baseline_qt90, direction = &quot;above&quot;)
     }
   }
-  # Cut rast_name to only keep the part between start_date and end_date
-  dates &lt;- as.Date(time(rast_name))
-  to_keep &lt;- which(dates &gt;= as.Date(start_date) &amp; dates &lt;= as.Date(end_date))
-  rast_name &lt;- rast_name[[to_keep]]
-  # Function to detect leap years
-  is_leap_year &lt;- function(years) {
-    return((years %% 4 == 0 &amp; years %% 100 != 0) | (years %% 400 == 0))
-  }
-  dates &lt;- as.Date(time(rast_name))  # Dates
-  years &lt;- as.integer(format(dates, &quot;%Y&quot;)) # Years
-  # Build a dataframe with the layer number, the doy and the corrected doy (366, 60 don&#39;t exist in non leap year)
-  df &lt;- data.frame( date = dates,
-                    N_layer = seq(1,nlyr(rast_name),1),
-                    leap_year = is_leap_year((years)),
-                    doy = as.integer(format(dates, &quot;%j&quot;))) #day of the year
-  df$doy2 &lt;- ifelse(df$doy &gt;= 60 &amp; !df$leap_year, df$doy+1, df$doy)
-  # For each day of the year from 0 to 366, get a list of the layers to use to calculate baseline
-  doy_indices &lt;- vector(&quot;list&quot;, 366)
-  for (j in 1:366) {
-    days_in_window &lt;- ((j - time_window):(j + time_window)) %% 366 ## %% 366 is a &#39;modulo&#39; which mean that when a number reach 366 it is converted to 0 and the series that over from 0, 1, 2...
-    days_in_window[days_in_window == 0] &lt;- 366 # to avoid 0
-    doy_indices[[j]]&lt;- df$N_layer[which(df$doy2 %in% days_in_window)]
-  }
-  # Calculate baseline according the chosen methodology
-  if (threshold == &quot;qt&quot;){
-    # function to calculate percentile on a specific time_window
-    q_rolling &lt;- function(values, na.rm = TRUE) {
-      terra::quantile(values, probs = quantile_value, na.rm = na.rm)
-    }
-  baseline_list &lt;- lapply(1:366, function(i) {
-      terra::app(rast_name[[doy_indices[[i]]]], fun = q_rolling)
-    })
-  baseline &lt;- rast(baseline_list) #convert to Spatraster
-  } else if (threshold == &quot;mean&quot;){        # if the baseline chosen is a mean value then enter loop bellow
-    baseline_list &lt;- lapply(1:366, function(i) {
-      terra::app(rast_name[[doy_indices[[i]]]], fun = mean)
-    })
-  baseline &lt;- rast(baseline_list) #convert to Spatraster
-  }   
-  # Smooth the value with an 11 days moving average
-  smooth_indices &lt;- vector(&quot;list&quot;, 366)
-  for (s in 1:366) {
-    days_in_window &lt;- ((s - smooth_window):(s + smooth_window)) %% 366
-    days_in_window[days_in_window == 0] &lt;- 366  
-    smooth_indices[[s]] &lt;- days_in_window
-  }
-  baseline &lt;- lapply(1:366, function(i) {
-    terra::app(baseline[[smooth_indices[[i]]]], fun = mean, na.rm = TRUE)
-    })
-  baseline &lt;- rast(baseline)
-  return(baseline)
 }</code></pre>
-</div>
 
 
 

@@ -355,6 +355,8 @@ display: none;
 </div>
 
 
+<p>BEE.calc.metrics_point is not designed to work on 4D data (time +
+spatial 3D).</p>
 <pre class="r"><code># start_date &lt;- &quot;2022-01-01&quot; ; end_date &lt;- &quot;2023-12-31&quot; ; Values &lt;- ds ; GPS &lt;- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
 BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS, 
                                    start_date=NULL, end_date=NULL, 
@@ -385,10 +387,18 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
            abs(GPS[2]) &gt;= abs(Values_extent$ymin))){
    warning(&quot;At least one latitude coordinate falls outside the extent of the SpatRaster containing the binarized corrected events. Ensure the second column of the dataframe contains valid latitude (y) values for analysis.&quot;)
   }
+  # Check that one of the GPS position is not in a pixel that is always an NA (it may indicates that it falls in an area that is not interesting for the study)
+  NA_pixels &lt;- which(sapply(Events_corrected, function(df) all(is.na(df$Original_value)))) # List of pixel that are always NA 
+  GPS$pixel &lt;- terra::cellFromXY(Values, GPS) # List of the pixels corresponding to the GPS position provided
+  if (any(GPS$pixel %in% NA_pixels)){
+    wrong_position &lt;- which(GPS$pixel %in% NA_pixels)
+    message(&quot;Problematic GPS positions:\n&quot;)
+    message(capture.output(print(GPS[wrong_position, ])))
+    }
+
 
    ########################################## CODE ############################################################
-    #Extract values for the given GPS position 
-  GPS$pixel &lt;- terra::cellFromXY(Values, GPS)
+    #Extract values for the given GPS position
   df_list  &lt;- lapply(GPS$pixel, function(p) Events_corrected[[p]])
   Values &lt;- t(terra::extract(Values,GPS[,3]))
     

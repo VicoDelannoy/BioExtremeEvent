@@ -6,6 +6,7 @@ editor: visual
 editor_options: 
   chunk_output_type: console
 ---
+BEE.calc.escape is not designed to work on 4D data (time + spatial 3D).
 
 @description This function calculate the mediane distance, mean distance and standard deviation of distance to escape form an extreme event 'as the crow files' (but avoiding NA pixels) through time for a given GPS position or for all pixels.
 
@@ -17,7 +18,7 @@ editor_options:
 
 ```{r}
 # true_event_output <- result ; start_date = "2022-01-01"; end_date = "2024-12-31" ; pixel = "all" ; account_all_days = "each_event"
-BEE.calc.escape<- function(true_event_output, 
+BEE.calc.escape <- function(true_event_output, 
                 start_date = NULL, end_date = NULL, 
                 pixel, 
                 account_all_days) { 

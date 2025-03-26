@@ -355,6 +355,8 @@ display: none;
 </div>
 
 
+<p>BEE.calc.escape is not designed to work on 4D data (time + spatial
+3D).</p>
 <p><span class="citation">@description</span> This function calculate
 the mediane distance, mean distance and standard deviation of distance
 to escape form an extreme event ‘as the crow files’ (but avoiding NA
@@ -382,7 +384,7 @@ by the size of the Spatraster your are providing.</p>
 <div id="test-en-utilisant-events_corrected" class="section level1">
 <h1>Test en utilisant Events_corrected</h1>
 <pre class="r"><code># true_event_output &lt;- result ; start_date = &quot;2022-01-01&quot;; end_date = &quot;2024-12-31&quot; ; pixel = &quot;all&quot; ; account_all_days = &quot;each_event&quot;
-BEE.calc.escape&lt;- function(true_event_output, 
+BEE.calc.escape &lt;- function(true_event_output, 
                 start_date = NULL, end_date = NULL, 
                 pixel, 
                 account_all_days) { 

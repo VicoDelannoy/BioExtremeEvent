@@ -7,6 +7,8 @@ editor_options:
   chunk_output_type: console
 ---
 
+BEE.calc.binarize is not designed to work on 4D data (time + spatial 3D).
+
 #rast_name= ds; baseline=baseline_qt90; direction = "above"
 
 ```{r}
@@ -26,10 +28,17 @@ BEE.calc.binarize <- function(rast_name, baseline, direction) {
       if (rep==round(rep)){# all dates are repeted the same number of time
         rast_list <- list()
         n <- nlyr(rast_name)
-        for (l in seq(1,length(unique(time(rast_name))))){
-          layers <- seq(l,n,rep)
-          rast_list[[l]]<-rast_name[[layers]]
-        } #il faut ensuite appliquer binarize_spat à chaque élément de la list rast_list
+        for (l in seq(1,rep,1)){ # create a list with all days from the same depths
+          layers <- seq(l,n,rep) 
+          rast_list[[l]]<-terra::rast(rast_name[[layers]])
+        } 
+        delta <- list() 
+        for ( d in seq(1, length(rast_list))){
+          delta[[d]] <- binarize_spat(rast_list[[d]], baseline, direction)
+        }
+        delta <- binarize_spat(rast_name, baseline, direction) # Binarize the pixels to 1 & 0 (function from the packacge itself, see bellow) /!\ this part doesn't check if the value is above for five consecutive days or any duration
+        delta_list <- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
+        return(delta_list) # Output the list
       }
     }
     
@@ -87,6 +96,15 @@ binarize_spat <- function(obs, base, direction="above"){
     }
   })
   base_extended <- rast(base_list) 
+  # In case data dont start a first of January and:or don't end the 31th of december, I need to adapt base_extended
+  first_year <- min(years)
+  last_year <- max(years)
+  first_date <- min(dates[format(dates, "%Y") == first_year])
+  last_date <- max(dates[format(dates, "%Y") == last_year])
+  doy_first_year <- as.integer(format(first_date, "%j"))
+  nb_last_day <- which(dates == last_date) 
+  last_layer <- doy_first_year + nb_last_day -1
+  base_extended <- base_extended[[doy_first_year:last_layer]]
   time(base_extended) <- dates
   #calculate anomalia
   delta <- obs - base_extended

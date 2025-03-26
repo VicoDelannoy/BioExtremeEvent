@@ -7,12 +7,14 @@ editor_options:
   chunk_output_type: console
 ---
 
-\#'@description *BEE.calc.baseline* : Creates a baseline from a SpatRaster by compiling cell data according to the chosen threshold
+*BEE.calc.baseline* : Creates a baseline from a SpatRaster by compiling cell data according to the chosen threshold
 
 Only two threshold can be set :
 
 -   "*qt*" : calculate the value of the 90th percentile for each cell at the time resolution of the dataset. For instance, it calculate the value of the threshold for each day of a theoretical year if the data has a daily resolution or for each month if data has a monthly resolution. To simplify analysis, the 29th of February is deleted if present.
 -   "*mean*" : calculate the mean value for each cell at the time resolution of the data set .
+
+BEE.calc.baseline is not designed to work on 4D data (time + spatial 3D).
 
 # rast_name = ds ; start_date=NULL; end_date = "1987-12-31" ; threshold = "qt"; quantile_value = 0.9 ; time_window = 5; smooth_window=10
 

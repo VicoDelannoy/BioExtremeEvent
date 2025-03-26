@@ -13,7 +13,8 @@ editor_options:
 
 @note Your SpatRaster need to be binarised with the mhw function before you put it in this function, you also may want to apply
 
-#start_date <- "2022-01-01" ; end_date <- "2023-12-31"
+BEE.calc.metrics_morpho is not designed to work on 4D data (time + spatial 3D).
+#start_date \<- "2022-01-01" ; end_date \<- "2023-12-31"
 
 ```{r}
 BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_date = NULL, patch_per_pix = FALSE) {

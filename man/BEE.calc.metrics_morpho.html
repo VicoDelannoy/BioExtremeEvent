@@ -369,7 +369,9 @@ time.</p>
 <p><span class="citation">@note</span> Your SpatRaster need to be
 binarised with the mhw function before you put it in this function, you
 also may want to apply</p>
-<p>#start_date &lt;- “2022-01-01” ; end_date &lt;- “2023-12-31”</p>
+<p>BEE.calc.metrics_morpho is not designed to work on 4D data (time +
+spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
+“2023-12-31”</p>
 <pre class="r"><code>BEE.calc.metrics_morpho &lt;- function(Corrected_rasters, start_date = NULL, end_date = NULL, patch_per_pix = FALSE) {
   # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)){

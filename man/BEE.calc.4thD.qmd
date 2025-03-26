@@ -1,0 +1,42 @@
+---
+title: "BEE.calc.4thD"
+author: "Victoria Delannoy"
+format: html
+editor: visual
+---
+baseline <- baseline_qt90 ; data_4D <- ds2 ; start_date <- "2022-06-01" ; end_date <- "2022-09-01" ; day <- "2022-01-26" ; GPS <- GPS[,c(1,2)]
+```{r}
+BEE.calc.4thD <- function(baseline, data_4D, start_date, end_date, day = NULL, GPS){
+  # Check if analysis is required for a single day
+  if (!is.null(day)){
+    message("You have specified a single day to analyse ('day' argument) if you want to do the analysis for several day, withdraw this argument")
+  }
+  if (is.null(day)){
+    # Subset the dataset to the chosen strat_date and end-date if necessary
+    if (is.null(start_date) | !is.null(end_date)){
+      if ( is.null(start_date) ){
+        start_date <- names(data_4D)[1]
+        warning("You have provided an 'end_date' but no 'start_date', first date of the dataset (",start_date,") have been used as first day of the baseline."  )
+      }
+      if ( is.null(end_date) ){
+        end_date <- names(data_4D)[nlyr(rast_name)]
+        warning("You have provided a 'start_date' but no 'end_date', last date of the dataset (", end_date,") have been used as last day of the baseline."  )
+      }
+    }
+    # Cut rast_name to only keep the part between start_date and end_date
+    dates <- as.Date(time(data_4D))
+    to_keep <- which(dates >= as.Date(start_date) & dates <= as.Date(end_date))
+    data_4D <- data_4D[[to_keep]]
+  }
+  
+  if(!is.null(day)){
+    dates <- as.Date(time(data_4D))
+    to_keep <- which(dates == as.Date(day))
+    data_4D <- data_4D[[to_keep]]
+    for( p in seq(1,length(GPS[,1])) ){
+      data_4D_binarized <- BEE.calc.binarize(rast_name = data_4D, baseline = baseline_qt90, direction = "above")
+    }
+  }
+}
+```
+

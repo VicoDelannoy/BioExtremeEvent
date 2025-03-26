@@ -7,6 +7,8 @@ editor_options:
   chunk_output_type: console
 ---
 
+BEE.calc.metrics_point is not designed to work on 4D data (time + spatial 3D).
+
 ```{r}
 # start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
 BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, 
@@ -60,7 +62,7 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
     df$Date <- Date
     return(df)
   }, df_list, seq_along(df_list))
-  df_list <- map(df_list, ~ .x[.x$Date >= start_date & .x$Date <= end_date, ])
+  df_list <- purr::map(df_list, ~ .x[.x$Date >= start_date & .x$Date <= end_date, ])
   # For each event I want : duration, maximum intensity, mean and median intensity, category, sum of anomalies, date of maximum intensity, position of the day of maximum intensity, mean increasing slop, mean decreasing slope, start_date, end_date
   ##Contrary to Events_corrected, Values didn't kept this information of which extreme event were merge together because they were separated by d days or less. Thus, we need to use Events corrected if we want to calculate a metric that describe an event.
   

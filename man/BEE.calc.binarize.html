@@ -355,6 +355,8 @@ display: none;
 </div>
 
 
+<p>BEE.calc.binarize is not designed to work on 4D data (time + spatial
+3D).</p>
 <p>#rast_name= ds; baseline=baseline_qt90; direction = “above”</p>
 <pre class="r"><code>BEE.calc.binarize &lt;- function(rast_name, baseline, direction) {
 
@@ -372,10 +374,17 @@ display: none;
       if (rep==round(rep)){# all dates are repeted the same number of time
         rast_list &lt;- list()
         n &lt;- nlyr(rast_name)
-        for (l in seq(1,length(unique(time(rast_name))))){
-          layers &lt;- seq(l,n,rep)
-          rast_list[[l]]&lt;-rast_name[[layers]]
-        } #il faut ensuite appliquer binarize_spat à chaque élément de la list rast_list
+        for (l in seq(1,rep,1)){ # create a list with all days from the same depths
+          layers &lt;- seq(l,n,rep) 
+          rast_list[[l]]&lt;-terra::rast(rast_name[[layers]])
+        } 
+        delta &lt;- list() 
+        for ( d in seq(1, length(rast_list))){
+          delta[[d]] &lt;- binarize_spat(rast_list[[d]], baseline, direction)
+        }
+        delta &lt;- binarize_spat(rast_name, baseline, direction) # Binarize the pixels to 1 &amp; 0 (function from the packacge itself, see bellow) /!\ this part doesn&#39;t check if the value is above for five consecutive days or any duration
+        delta_list &lt;- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
+        return(delta_list) # Output the list
       }
     }
     
@@ -428,6 +437,15 @@ reference condition</h1>
     }
   })
   base_extended &lt;- rast(base_list) 
+  # In case data dont start a first of January and:or don&#39;t end the 31th of december, I need to adapt base_extended
+  first_year &lt;- min(years)
+  last_year &lt;- max(years)
+  first_date &lt;- min(dates[format(dates, &quot;%Y&quot;) == first_year])
+  last_date &lt;- max(dates[format(dates, &quot;%Y&quot;) == last_year])
+  doy_first_year &lt;- as.integer(format(first_date, &quot;%j&quot;))
+  nb_last_day &lt;- which(dates == last_date) 
+  last_layer &lt;- doy_first_year + nb_last_day -1
+  base_extended &lt;- base_extended[[doy_first_year:last_layer]]
   time(base_extended) &lt;- dates
   #calculate anomalia
   delta &lt;- obs - base_extended

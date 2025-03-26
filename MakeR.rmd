@@ -143,8 +143,6 @@ It provide a raw information for each day and each pixel without applying any de
 binarized_EE <- BEE.calc.binarize(rast_name= ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above"
 
 # plot(baseline_qt90[[1]]) ; plot(binarized_EE$`01.01`$`1983-01-01`)
-
-binarized_EE2 <- BEE.calc.binarize(rast_name= ds2, baseline=baseline_qt90, direction = "above")
 ```
 
 You can use the output to check which are the pixel more subject to peaks of your studdied parameter :
@@ -180,16 +178,6 @@ gc()
 #Check settings
 BEE.calc.corrections(Events_corrected)
 
-# ds2
-gc()
-result2 <- BEE.calc.true_event(binarized_EE2, n = 5, d = 3) 
-Corrected_rasters2 <- result2$stacked_rasters_corrected
-Events_corrected2 <- result2$Event_corrected
-gc()
-#testL <- as.Date.character(c("2022-11-25", "2022-11-26", "2022-11-27", "2022-11-28", "2022-11-29", "2022-11-30", "2022-12-01", "2022-12-02", "2022-12-03", "2022-12-04", "2022-12-05")) ; test <- Corrected_rasters[[names(Corrected_rasters) %in% as.character(testL)]] ;library(viridis) ; plot(sum(test),  col = viridis::viridis(4))  ; plot(Corrected_rasters["2022-11-30"])
-# saveRDS(result, file= here::here("Outputs/result.rds")) ; test_result <- readRDS(here::here("Outputs/result.rds"))
-#Check settings
-BEE.calc.corrections(Events_corrected2)
 ```
 
 # 6. Get metrics related to time.

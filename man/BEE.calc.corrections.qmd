@@ -6,7 +6,7 @@ editor: visual
 ---
 
 This function allow to check how many corrections your settings in EE.calc.true_events have induced.
-
+BEE.calc.corrections is not designed to work on 4D data (time + spatial 3D).
 ```{r}
 #function for 1 dataframe (=one date in Events_corrected)
 analyze_changes <- function(dataframe) {

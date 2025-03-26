@@ -355,7 +355,7 @@ display: none;
 </div>
 
 
-<p>This funciton check that the SpatRasters unit for temperature is
+<p>This function check that the SpatRasters unit for temperature is
 Celsius, if not, it does the conversion from kelvin/fahrenheit to
 celsius or return an error message if the unit is not Celsius or Kelvin
 or Fahrenheit. It is design for ‘.nc’ files.</p>
@@ -404,7 +404,7 @@ or Fahrenheit. It is design for ‘.nc’ files.</p>
   # Check that the unit is not already Celsius
   if (unit %in% c(&quot;Celsius&quot;, &quot;celsius&quot;, &quot;°C&quot;, &quot;°c&quot;, &quot;c&quot;, &quot;C&quot;, &quot;degrees_C&quot;,&quot;degrees_c&quot;)) {
     print(&quot;Your dataset is already in celsius, there is no need to use this function.&quot;)
-    return(NULL)
+    return(YourSpatRaster)
   }
   # Store original metadata for later
   original_metadata &lt;- list(
