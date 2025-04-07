@@ -398,25 +398,26 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
 
 
    ########################################## CODE ############################################################
-    #Extract values for the given GPS position
+  #Extract values for the given GPS position
   df_list  &lt;- lapply(GPS$pixel, function(p) Events_corrected[[p]])
   Values &lt;- t(terra::extract(Values,GPS[,3]))
     
     # Subset both dataset so they match the timeframe provided with &#39;start_date&#39; and &#39;end_date&#39;.
   Date &lt;- rownames(Values)
   Values &lt;- Values[which(as.Date(rownames(Values)) &gt;= as.Date(start_date) &amp; as.Date(rownames(Values)) &lt;= as.Date(end_date)),]
+  Values &lt;- as.matrix(Values)
   df_list &lt;- Map(function(df, col_idx){
     df$Date &lt;- Date
     return(df)
   }, df_list, seq_along(df_list))
-  df_list &lt;- map(df_list, ~ .x[.x$Date &gt;= start_date &amp; .x$Date &lt;= end_date, ])
+  df_list &lt;- purrr::map(df_list, ~ .x[.x$Date &gt;= start_date &amp; .x$Date &lt;= end_date, ])
   # For each event I want : duration, maximum intensity, mean and median intensity, category, sum of anomalies, date of maximum intensity, position of the day of maximum intensity, mean increasing slop, mean decreasing slope, start_date, end_date
   ##Contrary to Events_corrected, Values didn&#39;t kept this information of which extreme event were merge together because they were separated by d days or less. Thus, we need to use Events corrected if we want to calculate a metric that describe an event.
   
   #Merge df_list and Values
   df_list &lt;- Map(function(df, col_idx) {
     # Ad to each dataframe the corresponding column of pixel value
-    df$value &lt;- Values[,col_idx]  # col_idx is he idee  
+    df$value &lt;- Values[,col_idx]  # col_idx is the id  
     return(df)
   }, df_list, seq_along(df_list))
   

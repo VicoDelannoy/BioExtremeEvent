@@ -41,12 +41,15 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     ## Adjust variable name to match the rest of the function
   rasters <- Corrected_rasters 
   }
-
+# patches is mixing NA values from the land and NA values from outside of the patch, thus I'll replace NA values from the land by 999
+  message("NA values provided have been replaced by '999', this is to prevent computational confusion between values that are NA and values created for pixel outside of patches durring compilation") 
+  rasters[is.na(rasters)] <- 999
   patch_list <- lapply(rasters, FUN = function(rasters){
     patch <- patches(rasters, directions = 8, zeroAsNA = T, allowGaps = T)
     return(patch)
   })
     
+  nb_999 <- global( rasters == 999, fun = "sum", na.rm = TRUE)
   # dist <- lapply(patch_list, FUN = function(x){ # x <- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
   #   vals <- values(x)
   #   vals <- vals[!is.nan(vals)]
@@ -65,25 +68,27 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     vals <- values(x)
     cell_size <- values(cellSize(x))[,1]
     boundary <- terra::boundaries(x, directions = 8)
-    coordonates <- xyFromCell(x, 1:ncell(x))
+    coordonates <- xyFromCell(x, 1:ncell(x)) #each pixel coordinates
     d <- time(x)
-
+    # get the number of NA value that day
+    nb_NA <- nb_999[which(as.Date(rownames(nb_999)) == time(x)),]
+    
     data <- data.table(
       x = coordonates[,1],
       y = coordonates[,2],
-      values = vals,
+      values = vals, # value of the pixel
       cell_size = cell_size,
       boundary = values(terra::boundaries(x, directions = 8))
     ) %>% rename(patch_id = values.patches , 
                   boundary = boundary.patches)
-      
+    
     data[, length_boundary := sum(boundary), by = patch_id]
     data[, patch_area := sum(cell_size), by = patch_id]
     data[, core_area := sum(cell_size * (boundary == 0)), by = patch_id]
     data[, area_index := core_area / patch_area]
     data[, n_pixel := .N, by = patch_id]  
     data[, pixel_tot := sum(unique(n_pixel))]
-    data[, cover_percent := n_pixel / pixel_tot]
+    data[, cover_percent := n_pixel / (pixel_tot-nb_NA)]
     data[, core_pixel := n_pixel - length_boundary]
         
     polygon <- as.polygons(x, aggregate = T, round = F)
