@@ -90,6 +90,7 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     data[, pixel_tot := sum(unique(n_pixel))]
     data[, cover_percent := n_pixel / (pixel_tot-nb_NA)]
     data[, core_pixel := n_pixel - length_boundary]
+    data[, NA_pixel_patch := ifelse(n_pixel == nb_NA, "yes", "no"), by = patch_id]
         
     polygon <- as.polygons(x, aggregate = T, round = F)
     perim <- data.table(perimeter = terra::perim(polygon))

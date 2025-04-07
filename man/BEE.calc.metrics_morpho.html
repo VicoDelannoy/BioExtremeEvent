@@ -396,12 +396,15 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
     ## Adjust variable name to match the rest of the function
   rasters &lt;- Corrected_rasters 
   }
-
+# patches is mixing NA values from the land and NA values from outside of the patch, thus I&#39;ll replace NA values from the land by 999
+  message(&quot;NA values provided have been replaced by &#39;999&#39;, this is to prevent computational confusion between values that are NA and values created for pixel outside of patches durring compilation&quot;) 
+  rasters[is.na(rasters)] &lt;- 999
   patch_list &lt;- lapply(rasters, FUN = function(rasters){
     patch &lt;- patches(rasters, directions = 8, zeroAsNA = T, allowGaps = T)
     return(patch)
   })
     
+  nb_999 &lt;- global( rasters == 999, fun = &quot;sum&quot;, na.rm = TRUE)
   # dist &lt;- lapply(patch_list, FUN = function(x){ # x &lt;- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
   #   vals &lt;- values(x)
   #   vals &lt;- vals[!is.nan(vals)]
@@ -420,25 +423,27 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
     vals &lt;- values(x)
     cell_size &lt;- values(cellSize(x))[,1]
     boundary &lt;- terra::boundaries(x, directions = 8)
-    coordonates &lt;- xyFromCell(x, 1:ncell(x))
+    coordonates &lt;- xyFromCell(x, 1:ncell(x)) #each pixel coordinates
     d &lt;- time(x)
-
+    # get the number of NA value that day
+    nb_NA &lt;- nb_999[which(as.Date(rownames(nb_999)) == time(x)),]
+    
     data &lt;- data.table(
       x = coordonates[,1],
       y = coordonates[,2],
-      values = vals,
+      values = vals, # value of the pixel
       cell_size = cell_size,
       boundary = values(terra::boundaries(x, directions = 8))
     ) %&gt;% rename(patch_id = values.patches , 
                   boundary = boundary.patches)
-      
+    
     data[, length_boundary := sum(boundary), by = patch_id]
     data[, patch_area := sum(cell_size), by = patch_id]
     data[, core_area := sum(cell_size * (boundary == 0)), by = patch_id]
     data[, area_index := core_area / patch_area]
     data[, n_pixel := .N, by = patch_id]  
     data[, pixel_tot := sum(unique(n_pixel))]
-    data[, cover_percent := n_pixel / pixel_tot]
+    data[, cover_percent := n_pixel / (pixel_tot-nb_NA)]
     data[, core_pixel := n_pixel - length_boundary]
         
     polygon &lt;- as.polygons(x, aggregate = T, round = F)
