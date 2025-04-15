@@ -434,9 +434,8 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
       values = vals, # value of the pixel
       cell_size = cell_size,
       boundary = values(terra::boundaries(x, directions = 8))
-    ) %&gt;% rename(patch_id = values.patches , 
+    ) %&gt;% rename( patch_id = values.patches, 
                   boundary = boundary.patches)
-    
     data[, length_boundary := sum(boundary), by = patch_id]
     data[, patch_area := sum(cell_size), by = patch_id]
     data[, core_area := sum(cell_size * (boundary == 0)), by = patch_id]
@@ -445,7 +444,10 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
     data[, pixel_tot := sum(unique(n_pixel))]
     data[, cover_percent := n_pixel / (pixel_tot-nb_NA)]
     data[, core_pixel := n_pixel - length_boundary]
-        
+    data[, NA_pixel_patch := ifelse(n_pixel == nb_NA, &quot;yes&quot;, &quot;no&quot;), by = patch_id]
+    date &lt;- time(x)
+    data[, ID := paste0(.I, &quot;_&quot;, date, &quot;_&quot;, patch_id)]
+    data[, pixel_id :=.I]
     polygon &lt;- as.polygons(x, aggregate = T, round = F)
     perim &lt;- data.table(perimeter = terra::perim(polygon))
 

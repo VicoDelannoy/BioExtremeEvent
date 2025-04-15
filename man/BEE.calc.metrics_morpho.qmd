@@ -79,9 +79,8 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
       values = vals, # value of the pixel
       cell_size = cell_size,
       boundary = values(terra::boundaries(x, directions = 8))
-    ) %>% rename(patch_id = values.patches , 
+    ) %>% rename( patch_id = values.patches, 
                   boundary = boundary.patches)
-    
     data[, length_boundary := sum(boundary), by = patch_id]
     data[, patch_area := sum(cell_size), by = patch_id]
     data[, core_area := sum(cell_size * (boundary == 0)), by = patch_id]
@@ -91,7 +90,9 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     data[, cover_percent := n_pixel / (pixel_tot-nb_NA)]
     data[, core_pixel := n_pixel - length_boundary]
     data[, NA_pixel_patch := ifelse(n_pixel == nb_NA, "yes", "no"), by = patch_id]
-        
+    date <- time(x)
+    data[, ID := paste0(.I, "_", date, "_", patch_id)]
+    data[, pixel_id :=.I]
     polygon <- as.polygons(x, aggregate = T, round = F)
     perim <- data.table(perimeter = terra::perim(polygon))
 
