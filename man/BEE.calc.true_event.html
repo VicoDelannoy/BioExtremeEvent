@@ -435,8 +435,8 @@ spatial 3D).</p>
   rm(all_data)
   gc()
   
-  start_date &lt;- min(unlist(all_dates), na.rm = TRUE) # for later when I&#39;ll give the possibility to only work on a subset of the time période
-  end_date &lt;- max(all_dates, na.rm = TRUE)
+  # start_date &lt;- min(unlist(all_dates), na.rm = TRUE) # for later when I&#39;ll give the possibility to only work on a subset of the time période
+  # end_date &lt;- max(all_dates, na.rm = TRUE)
 
   # Reorder informations in chronological order :
   ## get a list of the raster layers
@@ -445,9 +445,10 @@ spatial 3D).</p>
   sorted_indices &lt;- order(all_rasters_names) 
   ## get a list of the current position of the rasters : the first number tell you where is currently the raster that should be first in chronological order
   sorted_rasters &lt;- all_rasters[sorted_indices] #sort the rasters
-  
   # Transform the list of sorted raster into a multilayers raster to be able to use terra:extract on cells
   stacked_rasters &lt;- rast(sorted_rasters)
+  rm(all_rasters, all_rasters_names, sorted_indices, sorted_rasters)
+  gc()
   pixel_time_series &lt;- terra::extract(stacked_rasters, 1:ncell(stacked_rasters)) #one row per pixel, 1 column per time step
   # We need each line of pixel_time_series in a numeric format but the convertion inside the fonction correct_lowcomplexity_n_d consumes a lot of RAM, thus we are converting the data frame to a numeric matrix, conversion everything at one is more efficient than row by row in the function ;) :
   pixel_time_series &lt;- as.matrix(pixel_time_series)
@@ -480,9 +481,13 @@ spatial 3D).</p>
        pixel[, ID := ifelse(ID %in% names(replacement_map), as.numeric(replacement_map[as.character(ID)]), ID)]
        pixel[, Nb_days := rep(rle(ID)$lengths, rle(ID)$lengths)]
        pixel[, ID := paste0(pix, &#39;_&#39;, ID)]
+       pixel[, date := sort(all_dates)]
+       pixel[, id := tstrsplit(ID, &quot;_&quot;, keep = 1)]  # Extraire la partie avant le premier &quot;_&quot;
+       pixel[, ID := paste0(id, &quot;_&quot;, min(date, na.rm = TRUE), &quot;_&quot;, max(date, na.rm = TRUE)), by = ID]
+       pixel[, id := NULL]  # Supprimer la colonne temporaire &quot;id&quot;
        return(pixel)
     }
-    pixel_time_series &lt;- as.data.table(pixel_time_series)
+    #pixel_time_series &lt;- as.data.table(pixel_time_series)
     gc()
 
     Event_corrected &lt;- list()
@@ -490,10 +495,11 @@ spatial 3D).</p>
     indices_all_na &lt;- which(rowSums(!is.na(pixel_time_series)) == 0)
     indices_to_do &lt;- which(rowSums(!is.na(pixel_time_series)) != 0)
 
-    for (c in indices_to_do){ # Here a loop works better than a mcapply because mcapply copies the data.table in each cores, which takes time and uses RAM.
-      Event_corrected[[c]] &lt;- correct_lowcomplexity_n_d(pixel_time_series, c, n, d, c)
-    }
-  }
+    Event_corrected &lt;- vector(&quot;list&quot;, nrow(pixel_time_series))
+    Event_corrected[indices_to_do] &lt;- lapply(indices_to_do, function(c) {
+      correct_lowcomplexity_n_d(pixel_time_series, c, n, d, c)
+    })
+  n_columns &lt;- dim(pixel_time_series)[2]
   if (length(indices_all_na) &gt; 0) {
     Event_corrected[indices_all_na] &lt;- lapply(indices_all_na, function(c) {
       data.table(
@@ -501,9 +507,10 @@ spatial 3D).</p>
         Cleanned_value = rep(NA, n_columns),
         ID = rep(paste0(c, &quot;_&quot;), n_columns),
         Nb_days = rep(0, n_columns)
-      )
-    })
-  }
+        )
+      })
+  }  }
+
   
   if (!is.null(n) &amp; !is.null(d) &amp; !is.null(nbis) &amp; is.null(w) &amp; is.null(p)){
     #here add code for medium complexity
@@ -511,7 +518,6 @@ spatial 3D).</p>
   if (!is.null(n) &amp; is.null(d) &amp; is.null(nbis) &amp; !is.null(w) &amp; !is.null(p)){
     #here add code for high complexity
   }
-  gc()
   # Aply corrections to raster of 1 and 0
   stacked_rasters_corrected &lt;- lapply(1:nlyr(stacked_rasters), function(t) { #stacked raster are rasters in the same order than in Event_corrected but before modifications
     correct_raster(stacked_rasters[[t]], t, Event_corrected)
@@ -520,33 +526,12 @@ spatial 3D).</p>
   stacked_rasters_corrected &lt;- rast(stacked_rasters_corrected)
   names(stacked_rasters_corrected) &lt;- sort(all_dates)
 
-  gc()
-  
-  # Add a column &#39;date&#39; to Event_corrected and use it ton create an ID that contains more info (start date and end_date of each event)
-
-  Event_corrected &lt;- lapply(Event_corrected, function(dt) { # dt &lt;- Event_corrected[[700]]
-    dt$date &lt;- sort(all_dates)
-    
-    # Extraire la partie avant le premier &quot;_&quot; pour chaque ID
-    dt[, id := tstrsplit(ID, &quot;_&quot;, keep = 1)]
-    
-    # Créer la nouvelle colonne ID avec l&#39;ancien id + min/max de date
-    dt[, ID := paste0(id, &quot;_&quot;, min(date, na.rm = TRUE), &quot;_&quot;, max(date, na.rm = TRUE)), by = ID]
-    
-    # Supprimer la colonne temporaire si tu veux pas la garder
-    dt[, id := NULL]
-    
-    return(dt)
-  })
-
-
-  
   return(list(stacked_rasters_corrected = stacked_rasters_corrected, 
             Event_corrected = Event_corrected))
 }</code></pre>
 <p>#function used in the big function :</p>
-<pre class="r"><code>  # Aply corrections
-  correct_raster &lt;- function(raster, t, Event_corrected) {
+<pre class="r"><code>  # Apply corrections
+correct_raster &lt;- function(raster, t, Event_corrected) {
     # get values of each layers
      corrected_values &lt;- values(raster)
      Matching_cleanning_values &lt;- sapply(Event_corrected, function(event) event$Cleanned_value[t])

@@ -141,10 +141,11 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
     indices_all_na <- which(rowSums(!is.na(pixel_time_series)) == 0)
     indices_to_do <- which(rowSums(!is.na(pixel_time_series)) != 0)
 
-    for (c in indices_to_do){ # Here a loop works better than a mcapply because mcapply copies the data.table in each cores, which takes time and uses RAM.
-      Event_corrected[[c]] <- correct_lowcomplexity_n_d(pixel_time_series, c, n, d, c)
-    }
-  }
+
+    Event_corrected <- vector("list", nrow(pixel_time_series))
+    Event_corrected[indices_to_do] <- lapply(indices_to_do, function(c) {
+      correct_lowcomplexity_n_d(pixel_time_series, c, n, d, c)
+    })
   n_columns <- dim(pixel_time_series)[2]
   if (length(indices_all_na) > 0) {
     Event_corrected[indices_all_na] <- lapply(indices_all_na, function(c) {
@@ -153,9 +154,10 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
         Cleanned_value = rep(NA, n_columns),
         ID = rep(paste0(c, "_"), n_columns),
         Nb_days = rep(0, n_columns)
-      )
-    })
-  }
+        )
+      })
+  }  }
+
   
   if (!is.null(n) & !is.null(d) & !is.null(nbis) & is.null(w) & is.null(p)){
     #here add code for medium complexity
@@ -179,8 +181,8 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
 #function used in the big function :
 
 ```{r}
-  # Aply corrections
-  correct_raster <- function(raster, t, Event_corrected) {
+  # Apply corrections
+correct_raster <- function(raster, t, Event_corrected) {
     # get values of each layers
      corrected_values <- values(raster)
      Matching_cleanning_values <- sapply(Event_corrected, function(event) event$Cleanned_value[t])
@@ -192,4 +194,5 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
     values(raster) <- corrected_values
     return(raster)
   }
+
 ```
