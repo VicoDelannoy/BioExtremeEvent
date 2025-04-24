@@ -449,13 +449,16 @@ spatial 3D).</p>
   # Transform the list of sorted raster into a multilayers raster to be able to use terra:extract on cells
   stacked_rasters &lt;- rast(sorted_rasters)
   pixel_time_series &lt;- terra::extract(stacked_rasters, 1:ncell(stacked_rasters)) #one row per pixel, 1 column per time step
+  # We need each line of pixel_time_series in a numeric format but the convertion inside the fonction correct_lowcomplexity_n_d consumes a lot of RAM, thus we are converting the data frame to a numeric matrix, conversion everything at one is more efficient than row by row in the function ;) :
+  pixel_time_series &lt;- as.matrix(pixel_time_series)
+  storage.mode(pixel_time_series) &lt;- &quot;numeric&quot; # NB : if this still to much memory we could swich to sparseMatrix but then, the manipulation on that matrix may be slower.
   # Transform to character the series of value for each pixels
 
   if (!is.null(n) &amp; !is.null(d) &amp; is.null(nbis) &amp; is.null(w) &amp; is.null(p)){ # code for low complexity
 
     correct_lowcomplexity_n_d &lt;- function(pixel_time_series, c, n, d, pix){ # pixel_values &lt;- pixel_time_series[1,] and pix=1; &quot;pix&quot; is a dynamic argument that is automatically indexed when calling the function, it identify each pixels (~ each rows of pixel_time_series)
       
-       pixel_values &lt;- as.numeric(pixel_time_series[c, ])
+       pixel_values &lt;- pixel_time_series[c, ]
        rle_series &lt;- rle(pixel_values) 
       # Clean isolated &#39;1&#39;
        One_to_0 &lt;- which(rle_series$values == 1 &amp; rle_series$lengths &lt; n) #list isolated &#39;1&#39; (series &lt; n ) by 0
@@ -483,10 +486,23 @@ spatial 3D).</p>
     gc()
 
     Event_corrected &lt;- list()
-    for (c in 1:nrow(pixel_time_series)){ # Here a loop works better than a mcapply because mcapply copies the data.table in each cores, which takes time and uses RAM.
-      pix &lt;- c
-      Event_corrected[[c]] &lt;- correct_lowcomplexity_n_d(pixel_time_series, c, n, d, pix)
+    #We want to avoid processing a pixel that is always NA :
+    indices_all_na &lt;- which(rowSums(!is.na(pixel_time_series)) == 0)
+    indices_to_do &lt;- which(rowSums(!is.na(pixel_time_series)) != 0)
+
+    for (c in indices_to_do){ # Here a loop works better than a mcapply because mcapply copies the data.table in each cores, which takes time and uses RAM.
+      Event_corrected[[c]] &lt;- correct_lowcomplexity_n_d(pixel_time_series, c, n, d, c)
     }
+  }
+  if (length(indices_all_na) &gt; 0) {
+    Event_corrected[indices_all_na] &lt;- lapply(indices_all_na, function(c) {
+      data.table(
+        Original_value = rep(NA, n_columns),
+        Cleanned_value = rep(NA, n_columns),
+        ID = rep(paste0(c, &quot;_&quot;), n_columns),
+        Nb_days = rep(0, n_columns)
+      )
+    })
   }
   
   if (!is.null(n) &amp; !is.null(d) &amp; !is.null(nbis) &amp; is.null(w) &amp; is.null(p)){
@@ -505,6 +521,25 @@ spatial 3D).</p>
   names(stacked_rasters_corrected) &lt;- sort(all_dates)
 
   gc()
+  
+  # Add a column &#39;date&#39; to Event_corrected and use it ton create an ID that contains more info (start date and end_date of each event)
+
+  Event_corrected &lt;- lapply(Event_corrected, function(dt) { # dt &lt;- Event_corrected[[700]]
+    dt$date &lt;- sort(all_dates)
+    
+    # Extraire la partie avant le premier &quot;_&quot; pour chaque ID
+    dt[, id := tstrsplit(ID, &quot;_&quot;, keep = 1)]
+    
+    # Créer la nouvelle colonne ID avec l&#39;ancien id + min/max de date
+    dt[, ID := paste0(id, &quot;_&quot;, min(date, na.rm = TRUE), &quot;_&quot;, max(date, na.rm = TRUE)), by = ID]
+    
+    # Supprimer la colonne temporaire si tu veux pas la garder
+    dt[, id := NULL]
+    
+    return(dt)
+  })
+
+
   
   return(list(stacked_rasters_corrected = stacked_rasters_corrected, 
             Event_corrected = Event_corrected))
