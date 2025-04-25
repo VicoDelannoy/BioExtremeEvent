@@ -13,7 +13,7 @@ BEE.calc.metrics_point is not designed to work on 4D data (time + spatial 3D).
 # start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
 BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, 
                                    start_date=NULL, end_date=NULL, 
-                                   baseline_qt90, baseline_mean, 
+                                   baseline_qt90 = baseline_qt90, baseline_mean = baseline_mean, 
                                    group_by_event=TRUE){
   ########################################## WARNINGS ############################################################
   if ( is.null(start_date) | is.null(end_date)) {
@@ -49,30 +49,24 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
     message(capture.output(print(GPS[wrong_position, ])))
     }
 
-
    ########################################## CODE ############################################################
   #Extract values for the given GPS position
-  df_list  <- lapply(GPS$pixel, function(p) Events_corrected[[p]])
+  df_list  <- lapply(GPS$pixel, function(p) Events_corrected[[p]]) # on df per points/pixel
   Values <- t(terra::extract(Values,GPS[,3]))
     
     # Subset both dataset so they match the timeframe provided with 'start_date' and 'end_date'.
   Date <- rownames(Values)
   Values <- Values[which(as.Date(rownames(Values)) >= as.Date(start_date) & as.Date(rownames(Values)) <= as.Date(end_date)),]
   Values <- as.matrix(Values)
-  df_list <- Map(function(df, col_idx){
-    df$Date <- Date
-    return(df)
-  }, df_list, seq_along(df_list))
-  df_list <- purrr::map(df_list, ~ .x[.x$Date >= start_date & .x$Date <= end_date, ])
+  df_list <- Map(function(df, col_idx) {  # col_idx is the id  
+  df$Date <- Date
+  df <- df[df$Date >= start_date & df$Date <= end_date, ]
+  df$value <- Values[, col_idx] #Merge df_list and Values  # Ad to each dataframe the corresponding column of pixel value
+  return(df)
+}, df_list, seq_along(df_list))
+
   # For each event I want : duration, maximum intensity, mean and median intensity, category, sum of anomalies, date of maximum intensity, position of the day of maximum intensity, mean increasing slop, mean decreasing slope, start_date, end_date
   ##Contrary to Events_corrected, Values didn't kept this information of which extreme event were merge together because they were separated by d days or less. Thus, we need to use Events corrected if we want to calculate a metric that describe an event.
-  
-  #Merge df_list and Values
-  df_list <- Map(function(df, col_idx) {
-    # Ad to each dataframe the corresponding column of pixel value
-    df$value <- Values[,col_idx]  # col_idx is the id  
-    return(df)
-  }, df_list, seq_along(df_list))
   
   #Create a list of dataframe to store the information using one element (df) per pixel and one row per event
   colnames(GPS)<-c("x","y", names(GPS[3]))
@@ -149,7 +143,7 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
       anomaly_qt90 = value - baseline_qt90,
       anomaly_mean = value - baseline_mean,
       anomaly_unit = baseline_qt90 - baseline_mean,
-      category = case_when(
+      daily_category = case_when(
         anomaly_qt90 < anomaly_unit ~ "Category I",
         anomaly_qt90 < 2 * anomaly_unit ~ "Category II",
         anomaly_qt90 < 3 * anomaly_unit ~ "Category III",
@@ -160,13 +154,23 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
     # Keep the maximum category reached by each event
     category_order <- c("Category I", "Category II", "Category III", "Category IV")
     df <- df %>%
-    mutate(category = factor(category, levels = category_order))
-    summary_stats <- df %>%
-    group_by(ID) %>%
-    summarise(
-      max_category = levels(category)[which.max(as.numeric(category))],  # Catégorie avec la plus grande valeur
-      .groups = 'drop'
-    )
+      mutate(daily_category = factor(daily_category, levels = category_order))
+    df <- df %>% mutate( event_ID = ID)
+    max_category <- df %>%
+      filter(!is.na(daily_category)) %>%
+      group_by(event_ID) %>%
+      summarise(
+        max_category = category_order[max(as.numeric(daily_category))],
+        .groups = 'drop'
+      )
+    df <- df %>%
+      left_join(max_category, by = "event_ID")
+    # summary_stats <- df %>%
+    # group_by(ID) %>%
+    # summarise(
+    #   max_category = levels(daily_category)[which.max(as.numeric(daily_category))],  # Catégorie avec la plus grande valeur
+    #   .groups = 'drop'
+    # )
 
     # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to the ouputs + add maximal category of each event
     summary_stats <- df %>%
@@ -178,20 +182,21 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
       mean_anomaly_mean= mean(anomaly_mean, na.rm = TRUE),
       sd_anomaly_mean = sd(anomaly_mean, na.rm = TRUE),
       max_anomaly_mean = max(anomaly_mean, na.rm = TRUE),
-      max_category = names(sort(table(category), decreasing = TRUE))[1],  # Catégorie la plus fréquente
+      max_category = names(sort(table(daily_category), decreasing = TRUE))[1],  # Catégorie la plus fréquente
       .groups = 'drop'
     )
     df <- df %>%
     left_join(summary_stats, by = "ID")
     
-    
+    setnames(df, old = "max_category.y", new = "max_category")
     if (group_by_event) {
     df <- df %>%
       # Delete daily values that are not usefull to describe the full event
-      select(-baseline_qt90, -baseline_mean, -anomaly_mean, -anomaly_qt90, -anomaly_unit, -category) %>%
-      distinct(ID, .keep_all = TRUE)  # Une seule ligne par ID
+      select(-baseline_qt90, -baseline_mean, -anomaly_mean, -anomaly_qt90, -anomaly_unit, -daily_category, -date, -ID, -daily_category) %>%
+      distinct(event_ID, .keep_all = TRUE)  # Une seule ligne par ID
+    
   } else {
-    df <- df 
+    df <- df %>% select(-date, -ID)
   }
     return(df)
   })

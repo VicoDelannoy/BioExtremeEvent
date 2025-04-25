@@ -360,7 +360,7 @@ spatial 3D).</p>
 <pre class="r"><code># start_date &lt;- &quot;2022-01-01&quot; ; end_date &lt;- &quot;2023-12-31&quot; ; Values &lt;- ds ; GPS &lt;- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
 BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS, 
                                    start_date=NULL, end_date=NULL, 
-                                   baseline_qt90, baseline_mean, 
+                                   baseline_qt90 = baseline_qt90, baseline_mean = baseline_mean, 
                                    group_by_event=TRUE){
   ########################################## WARNINGS ############################################################
   if ( is.null(start_date) | is.null(end_date)) {
@@ -399,27 +399,22 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
 
    ########################################## CODE ############################################################
   #Extract values for the given GPS position
-  df_list  &lt;- lapply(GPS$pixel, function(p) Events_corrected[[p]])
+  df_list  &lt;- lapply(GPS$pixel, function(p) Events_corrected[[p]]) # on df per points/pixel
   Values &lt;- t(terra::extract(Values,GPS[,3]))
     
     # Subset both dataset so they match the timeframe provided with &#39;start_date&#39; and &#39;end_date&#39;.
   Date &lt;- rownames(Values)
   Values &lt;- Values[which(as.Date(rownames(Values)) &gt;= as.Date(start_date) &amp; as.Date(rownames(Values)) &lt;= as.Date(end_date)),]
   Values &lt;- as.matrix(Values)
-  df_list &lt;- Map(function(df, col_idx){
-    df$Date &lt;- Date
-    return(df)
-  }, df_list, seq_along(df_list))
-  df_list &lt;- purrr::map(df_list, ~ .x[.x$Date &gt;= start_date &amp; .x$Date &lt;= end_date, ])
+  df_list &lt;- Map(function(df, col_idx) {  # col_idx is the id  
+  df$Date &lt;- Date
+  df &lt;- df[df$Date &gt;= start_date &amp; df$Date &lt;= end_date, ]
+  df$value &lt;- Values[, col_idx] #Merge df_list and Values  # Ad to each dataframe the corresponding column of pixel value
+  return(df)
+}, df_list, seq_along(df_list))
+
   # For each event I want : duration, maximum intensity, mean and median intensity, category, sum of anomalies, date of maximum intensity, position of the day of maximum intensity, mean increasing slop, mean decreasing slope, start_date, end_date
   ##Contrary to Events_corrected, Values didn&#39;t kept this information of which extreme event were merge together because they were separated by d days or less. Thus, we need to use Events corrected if we want to calculate a metric that describe an event.
-  
-  #Merge df_list and Values
-  df_list &lt;- Map(function(df, col_idx) {
-    # Ad to each dataframe the corresponding column of pixel value
-    df$value &lt;- Values[,col_idx]  # col_idx is the id  
-    return(df)
-  }, df_list, seq_along(df_list))
   
   #Create a list of dataframe to store the information using one element (df) per pixel and one row per event
   colnames(GPS)&lt;-c(&quot;x&quot;,&quot;y&quot;, names(GPS[3]))
@@ -538,7 +533,7 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
       select(-baseline_qt90, -baseline_mean, -anomaly_mean, -anomaly_qt90, -anomaly_unit, -category) %&gt;%
       distinct(ID, .keep_all = TRUE)  # Une seule ligne par ID
   } else {
-    df &lt;- df 
+    df &lt;- df %&gt;% select(-date, -ID)
   }
     return(df)
   })
