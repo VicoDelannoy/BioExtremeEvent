@@ -383,7 +383,7 @@ be computed for the given point.</p>
 by the size of the Spatraster your are providing.</p>
 <div id="test-en-utilisant-events_corrected" class="section level1">
 <h1>Test en utilisant Events_corrected</h1>
-<pre class="r"><code># true_event_output &lt;- result ; start_date = &quot;2022-03-10&quot;; end_date = &quot;2022-03-12&quot; ; pixel = &quot;all&quot; ; only_days_EE = FALSE ; each_event = TRUE
+<pre class="r"><code># true_event_output &lt;- result ; start_date = &quot;2022-08-01&quot;; end_date = &quot;2022-08-12&quot; ; pixel = test ; only_days_EE = FALSE ; each_event = FALSE
 BEE.calc.escape &lt;- function(true_event_output, 
                 start_date = NULL, end_date = NULL, 
                 pixel, 
@@ -427,8 +427,13 @@ BEE.calc.escape &lt;- function(true_event_output,
     }
     pixels_to &lt;- which(values_x == 0)
     
-    if (class(pixel)==&quot;vector&quot; | class(pixel)==&quot;data.frame&quot; ){
-    pixels_to_do &lt;- terra::cellFromXY(true_event_output$stacked_rasters_corrected,pixel)
+    if (is.vector(test) | class(pixel)==&quot;data.frame&quot; ){
+      if (class(pixel)==&quot;data.frame&quot; ){
+      pixels_to_do &lt;- terra::cellFromXY(true_event_output$stacked_rasters_corrected,pixel)
+      }
+      else{
+      pixels_to_do &lt;- terra::cellFromXY(true_event_output$stacked_rasters_corrected,t(matrix(pixel)))  
+      }
     pixels_from &lt;- pixels_from[which(pixels_from %in% pixels_to_do)]
     }
     
@@ -442,20 +447,20 @@ BEE.calc.escape &lt;- function(true_event_output,
         from_y = coords_from[,2],
         to_x = &quot;unkown&quot;,
         to_y = &quot;unkown&quot;,
-        pixel_from_id =  as.integer(pixel_from_id),
+        pixel_from_id =  as.integer(pixels_from),
         pixel_to_id = &quot;no escape&quot;,
         distance = &quot;outside of the raster&quot;,
         azimut = &quot;not possible to compute&quot;
       )
       }
-      if (class(pixel)==&quot;vector&quot; | class(pixel)==&quot;data.frame&quot;){
+      if (is.vector(test) | class(pixel)==&quot;data.frame&quot;){
       points &lt;- data.table(
         date = rep(time(x), nrow(pixel)), 
         from_x = pixel[,1],
         from_y = pixel[,2],
         to_x = &quot;unkown&quot;,
         to_y = &quot;unkown&quot;,
-        pixel_from_id =  as.integer(pixel_from_id),
+        pixel_from_id =  as.integer(pixels_from),
         pixel_to_id = &quot;no escape&quot;,
         distance = &quot;outside of the raster&quot;,
         azimut = &quot;not possible to compute&quot;
@@ -476,7 +481,7 @@ BEE.calc.escape &lt;- function(true_event_output,
         azimut = NA
       )
       }
-      if (class(pixel) ==&quot;vector&quot; | class(pixel)==&quot;data.frame&quot;){
+      if (is.vector(test) | class(pixel)==&quot;data.frame&quot;){
       points &lt;- data.table(
         date = rep(time(x), nrow(pixel)), 
         from_x = pixel[,1],
@@ -520,9 +525,15 @@ BEE.calc.escape &lt;- function(true_event_output,
   warnings(&quot;When several pixels are the &#39;closest pixel&#39;, the one with the smallest number/id is kept to compute shortest distance and azimut. Moreover, this function uses &#39;geosphere::distHaversine&#39; to compute distances, it accounts for earth rotondity, which is better than euclidian distance, but it consider the earth as a sphere, thus near the poles, this methods is less percise than geosphere::distVincentyEllipsoid. This is a compromise between computation speed and precision. The estimate error using distHaversine compare to distVincentyEllipsoid is between 1 km and 5 km for a distance of 300 km.&quot;)
   dist_dir &lt;- rbindlist(dist_dir)
   no_event &lt;- dist_dir[which(pixel_to_id == &quot;no escape&quot;),] # saving the lines where there are no distances to compute for the case only_days_EE == FALSE
+  if(only_days_EE==TRUE){
+    dist_dir &lt;- dist_dir[distance != 0,]
+    if(nrow(dist_dir)==0){
+      message(&quot;There were no extreme event for the given pixels and timeframe.&quot;)
+    }
+  }
   if (any(dist_dir$pixel_to_id==&quot;no escape&quot;, na.rm = TRUE)){
     dangerous_date &lt;- dist_dir$date[which(dist_dir$pixel_to_id==&quot;no escape&quot;)]
-    message(&quot;During the following dates, the raster was fully covered by an EE and it was no possible to compute a distance to escape or an azimut.&quot;,dangerous_date)
+    message(&quot;During the following dates, the raster was fully covered by an EE and it was no possible to compute a distance to escape or an azimut.&quot;, paste(dangerous_date, collapse = &quot;, &quot;) )
   }
 
   if (each_event==FALSE){ # dist_dir &lt;- points
@@ -559,17 +570,23 @@ BEE.calc.escape &lt;- function(true_event_output,
     dist_dir[, c(&quot;date_start&quot;, &quot;date_end&quot;) := NULL]
     
     # Now we can compute some metrics of the metrics distance and azimut !!
+    old_warn &lt;- options(&quot;warn&quot;) # Save curent warning settings
+    options(warn = -1) # unactivate warnings
     ## Distance
-    dist_dir[,distance_mean := mean(distance), by = ID]
-    dist_dir[,distance_sd := sd(distance), by = ID]
-    dist_dir[,distance_median := median(distance), by = ID]
-    dist_dir[,distance_min := min(distance), by = ID]
-    dist_dir[,distance_max := max(distance), by = ID]
+    dist_dir[,distance_mean := mean(as.numeric(distance), na.rm=T), by = ID]
+    dist_dir[,distance_sd := sd(as.numeric(distance), na.rm=T), by = ID]
+    dist_dir[,distance_median := median(as.numeric(distance), na.rm=T), by = ID]
+    dist_dir[,distance_min := min(as.numeric(distance), na.rm=T), by = ID]
+    dist_dir[,distance_max := max(as.numeric(distance), na.rm=T), by = ID]
+
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a special way to compute it : 
     # Conversion to circular angle :
-    dist_dir[, azimut_circ := circular::circular(azimut, units = &quot;degrees&quot;, template = &quot;geographics&quot;)]
-    dist_dir[, azimut_mean := as.numeric(mean(azimut_circ)), by = ID]
-    dist_dir[, azimut_med := if (any(is.na(azimut_circ))) NA_real_ else median(azimut_circ), by = ID] # not possible to compute median on NA + if I just put NA, it is going to expect logical instead of numerical value, that&#39;s why NA-real and not NA
+    dist_dir[, azimut_num := as.numeric(azimut)]
+    dist_dir[, azimut_circ := ifelse(!is.na(azimut_num),
+                                 circular::circular(azimut_num, units = &quot;degrees&quot;, template = &quot;geographics&quot;),
+                                 NA)]
+    dist_dir[, azimut_mean := as.numeric(mean(azimut_circ, na.rm = TRUE)), by = ID]
+    dist_dir[, azimut_med := median(azimut_circ, na.rm = TRUE), by = ID] # not possible to compute median on NA + if I just put NA, it is going to expect logical instead of numerical value, that&#39;s why NA-real and not NA
     dist_dir[, azimut_sd := {
       az_group &lt;- azimut_circ[!is.na(azimut_circ)] #when there are to many decimals in azimut_circ, sin and cos used inside circular::sd induce littl imprecisions that leads to NA value when azimut_circ is constant, to deal with this, when azimut-circ is constant, a value of 0 is forced into the dt.
       if (length(az_group) &lt;= 1 || max(az_group) - min(az_group) &lt; 1e-6) {
@@ -579,11 +596,11 @@ BEE.calc.escape &lt;- function(true_event_output,
         if (is.nan(val)) 0 else val
       }
     }, by = ID]
-    dist_dir[,azimut_min := min(azimut), by = ID]
-    dist_dir[,azimut_max := max(azimut), by = ID]
-    
+    dist_dir[,azimut_min := min(azimut_num, na.rm = TRUE), by = ID]
+    dist_dir[,azimut_max := max(azimut_num, na.rm = TRUE), by = ID]
+        options(warn = old_warn$warn) # reactivate warnings
     # Delete column that refer to daily value and not to value compute on all the event :
-    dist_dir[, c(&#39;date&#39;, &#39;distance&#39;, &#39;azimut&#39;, &#39;azimut_circ&#39;) := NULL]
+    dist_dir[, c(&#39;date&#39;, &#39;distance&#39;, &#39;azimut&#39;, &#39;azimut_num&#39;,&#39;azimut_circ&#39;) := NULL]
     # Keep only one row per EE (&lt;-&gt; per value of ID column) :
     dist_dir &lt;- dist_dir[, .SD[1], by = ID] #.SD keep the first line of every group of same value of ID   
     # delete the column x_to and y_to as the represent the pixel where to escape on first day and not a characteristic of the all event
