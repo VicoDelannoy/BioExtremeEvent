@@ -162,7 +162,7 @@ BEE.calc.escape <- function(true_event_output,
   }
   if (any(dist_dir$pixel_to_id=="no escape", na.rm = TRUE)){
     dangerous_date <- dist_dir$date[which(dist_dir$pixel_to_id=="no escape")]
-    message("During the following dates, the raster was fully covered by an EE and it was no possible to compute a distance to escape or an azimut.", dangerous_date )
+    message("During the following dates, the raster was fully covered by an EE and it was no possible to compute a distance to escape or an azimut.", paste(dangerous_date, collapse = ", ") )
   }
 
   if (each_event==FALSE){ # dist_dir <- points
@@ -199,17 +199,23 @@ BEE.calc.escape <- function(true_event_output,
     dist_dir[, c("date_start", "date_end") := NULL]
     
     # Now we can compute some metrics of the metrics distance and azimut !!
+    old_warn <- options("warn") # Save curent warning settings
+    options(warn = -1) # unactivate warnings
     ## Distance
-    dist_dir[,distance_mean := mean(distance), by = ID]
-    dist_dir[,distance_sd := sd(distance), by = ID]
-    dist_dir[,distance_median := median(distance), by = ID]
-    dist_dir[,distance_min := min(distance), by = ID]
-    dist_dir[,distance_max := max(distance), by = ID]
+    dist_dir[,distance_mean := mean(as.numeric(distance), na.rm=T), by = ID]
+    dist_dir[,distance_sd := sd(as.numeric(distance), na.rm=T), by = ID]
+    dist_dir[,distance_median := median(as.numeric(distance), na.rm=T), by = ID]
+    dist_dir[,distance_min := min(as.numeric(distance), na.rm=T), by = ID]
+    dist_dir[,distance_max := max(as.numeric(distance), na.rm=T), by = ID]
+
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a special way to compute it : 
     # Conversion to circular angle :
-    dist_dir[, azimut_circ := circular::circular(azimut, units = "degrees", template = "geographics")]
-    dist_dir[, azimut_mean := as.numeric(mean(azimut_circ)), by = ID]
-    dist_dir[, azimut_med := if (any(is.na(azimut_circ))) NA_real_ else median(azimut_circ), by = ID] # not possible to compute median on NA + if I just put NA, it is going to expect logical instead of numerical value, that's why NA-real and not NA
+    dist_dir[, azimut_num := as.numeric(azimut)]
+    dist_dir[, azimut_circ := ifelse(!is.na(azimut_num),
+                                 circular::circular(azimut_num, units = "degrees", template = "geographics"),
+                                 NA)]
+    dist_dir[, azimut_mean := as.numeric(mean(azimut_circ, na.rm = TRUE)), by = ID]
+    dist_dir[, azimut_med := median(azimut_circ, na.rm = TRUE), by = ID] # not possible to compute median on NA + if I just put NA, it is going to expect logical instead of numerical value, that's why NA-real and not NA
     dist_dir[, azimut_sd := {
       az_group <- azimut_circ[!is.na(azimut_circ)] #when there are to many decimals in azimut_circ, sin and cos used inside circular::sd induce littl imprecisions that leads to NA value when azimut_circ is constant, to deal with this, when azimut-circ is constant, a value of 0 is forced into the dt.
       if (length(az_group) <= 1 || max(az_group) - min(az_group) < 1e-6) {
@@ -219,11 +225,11 @@ BEE.calc.escape <- function(true_event_output,
         if (is.nan(val)) 0 else val
       }
     }, by = ID]
-    dist_dir[,azimut_min := min(azimut), by = ID]
-    dist_dir[,azimut_max := max(azimut), by = ID]
-    
+    dist_dir[,azimut_min := min(azimut_num, na.rm = TRUE), by = ID]
+    dist_dir[,azimut_max := max(azimut_num, na.rm = TRUE), by = ID]
+        options(warn = old_warn$warn) # reactivate warnings
     # Delete column that refer to daily value and not to value compute on all the event :
-    dist_dir[, c('date', 'distance', 'azimut', 'azimut_circ') := NULL]
+    dist_dir[, c('date', 'distance', 'azimut', 'azimut_num','azimut_circ') := NULL]
     # Keep only one row per EE (<-> per value of ID column) :
     dist_dir <- dist_dir[, .SD[1], by = ID] #.SD keep the first line of every group of same value of ID   
     # delete the column x_to and y_to as the represent the pixel where to escape on first day and not a characteristic of the all event
