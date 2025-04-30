@@ -26,7 +26,8 @@ Depends:
 	tidyverse,
 	reticulate,
 	data.table,
-	purrr
+	purrr,
+	circular
 Imports:
     doParallel,
     dplyr,

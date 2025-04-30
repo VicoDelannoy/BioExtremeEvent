@@ -99,6 +99,8 @@ If your using the package to work on temperature raster, you can check that the 
 
 ```{r}
 ds <- BEE.calc.celsius(ds)
+terra::writeRaster(ds, "Data/ds_Golfe_du_lion.tiff")
+ds <- rast("Data/ds_Golfe_du_lion.tiff")
 ```
 
 # 3. Calculate a baseline value for each cell in your dataset using one of two methods with *"BEE.calc.baseline"* :
@@ -115,6 +117,15 @@ ds <- BEE.calc.celsius(ds)
 baseline_qt90 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 
 baseline_qt10 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
 baseline_mean <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
+
+# Save and load baselines 
+terra::writeRaster(baseline_qt90, "Data/baseline_qt90_Golfe_du_lion.tiff", overwrite = TRUE)
+baseline_qt90 <- rast("Data/baseline_qt90_Golfe_du_lion.tiff")
+terra::writeRaster(baseline_qt10, "Data/baseline_qt10_Golfe_du_lion.tiff", overwrite = TRUE)
+baseline_qt10 <- rast("Data/baseline_qt10_Golfe_du_lion.tiff")
+terra::writeRaster(baseline_mean, "Data/baseline_mean_Golfe_du_lion.tiff", overwrite = TRUE)
+baseline_mean <- rast("Data/baseline_mean_Golfe_du_lion.tiff")
+
 # PLot climatology in Frontignan
 df_plot <- data.frame(doy=seq(1:366),
                       qt10=t(terra::extract(baseline_qt10,507)), #507 is frontignant pixel
@@ -140,9 +151,10 @@ ggplot(df_plot, aes(x = doy)) +
 It provide a raw information for each day and each pixel without applying any definition of the Extreme Event. Of course, one may be interesting in applying a more restrictive definition of "Extreme Event". This will be done when BEE.calc.true_event will be used (later). This intermediate step is necessary to apply BEE.calc.true_event.
 
 ```{r chunk-5}
-binarized_EE <- BEE.calc.binarize(rast_name= ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above"
+binarized_EE <- BEE.calc.binarize(rast_name= ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above" #16:20
 
 # plot(baseline_qt90[[1]]) ; plot(binarized_EE$`01.01`$`1983-01-01`)
+# Save or load
 ```
 
 You can use the output to check which are the pixel more subject to peaks of your studdied parameter :
@@ -164,7 +176,7 @@ You can use the output to check which are the pixel more subject to peaks of you
 
 # 5. Identify Extreme Event
 
-Delete short period above threshold from the list of extreme event and merge close periods above threshold. Provide informations on the amount of modifications.
+Delete short period above threshold from the list of extreme event and merge close periods above threshold. Provide information on the amount of modifications.
 
 ```{r}
 # 7 minutes 40 s to run on 3 332 pixels and 15 706 days
@@ -178,6 +190,14 @@ gc()
 #Check settings
 BEE.calc.corrections(Events_corrected)
 
+
+# Save and load : 
+saveRDS(Events_corrected, file = "Data/Events_corrected.rds")
+Events_corrected <- readRDS("Data/Events_corrected.rds")
+terra::writeRaster(Corrected_rasters, "Data/Corrected_rasters_Golfe_du_lion.tiff", overwrite = TRUE)
+Corrected_rasters <- rast("Data/Corrected_rasters_Golfe_du_lion.tiff")
+result <- list(Corrected_rasters, Events_corrected)
+names(result) <- c("stacked_rasters_corrected", "Event_corrected")
 ```
 
 # 6. Get metrics related to time.
@@ -187,7 +207,7 @@ The function bellow gives you basic metrics for a given GPS position, list of po
 ```{r}
 GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls, Monaco
                   y = c(43.4287, 43.183, 42.781))
-points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31", baseline_qt90, baseline_mean, group_by_event = TRUE)
+points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31", baseline_qt90 = baseline_qt90, baseline_mean = baseline_mean, group_by_event = FALSE)
 # To sumarise by event :
 Frontignan <- points_metrics[[1]] %>% 
   select(-value,-daily_rates) %>% 
@@ -284,6 +304,11 @@ test_fronti <- lapply(seq_along(test_fronti), function(i){
 test_fronti <- bind_rows(test_fronti) %>% filter(pixel==507)
 
 # Calculate mean distance to escape from an extreme event
-dist_to_escape <- BEE.calc.escape(result, pixel = GPS, start_date = "2022-01-01", end_date = "2024-12-31", account_all_days = "each_event")
+dist_to_escape <- BEE.calc.escape(true_event_output=result,
+                start_date = "2022-04-01", end_date = "2022-08-31", 
+                pixel= GPS, 
+                only_days_EE = TRUE,
+                each_event = FALSE)
+
 
 ```
