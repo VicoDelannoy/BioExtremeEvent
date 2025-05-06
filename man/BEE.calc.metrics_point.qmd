@@ -82,7 +82,17 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
     df$Date <- as.Date(df$Date)
     df$dates <- format(as.Date(df$Date), "%m-%d")
     df <- df %>%
-      group_by(ID) %>%
+      arrange(ID, Date) %>% # put data in pixel order and chronological order
+      group_by(ID) %>% # Create columns with info on the previous group
+      mutate(row_num = row_number()) %>%  # useful later
+      ungroup() %>%
+      mutate(
+        prev_value = lag(value),
+        prev_ID = lag(ID),
+        last_value_prev_group = ifelse(row_num == 1 & ID != prev_ID, prev_value, NA)
+      ) %>%
+      fill(last_value_prev_group, .direction = "down") %>%
+    group_by(ID) %>%
       mutate(
         # Get GPS position of each point
         x = GPS$x[p],  
@@ -103,32 +113,50 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
         median_value = median(value),
         max_value = max(value),
     
-        # Day of maximum temperature
+        # Day of absolute maximum temperature
         date_max_value = as.Date(Date[which.max(value)]),
         
         #Daily rates
         daily_rates = (lead(value) - value) / as.numeric(lead(Date) - Date),
     
-        # Onset rate
-        days_onset = as.numeric(date_max_value - first_date),
+        # Onset rate (up to the absolut maximum value during the event)
+        days_onset_abs = as.numeric(date_max_value - first_date),
         ## raw
-        raw_onset_rate = (max_value - value[which(Date==first_date)]) / days_onset,
+        raw_onset_rate_abs = ifelse(
+          days_onset_abs > 0,
+          (max_value - value[which(Date == first_date)]) / days_onset_abs,
+          value[1] - first(last_value_prev_group)),
         ## mean
-        mean_onset_rate = mean(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
+        mean_onset_rate_abs = ifelse( days_onset_abs >0 ,
+                                      mean(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
+                                      raw_onset_rate_abs),
         ## Median onset rate 
-        median_onset_rate = median(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
+        median_onset_rate_abs = ifelse( days_onset_abs >0 ,
+                                        median(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
+                                        raw_onset_rate_abs),
         ## Standard deviation
-        sd_onset_rate = sd(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
+        sd_onset_rate_abs = ifelse( days_onset_abs >0 ,
+                                    sd(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
+                                    NA),
     
-        # Offset rate
-        days_offset = as.numeric(last_date - date_max_value),
+        # Offset rate (from the absolut maximum value during the event)
+        days_offset_abs = as.numeric(last_date - date_max_value),
         ## raw
-        raw_offset_rate = (value[which(Date==last_date)] - max_value) / days_offset,
+        raw_offset_rate_abs = ifelse( days_offset_abs >0 ,
+                                      (value[which(Date==last_date)] - max_value) / days_offset_abs , 
+                                      tail(value, 1) - tail(value, 2)[1]),
         ## mean
-        mean_offset_rate = mean(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
-        median_offset_rate = median(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
+        mean_offset_rate_abs = ifelse( days_offset_abs >0 ,
+                                       mean(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
+                                       raw_offset_rate_abs),
+        
+        median_offset_rate_abs = ifelse( days_offset_abs >0 ,
+                                         median(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
+                                         raw_offset_rate_abs),
         ## Standard deviation
-        sd_offset_rate = sd(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE)
+        sd_offset_rate_abs = ifelse( days_offset_abs >0 ,
+                                     sd(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
+                                     NA)
       ) %>%
       ungroup()  
     # Add daily baseline_qt90 and daily baseline_mean
@@ -165,12 +193,6 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
       )
     df <- df %>%
       left_join(max_category, by = "event_ID")
-    # summary_stats <- df %>%
-    # group_by(ID) %>%
-    # summarise(
-    #   max_category = levels(daily_category)[which.max(as.numeric(daily_category))],  # Catégorie avec la plus grande valeur
-    #   .groups = 'drop'
-    # )
 
     # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to the ouputs + add maximal category of each event
     summary_stats <- df %>%
@@ -187,16 +209,16 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
     )
     df <- df %>%
     left_join(summary_stats, by = "ID")
-    
-    setnames(df, old = "max_category.y", new = "max_category")
+    setnames(df, old = "max_category.y", new = "most_frequent_category")
+    setnames(df, old = "max_category.x", new = "max_category")
     if (group_by_event) {
     df <- df %>%
       # Delete daily values that are not usefull to describe the full event
-      select(-baseline_qt90, -baseline_mean, -anomaly_mean, -anomaly_qt90, -anomaly_unit, -daily_category, -date, -ID, -daily_category) %>%
+      select(-baseline_qt90, -baseline_mean, -anomaly_mean, -anomaly_qt90, -anomaly_unit, -daily_category, -date, -ID, -daily_category, - row_num, -prev_value, -prev_ID, -last_value_prev_group) %>%
       distinct(event_ID, .keep_all = TRUE)  # Une seule ligne par ID
     
   } else {
-    df <- df %>% select(-date, -ID)
+    df <- df %>% select(-date, -ID, - row_num, -prev_value, -prev_ID, -last_value_prev_group)
   }
     return(df)
   })

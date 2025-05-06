@@ -427,7 +427,7 @@ BEE.calc.escape &lt;- function(true_event_output,
     }
     pixels_to &lt;- which(values_x == 0)
     
-    if (is.vector(test) | class(pixel)==&quot;data.frame&quot; ){
+    if (is.vector(pixel) | class(pixel)==&quot;data.frame&quot; ){
       if (class(pixel)==&quot;data.frame&quot; ){
       pixels_to_do &lt;- terra::cellFromXY(true_event_output$stacked_rasters_corrected,pixel)
       }
@@ -438,7 +438,7 @@ BEE.calc.escape &lt;- function(true_event_output,
     }
     
     # If there are some pixels to flee but no pixel where to escape :
-   if (length(pixels_from) != 0 &amp; length(pixels_to) == 0) { # the whole are is an EE
+   if (length(pixels_from) != 0 &amp; length(pixels_to) == 0) { # the whole area is an EE
      coords_from &lt;- coords_all[pixels_from, ]  # Coord to flee
       if (as.character(pixel)[1] == &quot;all&quot;){
       points &lt;- data.table(
@@ -453,7 +453,7 @@ BEE.calc.escape &lt;- function(true_event_output,
         azimut = &quot;not possible to compute&quot;
       )
       }
-      if (is.vector(test) | class(pixel)==&quot;data.frame&quot;){
+      if (class(pixel)==&quot;data.frame&quot;){ 
       points &lt;- data.table(
         date = rep(time(x), nrow(pixel)), 
         from_x = pixel[,1],
@@ -466,6 +466,19 @@ BEE.calc.escape &lt;- function(true_event_output,
         azimut = &quot;not possible to compute&quot;
       )
       }
+     if (is.vector(pixel)){
+       points &lt;- data.table(
+        date = rep(time(x), nrow(t(matrix(pixel)))), 
+        from_x = t(matrix(pixel))[,1],
+        from_y = t(matrix(pixel))[,2],
+        to_x = &quot;unkown&quot;,
+        to_y = &quot;unkown&quot;,
+        pixel_from_id =  as.integer(pixels_from),
+        pixel_to_id = &quot;no escape&quot;,
+        distance = &quot;outside of the raster&quot;,
+        azimut = &quot;not possible to compute&quot;
+      )
+     }
    }
     if (length(pixels_from) == 0) { # nothing to escape from AND only_days_EE==TRUE (because when only_days_EE==FALSE, all pixel are considered as pixel to escape because we want to compute the distance to escape that are = 0.)
       if (as.character(pixel)[1] == &quot;all&quot;){
@@ -481,7 +494,7 @@ BEE.calc.escape &lt;- function(true_event_output,
         azimut = NA
       )
       }
-      if (is.vector(test) | class(pixel)==&quot;data.frame&quot;){
+      if (class(pixel)==&quot;data.frame&quot;){
       points &lt;- data.table(
         date = rep(time(x), nrow(pixel)), 
         from_x = pixel[,1],
@@ -493,6 +506,19 @@ BEE.calc.escape &lt;- function(true_event_output,
         distance = rep(0,length(pixels_to_do)),
         azimut = NA
       )
+      if(is.vector(pixel)){
+        points &lt;- data.table(
+        date = rep(time(x), nrow(t(matrix(pixel)))), 
+        from_x = t(matrix(pixel))[,1],
+        from_y = t(matrix(pixel))[,2],
+        to_x = NA,
+        to_y = NA,
+        pixel_from_id = pixels_to_do,
+        pixel_to_id = NA,
+        distance = rep(0,length(pixels_to_do)),
+        azimut = NA
+      )
+      }
       }
     }
     if (length(pixels_from) != 0 &amp; length(pixels_to) != 0){ #Basic situation

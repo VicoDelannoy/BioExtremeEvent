@@ -396,7 +396,6 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
     message(capture.output(print(GPS[wrong_position, ])))
     }
 
-
    ########################################## CODE ############################################################
   #Extract values for the given GPS position
   df_list  &lt;- lapply(GPS$pixel, function(p) Events_corrected[[p]]) # on df per points/pixel
@@ -491,7 +490,7 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
       anomaly_qt90 = value - baseline_qt90,
       anomaly_mean = value - baseline_mean,
       anomaly_unit = baseline_qt90 - baseline_mean,
-      category = case_when(
+      daily_category = case_when(
         anomaly_qt90 &lt; anomaly_unit ~ &quot;Category I&quot;,
         anomaly_qt90 &lt; 2 * anomaly_unit ~ &quot;Category II&quot;,
         anomaly_qt90 &lt; 3 * anomaly_unit ~ &quot;Category III&quot;,
@@ -502,13 +501,23 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
     # Keep the maximum category reached by each event
     category_order &lt;- c(&quot;Category I&quot;, &quot;Category II&quot;, &quot;Category III&quot;, &quot;Category IV&quot;)
     df &lt;- df %&gt;%
-    mutate(category = factor(category, levels = category_order))
-    summary_stats &lt;- df %&gt;%
-    group_by(ID) %&gt;%
-    summarise(
-      max_category = levels(category)[which.max(as.numeric(category))],  # Catégorie avec la plus grande valeur
-      .groups = &#39;drop&#39;
-    )
+      mutate(daily_category = factor(daily_category, levels = category_order))
+    df &lt;- df %&gt;% mutate( event_ID = ID)
+    max_category &lt;- df %&gt;%
+      filter(!is.na(daily_category)) %&gt;%
+      group_by(event_ID) %&gt;%
+      summarise(
+        max_category = category_order[max(as.numeric(daily_category))],
+        .groups = &#39;drop&#39;
+      )
+    df &lt;- df %&gt;%
+      left_join(max_category, by = &quot;event_ID&quot;)
+    # summary_stats &lt;- df %&gt;%
+    # group_by(ID) %&gt;%
+    # summarise(
+    #   max_category = levels(daily_category)[which.max(as.numeric(daily_category))],  # Catégorie avec la plus grande valeur
+    #   .groups = &#39;drop&#39;
+    # )
 
     # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to the ouputs + add maximal category of each event
     summary_stats &lt;- df %&gt;%
@@ -520,18 +529,19 @@ BEE.calc.metrics_point &lt;- function(Events_corrected, Values, GPS,
       mean_anomaly_mean= mean(anomaly_mean, na.rm = TRUE),
       sd_anomaly_mean = sd(anomaly_mean, na.rm = TRUE),
       max_anomaly_mean = max(anomaly_mean, na.rm = TRUE),
-      max_category = names(sort(table(category), decreasing = TRUE))[1],  # Catégorie la plus fréquente
+      max_category = names(sort(table(daily_category), decreasing = TRUE))[1],  # Catégorie la plus fréquente
       .groups = &#39;drop&#39;
     )
     df &lt;- df %&gt;%
     left_join(summary_stats, by = &quot;ID&quot;)
     
-    
+    setnames(df, old = &quot;max_category.y&quot;, new = &quot;max_category&quot;)
     if (group_by_event) {
     df &lt;- df %&gt;%
       # Delete daily values that are not usefull to describe the full event
-      select(-baseline_qt90, -baseline_mean, -anomaly_mean, -anomaly_qt90, -anomaly_unit, -category) %&gt;%
-      distinct(ID, .keep_all = TRUE)  # Une seule ligne par ID
+      select(-baseline_qt90, -baseline_mean, -anomaly_mean, -anomaly_qt90, -anomaly_unit, -daily_category, -date, -ID, -daily_category) %&gt;%
+      distinct(event_ID, .keep_all = TRUE)  # Une seule ligne par ID
+    
   } else {
     df &lt;- df %&gt;% select(-date, -ID)
   }

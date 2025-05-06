@@ -207,7 +207,7 @@ The function bellow gives you basic metrics for a given GPS position, list of po
 ```{r}
 GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls, Monaco
                   y = c(43.4287, 43.183, 42.781))
-points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31", baseline_qt90 = baseline_qt90, baseline_mean = baseline_mean, group_by_event = FALSE)
+points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31", baseline_qt90 = baseline_qt90, baseline_mean = baseline_mean, group_by_event = TRUE)
 # To sumarise by event :
 Frontignan <- points_metrics[[1]] %>% 
   select(-value,-daily_rates) %>% 
@@ -305,10 +305,87 @@ test_fronti <- bind_rows(test_fronti) %>% filter(pixel==507)
 
 # Calculate mean distance to escape from an extreme event
 dist_to_escape <- BEE.calc.escape(true_event_output=result,
-                start_date = "2022-04-01", end_date = "2022-08-31", 
-                pixel= GPS, 
+                start_date = "2000-01-01", end_date = "2024-12-31", 
+                pixel = GPS[1,], 
                 only_days_EE = TRUE,
                 each_event = FALSE)
 
+#Graph
+library(scales) 
+dist_to_escape[, distance := as.numeric(distance)]
+dist_to_escape[, date := as.Date(date, origin = "1970-01-01")]
+dist_to_escape[, year := format(as.Date(date), "%Y")]
+dist_to_escape[, month := format(date, "%B")] 
+mois_fr <- c("janvier", "février", "mars", "avril", "mai", "juin",
+             "juillet", "août", "septembre", "octobre", "novembre", "décembre")
+dist_to_escape[, month := factor(month, levels = mois_fr)]
+get_season <- function(d) {
+  m <- as.integer(format(d, "%m"))
+  ifelse(m %in% c(12, 1, 2), "Hiver",
+         ifelse(m %in% c(3, 4, 5), "Printemps",
+                ifelse(m %in% c(6, 7, 8), "Été", "Automne")))
+}
+
+dist_to_escape[, saison := get_season(date)]
+dist_to_escape[, saison := factor(saison, levels = c("Hiver", "Printemps", "Été", "Automne"))]
+# PLot by season :
+ggplot(dist_to_escape, aes(x = as.numeric(azimut), y = distance, color = saison)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = c(
+    "Hiver" = "#1f78b4",
+    "Printemps" = "#33a02c",
+    "Été" = "#fb9a99",
+    "Automne" = "#e31a1c"
+  )) +
+  scale_x_continuous(
+    limits = c(0, 360),
+    breaks = seq(0, 360, by = 30),
+    expand = c(0, 0)
+  ) +
+  coord_polar(theta = "x", start = 0) +
+  theme_classic() +
+  theme(
+    panel.grid.minor = element_blank(),
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  ) +
+  geom_point(data = data.frame(x = 0, y = 0), aes(x = x, y = y), shape = 4, size = 4, stroke = 1.5, color = "black")+
+  labs(title = "Distance vs Azimut par saison", color = "Saison")
+# Seasonnal density :
+# Supposons que ta variable 'cercle' contient les valeurs des cercles concentriques
+cercles <- seq(0, 300000, by = 100000)  # à adapter à ta propre échelle de distance
+
+ggplot(dist_to_escape, aes(x = as.numeric(azimut), y = distance)) +
+  # Densité de points par saison
+  stat_density_2d_filled(
+    geom = "polygon",
+    contour_var = "ndensity",
+    show.legend = TRUE,
+    alpha = 1
+  ) +
+  geom_point(data = data.frame(x = 0, y = 0),
+             aes(x = x, y = y),
+             shape = 4, size = 1, stroke = 0.5, color = "black", inherit.aes = FALSE) +
+  # Dessiner les cercles concentriques blancs
+  geom_hline(yintercept = cercles, color = "lightpink", linetype = "solid", alpha = 0.2) +
+  coord_polar(theta = "x", start = 0) +
+  scale_x_continuous(
+    limits = c(0, 360),
+    breaks = seq(0, 360, by = 30),
+    expand = c(0, 0)
+  ) +
+  facet_wrap(~ saison) +  # Séparer par saison
+  theme_classic() +
+  theme(
+    strip.background = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(title = "Distance et direction vers le plus proche pixel hors NA depuis Frontignan, par saison", fill = "Densité")
+
+plot(dist_to_escape$date,as.numeric(dist_to_escape$distance))
 
 ```
