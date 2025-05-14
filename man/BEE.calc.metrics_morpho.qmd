@@ -49,19 +49,7 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
   })
     
   nb_999 <- global( rasters == 999, fun = "sum", na.rm = TRUE)
-  # dist <- lapply(patch_list, FUN = function(x){ # x <- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
-  #   vals <- values(x)
-  #   vals <- vals[!is.nan(vals)]
-  #   if (any(vals== 0)) {
-  #       dist <- terra::distance(x, target = 1, exclude = NaN, unit = "km")
-  #       } else {
-  #       values(x)<- NaN
-  #       dist <- x
-  #       }
-  #   return(dist)
-  # })
-    
-    
+  NA_list <- as.vector(is.na(Corrected_rasters[[1]]))  
   dist_list <- lapply(patch_list, function(x) { # x <- patch_list[[1]]
     # Create a df with on row per pixel
     vals <- values(x)
@@ -75,7 +63,7 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     data <- data.table(
       x = coordonates[,1],
       y = coordonates[,2],
-      values = vals, # value of the pixel
+      values = vals, # value of the patch
       cell_size = cell_size,
       boundary = values(terra::boundaries(x, directions = 8))
     ) %>% rename( patch_id = values.patches, 
@@ -88,9 +76,9 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     data[, pixel_tot := sum(unique(n_pixel))]
     data[, cover_percent := n_pixel / (pixel_tot-nb_NA), by = patch_id]
     data[, core_pixel := n_pixel - length_boundary]
-    data[, NA_pixel_patch := ifelse(n_pixel == nb_NA, "yes", "no"), by = patch_id]
+    data[, NA_pixel_patch := ifelse(NA_list, "yes", "no")]
     date <- time(x)
-    data[, ID := paste0(.I, "_", date, "_", patch_id)]
+    data[, ID := paste0(date, "_", patch_id)]
     data[, pixel_id :=.I]
     polygon <- as.polygons(x, aggregate = T, round = F)
     perim <- data.table(perimeter = terra::perim(polygon))
