@@ -13,8 +13,7 @@ editor_options:
 
 @note Your SpatRaster need to be binarised with the mhw function before you put it in this function, you also may want to apply
 
-BEE.calc.metrics_morpho is not designed to work on 4D data (time + spatial 3D).
-#start_date \<- "2022-01-01" ; end_date \<- "2023-12-31"
+BEE.calc.metrics_morpho is not designed to work on 4D data (time + spatial 3D). #start_date \<- "2022-01-01" ; end_date \<- "2023-12-31"
 
 ```{r}
 BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_date = NULL, patch_per_pix = FALSE) {
@@ -87,7 +86,7 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     data[, area_index := core_area / patch_area]
     data[, n_pixel := .N, by = patch_id]  
     data[, pixel_tot := sum(unique(n_pixel))]
-    data[, cover_percent := n_pixel / (pixel_tot-nb_NA)]
+    data[, cover_percent := n_pixel / (pixel_tot-nb_NA), by = patch_id]
     data[, core_pixel := n_pixel - length_boundary]
     data[, NA_pixel_patch := ifelse(n_pixel == nb_NA, "yes", "no"), by = patch_id]
     date <- time(x)
@@ -152,11 +151,13 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
   matching <- dist_tab[, .(patch_ID = list(date_patch)), by = pixel_ID]
   patch_list <- rast(patch_list)
   names(patch_list) <- time(rasters)
+  data_summarised <-rbindlist(data_summarised)
   output <- list(data_summarised, patch_list, matching)
   return(output)
   }
   patch_list <- rast(patch_list)
   names(patch_list) <- time(rasters)
+  data_summarised <-rbindlist(data_summarised)
   output <- list(data_summarised, patch_list)  
   return(output)
 }
