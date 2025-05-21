@@ -16,7 +16,7 @@ editor_options:
 BEE.calc.metrics_morpho is not designed to work on 4D data (time + spatial 3D). #start_date \<- "2022-01-01" ; end_date \<- "2023-12-31"
 
 ```{r}
-BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_date = NULL, patch_per_pix = FALSE) {
+BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_date = NULL, per_pix = FALSE) {
   # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)){
     ## Check that date format matches
@@ -40,16 +40,17 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     ## Adjust variable name to match the rest of the function
   rasters <- Corrected_rasters 
   }
-# patches is mixing NA values from the land and NA values from outside of the patch, thus I'll replace NA values from the land by 999
-  message("NA values provided have been replaced by '999', this is to prevent computational confusion between values that are NA and values created for pixel outside of patches durring compilation") 
-  rasters[is.na(rasters)] <- 999
+
   patch_list <- lapply(rasters, FUN = function(rasters){
     patch <- patches(rasters, directions = 8, zeroAsNA = T, allowGaps = T)
     return(patch)
   })
     
-  nb_999 <- global( rasters == 999, fun = "sum", na.rm = TRUE)
-  NA_list <- as.vector(is.na(Corrected_rasters[[1]]))  
+  nb_NA <- unique(global(rasters, fun=function(x) sum(is.na(x))))
+  if (length(nb_NA)>1){
+    message("The number of NA pixels varies through the layers, this may leads to unexpected results in the output of that funciton.")
+  }
+  nb_pixel_studied <- ncell(rasters[[1]]) - nb_NA
   dist_list <- lapply(patch_list, function(x) { # x <- patch_list[[1]]
     # Create a df with on row per pixel
     vals <- values(x)
@@ -57,8 +58,6 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     boundary <- terra::boundaries(x, directions = 8)
     coordonates <- xyFromCell(x, 1:ncell(x)) #each pixel coordinates
     d <- time(x)
-    # get the number of NA value that day
-    nb_NA <- nb_999[which(as.Date(rownames(nb_999)) == time(x)),]
     
     data <- data.table(
       x = coordonates[,1],
@@ -68,17 +67,16 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
       boundary = values(terra::boundaries(x, directions = 8))
     ) %>% rename( patch_id = values.patches, 
                   boundary = boundary.patches)
-    data[, length_boundary := sum(boundary), by = patch_id]
-    data[, patch_area := sum(cell_size), by = patch_id]
-    data[, core_area := sum(cell_size * (boundary == 0)), by = patch_id]
-    data[, area_index := core_area / patch_area]
-    data[, n_pixel := .N, by = patch_id]  
-    data[, pixel_tot := sum(unique(n_pixel))]
-    data[, cover_percent := n_pixel / (pixel_tot-nb_NA), by = patch_id]
+    data[, length_boundary := ifelse(is.nan(patch_id), NA_real_, sum(boundary)), by = patch_id]
+    data[, patch_area := ifelse(is.nan(patch_id), NA_real_, sum(cell_size)), by = patch_id]
+    data[, core_area := ifelse(is.nan(patch_id), NA_real_, sum(cell_size * (boundary == 0))), by = patch_id]
+    data[, core_area_index := core_area / as.numeric(nb_pixel_studied)]
+    data[, n_pixel := ifelse(is.nan(patch_id), NA_real_, .N), by = patch_id]  
+    data[, pixel_EE_tot := ifelse(is.nan(patch_id), NA_real_, sum(unique(n_pixel), na.rm=T))]
+    data[, cover_percent := n_pixel / as.numeric(nb_pixel_studied), by = patch_id]
     data[, core_pixel := n_pixel - length_boundary]
-    data[, NA_pixel_patch := ifelse(NA_list, "yes", "no")]
     date <- time(x)
-    data[, ID := paste0(date, "_", patch_id)]
+    data[, ID := ifelse(is.nan(patch_id), NA, paste0(date, "_", patch_id))]
     data[, pixel_id :=.I]
     polygon <- as.polygons(x, aggregate = T, round = F)
     perim <- data.table(perimeter = terra::perim(polygon))
@@ -90,14 +88,17 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     data <- merge(data, perim, by = "patch_id", all.x = TRUE)
         
     data <- data %>%
-      select(-cell_size,-pixel_tot)
+      select(-cell_size)
         
     if (length(polygon) == 0) {
+        data[, centroid_x := rep(NA_real_,nrow(data))]
+        data[, centroid_y := rep(NA_real_,nrow(data))]
         data[,perim_area_ratio := length_boundary / n_pixel, by = patch_id]
         data[,shape_index := (0.25 * length_boundary / (n_pixel) ^ 0.5), by = patch_id]
         data[,fract_corel_dim := (
           2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
           ), by = patch_id]
+        data[, date := d] 
 
       } else {
         centro <- terra::centroids(polygon, TRUE)
@@ -129,18 +130,20 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
       return(x)
   })
   
+  data_summarised$pixel_id <-NULL
   # Add a list of patch_ID per pixel (/!\ there are several patch_ID per EE because we cannot do spatio-temporal analysis here)
-  if (patch_per_pix == TRUE) {
+  if (per_pix == TRUE) {
   pixels_nb <- seq(1,nrow(dist_list[[1]]))
   dist_tab <- bind_rows(dist_list)
   setDT(dist_tab)
-  dist_tab[,pixel_ID := rep(pixels_nb, length(dist_list))]
-  dist_tab[, date_patch := ifelse(is.nan(patch_id), NaN, paste0(date, '_', as.character(patch_id)))]
-  matching <- dist_tab[, .(patch_ID = list(date_patch)), by = pixel_ID]
+  dist_tab <- dist_tab %>%
+    mutate(
+    valid_patch_ID = ifelse(!is.nan(patch_id),
+                            date,
+                            NA)) # keeps only the patch that represents an EE
   patch_list <- rast(patch_list)
   names(patch_list) <- time(rasters)
-  data_summarised <-rbindlist(data_summarised)
-  output <- list(data_summarised, patch_list, matching)
+  output <- list(dist_tab, patch_list)
   return(output)
   }
   patch_list <- rast(patch_list)

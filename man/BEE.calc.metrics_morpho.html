@@ -405,19 +405,7 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
   })
     
   nb_999 &lt;- global( rasters == 999, fun = &quot;sum&quot;, na.rm = TRUE)
-  # dist &lt;- lapply(patch_list, FUN = function(x){ # x &lt;- patch_list[[120]] ; calculate distance to edge of the patch (outside of an extreme event)
-  #   vals &lt;- values(x)
-  #   vals &lt;- vals[!is.nan(vals)]
-  #   if (any(vals== 0)) {
-  #       dist &lt;- terra::distance(x, target = 1, exclude = NaN, unit = &quot;km&quot;)
-  #       } else {
-  #       values(x)&lt;- NaN
-  #       dist &lt;- x
-  #       }
-  #   return(dist)
-  # })
-    
-    
+  NA_list &lt;- as.vector(is.na(Corrected_rasters[[1]]))  
   dist_list &lt;- lapply(patch_list, function(x) { # x &lt;- patch_list[[1]]
     # Create a df with on row per pixel
     vals &lt;- values(x)
@@ -431,7 +419,7 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
     data &lt;- data.table(
       x = coordonates[,1],
       y = coordonates[,2],
-      values = vals, # value of the pixel
+      values = vals, # value of the patch
       cell_size = cell_size,
       boundary = values(terra::boundaries(x, directions = 8))
     ) %&gt;% rename( patch_id = values.patches, 
@@ -442,11 +430,11 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
     data[, area_index := core_area / patch_area]
     data[, n_pixel := .N, by = patch_id]  
     data[, pixel_tot := sum(unique(n_pixel))]
-    data[, cover_percent := n_pixel / (pixel_tot-nb_NA)]
+    data[, cover_percent := n_pixel / (pixel_tot-nb_NA), by = patch_id]
     data[, core_pixel := n_pixel - length_boundary]
-    data[, NA_pixel_patch := ifelse(n_pixel == nb_NA, &quot;yes&quot;, &quot;no&quot;), by = patch_id]
+    data[, NA_pixel_patch := ifelse(NA_list, &quot;yes&quot;, &quot;no&quot;)]
     date &lt;- time(x)
-    data[, ID := paste0(.I, &quot;_&quot;, date, &quot;_&quot;, patch_id)]
+    data[, ID := paste0(date, &quot;_&quot;, patch_id)]
     data[, pixel_id :=.I]
     polygon &lt;- as.polygons(x, aggregate = T, round = F)
     perim &lt;- data.table(perimeter = terra::perim(polygon))
@@ -507,11 +495,13 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
   matching &lt;- dist_tab[, .(patch_ID = list(date_patch)), by = pixel_ID]
   patch_list &lt;- rast(patch_list)
   names(patch_list) &lt;- time(rasters)
+  data_summarised &lt;-rbindlist(data_summarised)
   output &lt;- list(data_summarised, patch_list, matching)
   return(output)
   }
   patch_list &lt;- rast(patch_list)
   names(patch_list) &lt;- time(rasters)
+  data_summarised &lt;-rbindlist(data_summarised)
   output &lt;- list(data_summarised, patch_list)  
   return(output)
 }</code></pre>
