@@ -93,9 +93,9 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters, start_date = NULL, end_da
     if (length(polygon) == 0) {
         data[, centroid_x := rep(NA_real_,nrow(data))]
         data[, centroid_y := rep(NA_real_,nrow(data))]
-        data[,perim_area_ratio := length_boundary / n_pixel, by = patch_id]
-        data[,shape_index := (0.25 * length_boundary / (n_pixel) ^ 0.5), by = patch_id]
-        data[,fract_corel_dim := (
+        data[, perim_area_ratio := length_boundary / n_pixel, by = patch_id]
+        data[, shape_index := (0.25 * length_boundary / (n_pixel)  ^ 0.5), by = patch_id]
+        data[, fract_corel_dim := (
           2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
           ), by = patch_id]
         data[, date := d] 

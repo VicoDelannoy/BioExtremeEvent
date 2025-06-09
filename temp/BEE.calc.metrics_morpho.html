@@ -372,7 +372,7 @@ also may want to apply</p>
 <p>BEE.calc.metrics_morpho is not designed to work on 4D data (time +
 spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
 “2023-12-31”</p>
-<pre class="r"><code>BEE.calc.metrics_morpho &lt;- function(Corrected_rasters, start_date = NULL, end_date = NULL, patch_per_pix = FALSE) {
+<pre class="r"><code>BEE.calc.metrics_morpho &lt;- function(Corrected_rasters, start_date = NULL, end_date = NULL, per_pix = FALSE) {
   # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)){
     ## Check that date format matches
@@ -396,16 +396,17 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
     ## Adjust variable name to match the rest of the function
   rasters &lt;- Corrected_rasters 
   }
-# patches is mixing NA values from the land and NA values from outside of the patch, thus I&#39;ll replace NA values from the land by 999
-  message(&quot;NA values provided have been replaced by &#39;999&#39;, this is to prevent computational confusion between values that are NA and values created for pixel outside of patches durring compilation&quot;) 
-  rasters[is.na(rasters)] &lt;- 999
+
   patch_list &lt;- lapply(rasters, FUN = function(rasters){
     patch &lt;- patches(rasters, directions = 8, zeroAsNA = T, allowGaps = T)
     return(patch)
   })
     
-  nb_999 &lt;- global( rasters == 999, fun = &quot;sum&quot;, na.rm = TRUE)
-  NA_list &lt;- as.vector(is.na(Corrected_rasters[[1]]))  
+  nb_NA &lt;- unique(global(rasters, fun=function(x) sum(is.na(x))))
+  if (length(nb_NA)&gt;1){
+    message(&quot;The number of NA pixels varies through the layers, this may leads to unexpected results in the output of that funciton.&quot;)
+  }
+  nb_pixel_studied &lt;- ncell(rasters[[1]]) - nb_NA
   dist_list &lt;- lapply(patch_list, function(x) { # x &lt;- patch_list[[1]]
     # Create a df with on row per pixel
     vals &lt;- values(x)
@@ -413,8 +414,6 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
     boundary &lt;- terra::boundaries(x, directions = 8)
     coordonates &lt;- xyFromCell(x, 1:ncell(x)) #each pixel coordinates
     d &lt;- time(x)
-    # get the number of NA value that day
-    nb_NA &lt;- nb_999[which(as.Date(rownames(nb_999)) == time(x)),]
     
     data &lt;- data.table(
       x = coordonates[,1],
@@ -424,17 +423,16 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
       boundary = values(terra::boundaries(x, directions = 8))
     ) %&gt;% rename( patch_id = values.patches, 
                   boundary = boundary.patches)
-    data[, length_boundary := sum(boundary), by = patch_id]
-    data[, patch_area := sum(cell_size), by = patch_id]
-    data[, core_area := sum(cell_size * (boundary == 0)), by = patch_id]
-    data[, area_index := core_area / patch_area]
-    data[, n_pixel := .N, by = patch_id]  
-    data[, pixel_tot := sum(unique(n_pixel))]
-    data[, cover_percent := n_pixel / (pixel_tot-nb_NA), by = patch_id]
+    data[, length_boundary := ifelse(is.nan(patch_id), NA_real_, sum(boundary)), by = patch_id]
+    data[, patch_area := ifelse(is.nan(patch_id), NA_real_, sum(cell_size)), by = patch_id]
+    data[, core_area := ifelse(is.nan(patch_id), NA_real_, sum(cell_size * (boundary == 0))), by = patch_id]
+    data[, core_area_index := core_area / as.numeric(nb_pixel_studied)]
+    data[, n_pixel := ifelse(is.nan(patch_id), NA_real_, .N), by = patch_id]  
+    data[, pixel_EE_tot := ifelse(is.nan(patch_id), NA_real_, sum(unique(n_pixel), na.rm=T))]
+    data[, cover_percent := n_pixel / as.numeric(nb_pixel_studied), by = patch_id]
     data[, core_pixel := n_pixel - length_boundary]
-    data[, NA_pixel_patch := ifelse(NA_list, &quot;yes&quot;, &quot;no&quot;)]
     date &lt;- time(x)
-    data[, ID := paste0(date, &quot;_&quot;, patch_id)]
+    data[, ID := ifelse(is.nan(patch_id), NA, paste0(date, &quot;_&quot;, patch_id))]
     data[, pixel_id :=.I]
     polygon &lt;- as.polygons(x, aggregate = T, round = F)
     perim &lt;- data.table(perimeter = terra::perim(polygon))
@@ -446,14 +444,17 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
     data &lt;- merge(data, perim, by = &quot;patch_id&quot;, all.x = TRUE)
         
     data &lt;- data %&gt;%
-      select(-cell_size,-pixel_tot)
+      select(-cell_size)
         
     if (length(polygon) == 0) {
-        data[,perim_area_ratio := length_boundary / n_pixel, by = patch_id]
-        data[,shape_index := (0.25 * length_boundary / (n_pixel) ^ 0.5), by = patch_id]
-        data[,fract_corel_dim := (
+        data[, centroid_x := rep(NA_real_,nrow(data))]
+        data[, centroid_y := rep(NA_real_,nrow(data))]
+        data[, perim_area_ratio := length_boundary / n_pixel, by = patch_id]
+        data[, shape_index := (0.25 * length_boundary / (n_pixel)  ^ 0.5), by = patch_id]
+        data[, fract_corel_dim := (
           2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))
           ), by = patch_id]
+        data[, date := d] 
 
       } else {
         centro &lt;- terra::centroids(polygon, TRUE)
@@ -485,18 +486,20 @@ spatial 3D). #start_date &lt;- “2022-01-01” ; end_date &lt;-
       return(x)
   })
   
+  data_summarised$pixel_id &lt;-NULL
   # Add a list of patch_ID per pixel (/!\ there are several patch_ID per EE because we cannot do spatio-temporal analysis here)
-  if (patch_per_pix == TRUE) {
+  if (per_pix == TRUE) {
   pixels_nb &lt;- seq(1,nrow(dist_list[[1]]))
   dist_tab &lt;- bind_rows(dist_list)
   setDT(dist_tab)
-  dist_tab[,pixel_ID := rep(pixels_nb, length(dist_list))]
-  dist_tab[, date_patch := ifelse(is.nan(patch_id), NaN, paste0(date, &#39;_&#39;, as.character(patch_id)))]
-  matching &lt;- dist_tab[, .(patch_ID = list(date_patch)), by = pixel_ID]
+  dist_tab &lt;- dist_tab %&gt;%
+    mutate(
+    valid_patch_ID = ifelse(!is.nan(patch_id),
+                            date,
+                            NA)) # keeps only the patch that represents an EE
   patch_list &lt;- rast(patch_list)
   names(patch_list) &lt;- time(rasters)
-  data_summarised &lt;-rbindlist(data_summarised)
-  output &lt;- list(data_summarised, patch_list, matching)
+  output &lt;- list(dist_tab, patch_list)
   return(output)
   }
   patch_list &lt;- rast(patch_list)

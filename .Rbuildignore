@@ -1,2 +1,11 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^LICENSE\.md$
+^Outputs$
+^profiling\.out$
+^MakeR\.rmd$
+^Data$
+^\.gitignore$
+^temp$
+^README\.Rmd$
+^README\.html$

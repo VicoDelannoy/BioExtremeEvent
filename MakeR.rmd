@@ -82,13 +82,16 @@ HERE I MUST ADD A WRAPPED VERSION OF HEATWAVE3
 You can start from here is your data are already in your computer.
 
 ```{r}
+# SST
 ds <- rast("Data/cnmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_1982_2024.nc.nc")
 time(ds) <- as.Date(time(ds))
 names(ds) <- time(ds)
 
+# ML
 ds2 <- rast("Data/med-cmcc-tem-rean-d_1741965343789.nc")
 time(ds2) <- as.Date(time(ds2))
 names(ds2) <- time(ds2)
+
 # Each layer name must be the corresponding date under YYYY-MM-DD format
 
 ```
@@ -114,9 +117,9 @@ ds <- rast("Data/ds_Golfe_du_lion.tiff")
 -   start_date and end_date are NULL if no date provided. Warning, dates must be under "YYYY-MM-DD" format.
 
 ```{r}
-baseline_qt90 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 
-baseline_qt10 <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
-baseline_mean <- BEE.calc.baseline(rast_name = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
+baseline_qt90 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "2009-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 
+baseline_qt10 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
+baseline_mean <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
 
 # Save and load baselines 
 terra::writeRaster(baseline_qt90, "Data/baseline_qt90_Golfe_du_lion.tiff", overwrite = TRUE)
@@ -151,7 +154,7 @@ ggplot(df_plot, aes(x = doy)) +
 It provide a raw information for each day and each pixel without applying any definition of the Extreme Event. Of course, one may be interesting in applying a more restrictive definition of "Extreme Event". This will be done when BEE.calc.true_event will be used (later). This intermediate step is necessary to apply BEE.calc.true_event.
 
 ```{r chunk-5}
-binarized_EE <- BEE.calc.binarize(rast_name= ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above" #16:20
+binarized_EE <- BEE.calc.binarize(rast_name = ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above" #16:20
 
 # plot(baseline_qt90[[1]]) ; plot(binarized_EE$`01.01`$`1983-01-01`)
 # Save or load
@@ -292,7 +295,7 @@ factoextra::fviz_pca_var(acp_result,
 #7. Get metrics related to space.
 
 ```{r}
-list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-01-01", end_date = "2024-12-31", patch_per_pix=TRUE) # Give a summary of the metrics of each patch present in the provided area for each days.
+list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-01-01", end_date = "2024-12-31", per_pix=TRUE) # Give a summary of the metrics of each patch present in the provided area for each days.
 
 # sumarise for a given heatwave and a given pixel (ex: 507), MHW from 30th of april to 5th of may
 test_fronti <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-04-30", end_date = "2022-05-05", patch_per_pix=TRUE)[[1]]

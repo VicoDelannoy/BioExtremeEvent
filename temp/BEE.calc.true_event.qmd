@@ -40,9 +40,9 @@ This is for the case you want to consider 0 0 0 1 1 1 1 1 0 0 1 1 **1** 0 0 0 as
 
 High complexity :
 
--   Unstable window *w* between to event in which you allow a certain proportion *p* of days of *w* to be bellow threshold if this windows is bordered by series of *w \*p c*onsecutive days above threshold on each size. *w* and *p* replace *d*. If *w i*s an odd number, the minimum number of days above threshold within *w* will be the value rounded to the superior round number. For instance if *w* = 7 and *p* = 0.3 a window of 7 days between to event of *n* consecutive days will not create two distinct event if at least 4 days are above threshold. ( *w* \* *p* = 7 \* 0.5 = 3.5 rounded to 4)
+-   Unstable window *w* between to event in which you allow a certain proportion *p* of days of *w* to be bellow threshold if this windows is bordered by series of consecutive days above threshold on each size. *w* and *p* replace *d*. If *w* is an odd number, the minimum number of days above threshold within *w* will be the value rounded to the superior round number. For instance if *w* = 7 and *p* = 0.3 a window of 7 days between to event of *n* consecutive days will not create two distinct event if at least 4 days are above threshold. ( *w* \* *p* = 7 \* 0.5 = 3.5 rounded to 4)
 
-Examples : n = 5; w = 10; p = 0.5 -\> w \* p = 5
+Examples : n = 5; w = 10; p = 0.5 -> w * p = 5
 
 case that lead to a single big event of 15 days :
 
@@ -63,6 +63,18 @@ case that lead to 2 distinct events :
 BEE.calc.true_event is not designed to work on 4D data (time + spatial 3D).
 
 ```{r}
+#------------------------------------------------------------------------------- 
+#' @BEE.calc.true_event
+#' @description Identify the extreme event according to the chosen constraints.
+#' @param binarized_EE A list of Spatraster built using the BEE.calc.binarize function.
+#' @param n Minimum number of consecutive days above the baseline/threshold for a series of "1" to be considered as an extreme event (≥).
+#' @param d Maximum number of days below the baseline/thershold for considering two series of values above the threshold/baseline but separated by some days below threshold/baseline as a single extreme event (the maximum distance in days between the two events to be merged, ≤).
+#' @param nbis NOT AVAILBALE YET Minimum number of days in each series of 1 to allow merging if there are d days or less between the to series. Example : If you set "nbis" = 3, then short series of 1 (<n) can be merge with long series of 1 (>=n), if the two series are distant from d days or less and that there are longer or equal to nbis (with one of them still have to be longer than n). Default: NULL
+#' @param w NOT AVAILBALE YET Unstable window *w* between to event in which you allow a certain proportion *p* of days of *w* to be bellow threshold if this windows is bordered by series of consecutive days above threshold on each size. *w* and *p* replace *d*. If *w* is an odd number, the minimum number of days above threshold within *w* will be the value rounded to the superior round number. For instance if *w* = 7 and *p* = 0.3 a window of 7 days between to event of *n* consecutive days will not create two distinct event if at least 4 days are above threshold. ( w*p = 7*0.5 = 3.5 rounded to 4). Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL
+#' @param p NOT AVAILBALE YET, see "w" explanations. Default: NULL
+#' @return Returns a list with 2 elements, first one is called "stacked_rasters_corrected". This is a Spatraster containing binarised values corrected according the definition used in the function. The second element is called "Event_corrected". This is a list with one data.table per pixel. Each data.table as a date per rows (and as many date as there are layers in YourSpatraster). The columns "Original_value" gives the value of the raw binarisation, before appling the definition. "Cleanned_value" gives for each dates the values after correction. "ID" is an ID of the event, built using the pixel ID, first day of the event and last day of the event. "Nb_days" indicates the duration (in unit of time) of the event. "date" indicates the date corresponding to the row.
+#' @details w and p settings are not available yet
+#------------------------------------------------------------------------------- 
 BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL, p = NULL){ 
     # Extract all rasters (If we have to think to a faster way we could filter so pixel that are always NA (land) are not processed and we could create "all_dates" starting from scratch, only knowing first day and last day and assuming there is no missing day) 
   all_data <- lapply(seq_along(binarized_EE), function(i) {
@@ -75,7 +87,7 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
 
   # Merge data to save memory
   all_dates <- unlist(lapply(all_data, `[[`, "dates"), recursive = FALSE)
-  all_rasters <- rast(lapply(all_data, `[[`, "rasters"))
+  all_rasters <- terra::rast(lapply(all_data, `[[`, "rasters"))
   all_rasters_names <- unlist(lapply(all_data, `[[`, "dates"), recursive = FALSE)
   # Clean memory
   rm(all_data)
@@ -86,16 +98,16 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
 
   # Reorder informations in chronological order :
   ## get a list of the raster layers
-  all_rasters <- lapply(1:nlyr(all_rasters), function(i) all_rasters[[i]])
+  all_rasters <- lapply(1:terra::nlyr(all_rasters), function(i) all_rasters[[i]])
   ## Transforme SpatRaster to list of rasters so it is easier to modify the order.
   sorted_indices <- order(all_rasters_names) 
   ## get a list of the current position of the rasters : the first number tell you where is currently the raster that should be first in chronological order
   sorted_rasters <- all_rasters[sorted_indices] #sort the rasters
   # Transform the list of sorted raster into a multilayers raster to be able to use terra:extract on cells
-  stacked_rasters <- rast(sorted_rasters)
+  stacked_rasters <- terra::rast(sorted_rasters)
   rm(all_rasters, all_rasters_names, sorted_indices, sorted_rasters)
   gc()
-  pixel_time_series <- terra::extract(stacked_rasters, 1:ncell(stacked_rasters)) #one row per pixel, 1 column per time step
+  pixel_time_series <- terra::extract(stacked_rasters, 1:terra::ncell(stacked_rasters)) #one row per pixel, 1 column per time step
   # We need each line of pixel_time_series in a numeric format but the convertion inside the fonction correct_lowcomplexity_n_d consumes a lot of RAM, thus we are converting the data frame to a numeric matrix, conversion everything at one is more efficient than row by row in the function ;) :
   pixel_time_series <- as.matrix(pixel_time_series)
   storage.mode(pixel_time_series) <- "numeric" # NB : if this still to much memory we could swich to sparseMatrix but then, the manipulation on that matrix may be slower.
@@ -122,13 +134,13 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
        zero_series <- setdiff(zero_series,c(1,max(pixel$ID))) # withdraw the beginning and end of the timeserie as it cannot be surrounded by '1' values
        to_modify <- sort(c(zero_series, zero_series + 1))  #list of futur index to rename zero series and one series under one same name when necessary, using the first one serie's name (only when 0 serie length <=d)
        modifier <- zero_series-1 #sequence of one before the short sequence of 0, <-> the sequence of one that will be merge with the next sequence of 1
-       replacement_map <- setNames(rep(modifier, each = 2), to_modify) # associate the ID value to replace (firt line) with the value of replacement (second line)
+       replacement_map <- stats::setNames(rep(modifier, each = 2), to_modify) # associate the ID value to replace (firt line) with the value of replacement (second line)
        # Here above, if you have something like 111110111110111110 you will get aaabb as ID instead of aaaaa to adress this issue, I've added the lines bellow :
        pixel[, ID := ifelse(ID %in% names(replacement_map), as.numeric(replacement_map[as.character(ID)]), ID)]
        pixel[, Nb_days := rep(rle(ID)$lengths, rle(ID)$lengths)]
        pixel[, ID := paste0(pix, '_', ID)]
        pixel[, date := sort(all_dates)]
-       pixel[, id := tstrsplit(ID, "_", keep = 1)]  # Extraire la partie avant le premier "_"
+       pixel[, id := data.table::tstrsplit(ID, "_", keep = 1)]  # Extraire la partie avant le premier "_"
        pixel[, ID := paste0(id, "_", min(date, na.rm = TRUE), "_", max(date, na.rm = TRUE)), by = ID]
        pixel[, id := NULL]  # Supprimer la colonne temporaire "id"
        return(pixel)
@@ -149,7 +161,7 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
   n_columns <- dim(pixel_time_series)[2]
   if (length(indices_all_na) > 0) {
     Event_corrected[indices_all_na] <- lapply(indices_all_na, function(c) {
-      data.table(
+      data.table::data.table(
         Original_value = rep(NA, n_columns),
         Cleanned_value = rep(NA, n_columns),
         ID = rep(paste0(c, "_"), n_columns),
@@ -166,11 +178,11 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
     #here add code for high complexity
   }
   # Aply corrections to raster of 1 and 0
-  stacked_rasters_corrected <- lapply(1:nlyr(stacked_rasters), function(t) { #stacked raster are rasters in the same order than in Event_corrected but before modifications
+  stacked_rasters_corrected <- lapply(1:terra::nlyr(stacked_rasters), function(t) { #stacked raster are rasters in the same order than in Event_corrected but before modifications
     correct_raster(stacked_rasters[[t]], t, Event_corrected)
   })
 
-  stacked_rasters_corrected <- rast(stacked_rasters_corrected)
+  stacked_rasters_corrected <- terra::rast(stacked_rasters_corrected)
   names(stacked_rasters_corrected) <- sort(all_dates)
 
   return(list(stacked_rasters_corrected = stacked_rasters_corrected, 
@@ -184,14 +196,14 @@ BEE.calc.true_event <- function(binarized_EE, n, d = NULL, nbis = NULL, w = NULL
   # Apply corrections
 correct_raster <- function(raster, t, Event_corrected) {
     # get values of each layers
-     corrected_values <- values(raster)
+     corrected_values <- terra::values(raster)
      Matching_cleanning_values <- sapply(Event_corrected, function(event) event$Cleanned_value[t])
     # Identify where corrections are needed /!\ 
     correction_indices <- which(!is.na(corrected_values) & !is.na(Matching_cleanning_values) & corrected_values != Matching_cleanning_values)
      # Apply corrections
      corrected_values[correction_indices] <- Matching_cleanning_values[correction_indices]
     # Modify raster layer values
-    values(raster) <- corrected_values
+    terra::values(raster) <- corrected_values
     return(raster)
   }
 

@@ -12,7 +12,7 @@
 <meta name="author" content="Victoria" />
 
 
-<title>BEE.calc.baseline</title>
+<title>BEE.calc.celsius</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,111 +349,97 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.calc.baseline</h1>
+<h1 class="title toc-ignore">BEE.calc.celsius</h1>
 <h4 class="author">Victoria</h4>
 
 </div>
 
 
-<p><em>BEE.calc.baseline</em> : Creates a baseline from a SpatRaster by
-compiling cell data according to the chosen threshold</p>
-<p>Only two threshold can be set :</p>
-<ul>
-<li>“<em>qt</em>” : calculate the value of the 90th percentile for each
-cell at the time resolution of the dataset. For instance, it calculate
-the value of the threshold for each day of a theoretical year if the
-data has a daily resolution or for each month if data has a monthly
-resolution. To simplify analysis, the 29th of February is deleted if
-present.</li>
-<li>“<em>mean</em>” : calculate the mean value for each cell at the time
-resolution of the data set .</li>
-</ul>
-<p>BEE.calc.baseline is not designed to work on 4D data (time + spatial
-3D).</p>
-<div id="rast_name-ds-start_datenull-end_date-1987-12-31-threshold-qt-quantile_value-0.9-time_window-5-smooth_window10" class="section level1">
-<h1>rast_name = ds ; start_date=NULL; end_date = “1987-12-31” ;
-threshold = “qt”; quantile_value = 0.9 ; time_window = 5;
-smooth_window=10</h1>
-<pre class="r"><code>#&#39; Calculate baseline value for each pixel.
-#&#39; @BEE.calc.baseline
-#&#39; @param rast_name the SpatRaster containing the values to use to calculate baseline. It must have a date per layer.
-#&#39; @param start_date the date to use as the first day of your reference period. It must be in YYYY-MM-DD format.
-#&#39; @param end_date the date to use as the last day of your reference period. It must be in YYYY-MM-DD format.
-#&#39; @param threshold tells whether you want to use a percentile or the mean of the observed value as threshold. Accepted arguments are &quot;qt&quot; to specify you want to compute a percentile of the observed values in the reference timeframe. Or &quot;mean&quot; if you wnat to use the mean of observed values in the timeframe provided as threshold. 
-#&#39; @param quantile_value indicates the percentile value you want to use. It must be between 0 and 1.
-#&#39; @param time_window number of days you want to account on each size of day &#39;d&#39; to calculate the threshold value on &#39;d&#39; day. For instance time_window = 5 means that the value from day d - 5 days, day d and until day d + of all years between start_date and end_date will be use to calculate the threshold at day d of the year.
-#&#39; @param smooth_window half the number of days minus one that you want to use to smooth you baseline in time. For instance, smooth_window = 10 minutes the final value at day &#39;d&#39; will be the mean of the baseline values calculate for day d - 10 to d + 10 (elven values). 
-#&#39;
-#&#39; @returns a SpatRaster with on day of the year per layer (366 layers), having the same extent, pixel resolution and crs than the provided SpatRaster.
-#&#39; @export
-#&#39;
-
-BEE.calc.baseline &lt;- function(rast_name, start_date=NULL, end_date=NULL, threshold, quantile_value=NULL, time_window=5, smooth_window=10){
+<p>This function check that the SpatRasters unit for temperature is
+Celsius, if not, it does the conversion from kelvin/fahrenheit to
+celsius or return an error message if the unit is not Celsius or Kelvin
+or Fahrenheit. It is design for ‘.nc’ files.</p>
+<pre class="r"><code>BEE.calc.celsius &lt;- function(YourSpatRaster) {
   
-  # Subset the dataset to the chosen strat_date and end-date if necessary
-  if (is.null(start_date) | !is.null(end_date)){
-    if ( is.null(start_date) ){
-      start_date &lt;- names(rast_name)[1]
-      warning(&quot;You have provided an &#39;end_date&#39; but no &#39;start_date&#39;, first date of the dataset (&quot;,start_date,&quot;) have been used as first day of the baseline.&quot;  )
+#-------------------------------------------------------------------------------  
+#&#39;Convert temperature data to Celsius
+#&#39;@BEE.calc.celsius
+#&#39;@description
+#&#39; Function that detects the unit of measurement of a pixel value in a SpatRaster (Celsius, Kelvin or Fahrenheit) and converts it to the international unit &#39;Celsius&#39; if necessary.   
+#&#39;@param YourSpatRaster
+#&#39; &quot;YourSpatRaster&quot; is the SpatRaster containing temperature data, for which you want to check the units and convert the values to Celsius. 
+#&#39;@return YourSpatRaster 
+#&#39; Your SpatRaster with values corrected to celsius and &#39;unit&#39; metadata updated to &#39;Celsisus&#39;.
+#&#39;@export
+#-------------------------------------------------------------------------------
+  
+  # Get the unit of each layer.
+  units_count &lt;- terra::units(YourSpatRaster)
+  
+  # Check that no layer contains several unit.
+  if (any(sapply(units_count, length) != 1)) {
+    if (any(sapply(units_count, length) &gt; 1)){
+      warning(&quot;Multiple units were detected for some layers. Plot &#39;YourSpatRaster[[1]]&#39; to verify if a unit is provided, and ensure that there are no multiple values assigned to a single pixel in your raster. You can use terra::units to do so.&quot;)
+    return(NULL)
     }
-    if ( is.null(end_date) ){
-      end_date &lt;- names(rast_name)[nlyr(rast_name)]
-      warning(&quot;You have provided a &#39;start_date&#39; but no &#39;end_date&#39;, last date of the dataset (&quot;, end_date,&quot;) have been used as last day of the baseline.&quot;  )
+    choice &lt;- utilis::menu(c(&quot;Continue using &#39;Fahrenheit&#39; as source unit of all your layers&quot;, &quot;Continue using &#39;Kelvin&#39; as source unit of all your layers&quot;, &quot;Stop function&quot;), title = &quot;At least one of the layers of YourSpatRaster has no defined unit. Please choose one of the following options :&quot;)
+    if (choice ==1){
+      unit &lt;- &quot;fahrenheit&quot;
+    }
+    if (choice ==2){
+      unit &lt;- &quot;kelvin&quot;
+    }
+    if (choice==3){
+    return(NULL)
     }
   }
-  # Cut rast_name to only keep the part between start_date and end_date
-  dates &lt;- as.Date(time(rast_name))
-  to_keep &lt;- which(dates &gt;= as.Date(start_date) &amp; dates &lt;= as.Date(end_date))
-  rast_name &lt;- rast_name[[to_keep]]
-  # Function to detect leap years
-  is_leap_year &lt;- function(years) {
-    return((years %% 4 == 0 &amp; years %% 100 != 0) | (years %% 400 == 0))
+  
+  # Check that all layers have the same unit.
+  unit &lt;- terra::unique(units_count)
+  if (length(unit) &gt; 1) {
+    warning(&quot;Units differ between layers. If you have merged layers from different datasets, ensure that all layers measure the same parameter and that the units are consistent across datasets before merging.&quot;)
+    return(NULL)
   }
-  dates &lt;- as.Date(time(rast_name))  # Dates
-  years &lt;- as.integer(format(dates, &quot;%Y&quot;)) # Years
-  # Build a dataframe with the layer number, the doy and the corrected doy (366, 60 don&#39;t exist in non leap year)
-  df &lt;- data.frame( date = dates,
-                    N_layer = seq(1,nlyr(rast_name),1),
-                    leap_year = is_leap_year((years)),
-                    doy = as.integer(format(dates, &quot;%j&quot;))) #day of the year
-  df$doy2 &lt;- ifelse(df$doy &gt;= 60 &amp; !df$leap_year, df$doy+1, df$doy)
-  # For each day of the year from 0 to 366, get a list of the layers to use to calculate baseline
-  doy_indices &lt;- vector(&quot;list&quot;, 366)
-  for (j in 1:366) {
-    days_in_window &lt;- ((j - time_window):(j + time_window)) %% 366 ## %% 366 is a &#39;modulo&#39; which mean that when a number reach 366 it is converted to 0 and the series that over from 0, 1, 2...
-    days_in_window[days_in_window == 0] &lt;- 366 # to avoid 0
-    doy_indices[[j]]&lt;- df$N_layer[which(df$doy2 %in% days_in_window)]
+  
+  # Check that the unit is not already Celsius
+  if (unit %in% c(&quot;Celsius&quot;, &quot;celsius&quot;, &quot;°C&quot;, &quot;°c&quot;, &quot;c&quot;, &quot;C&quot;, &quot;degrees_C&quot;,&quot;degrees_c&quot;)) {
+    print(&quot;Your dataset is already in celsius, there is no need to use this function.&quot;)
+    return(YourSpatRaster)
   }
-  # Calculate baseline according the chosen methodology
-  if (threshold == &quot;qt&quot;){
-    # function to calculate percentile on a specific time_window
-    q_rolling &lt;- function(values, na.rm = TRUE) {
-      terra::quantile(values, probs = quantile_value, na.rm = na.rm)
-    }
-  baseline_list &lt;- lapply(1:366, function(i) {
-      terra::app(rast_name[[doy_indices[[i]]]], fun = q_rolling)
-    })
-  baseline &lt;- rast(baseline_list) #convert to Spatraster
-  } else if (threshold == &quot;mean&quot;){        # if the baseline chosen is a mean value then enter loop bellow
-    baseline_list &lt;- lapply(1:366, function(i) {
-      terra::app(rast_name[[doy_indices[[i]]]], fun = mean)
-    })
-  baseline &lt;- rast(baseline_list) #convert to Spatraster
-  }   
-  # Smooth the value with an 11 days moving average
-  smooth_indices &lt;- vector(&quot;list&quot;, 366)
-  for (s in 1:366) {
-    days_in_window &lt;- ((s - smooth_window):(s + smooth_window)) %% 366
-    days_in_window[days_in_window == 0] &lt;- 366  
-    smooth_indices[[s]] &lt;- days_in_window
+  # Store original metadata for later
+  original_metadata &lt;- list(
+    time = terra::time(YourSpatRaster),
+    crs = terra::crs(YourSpatRaster),
+    extent = terra::ext(YourSpatRaster)
+  )
+  
+  # Convert from kelvin to celsius
+  if (tolower(unit) %in% c(&quot;kelvin&quot;, &quot;k&quot;, &quot;degrees_K&quot;, &quot;degrees_k&quot;)) {
+    YourSpatRaster &lt;- terra::app(YourSpatRaster, function(x) x - 273.15)  # conversion en Celsius
+    terra::units(YourSpatRaster) &lt;- &quot;Celsius&quot; # unfortunately this deletes other metadata
+    #restore other metadata
+    terra::time(YourSpatRaster) &lt;- original_metadata$time
+    terra::crs(YourSpatRaster) &lt;- original_metadata$crs
+    terra::ext(YourSpatRaster) &lt;- original_metadata$extent
+    warning(&quot;Your data were in Kelvin and have been converted to Celsius using: former value - 273.15 = new value.&quot;)
+    return(YourSpatRaster)
   }
-  baseline &lt;- lapply(1:366, function(i) {
-    terra::app(baseline[[smooth_indices[[i]]]], fun = mean, na.rm = TRUE)
-    })
-  baseline &lt;- rast(baseline)
-  return(baseline)
+  
+  # Convert from Fahrenheit to celsius
+  if (tolower(unit) %in% c(&quot;fahrenheit&quot;, &quot;f&quot;, &quot;degrees_F&quot;, &quot;degrees_f&quot;)) {
+    YourSpatRaster &lt;- terra::app(YourSpatRaster, function(x) terra::round((x - 32) * (5 / 9), digits = 3))  # conversion en celsius
+    terra::units(YourSpatRaster) &lt;- &quot;Celsius&quot; # unfortunately this deletes other metadata
+    #restore other metadata
+    terra::time(YourSpatRaster) &lt;- original_metadata$time
+    terra::crs(YourSpatRaster) &lt;- original_metadata$crs
+    terra::ext(YourSpatRaster) &lt;- original_metadata$extent
+    warning(&quot;Your data were in Fahrenheit and have been converted to Celsius using: round((former value - 32)*(5/9), digits = 3) = new value.&quot;)
+    return(YourSpatRaster)
+  }
+  
+  warning(&quot;The unit of your dataset is not recognized.&quot;)
+  return(NULL)
 }</code></pre>
-</div>
 
 
 
