@@ -40,6 +40,6 @@ flowchart below, step by step.
 
 <br />
 
-```{r, echo = FALSE, out.width = "600px", fig.cap = "Basic framework of the mFD package", fig.align = 'center'}
-knitr::include_graphics("basic_framework.PNG")
+```{r, echo = FALSE, out.width = "600px", fig.cap = "Basic framework of the BioExtremeEvent package", fig.align = 'center'}
+knitr::include_graphics("BioExtremeEvent_framework.PNG")
 ```
