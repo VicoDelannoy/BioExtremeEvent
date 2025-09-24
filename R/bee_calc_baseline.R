@@ -22,7 +22,8 @@
 #' @param smooth_window number of days on either side of day 'd' that are used
 #'   to compute a mean value assigned to the 'd' day. For example, if
 #'   smooth_window is set to 10 days, the final value on day d will be the mean
-#'   of the baseline values calculated for days d - 10 to d + 10 (eleven values).
+#'   of the baseline values calculated for days d - 10 to d + 10 
+#'   (eleven values).
 #'
 #' @return A SpatRaster with on day of the year per layer (366 layers), having
 #'   the same extent, pixel resolution and crs than the provided SpatRaster.
@@ -51,7 +52,7 @@ BEE.calc.baseline <- function(YourSpatraster,
     if (is.null(end_date)) {
       end_date <- terra::names(YourSpatraster)[terra::nlyr(YourSpatraster)]
       warning(
-        "You have provided a 'start_date' but no 'end_date', last date of ", 
+        "You have provided a 'start_date' but no 'end_date', last date of ",
         "the dataset (",
         end_date,
         ") have been used as last day of the baseline."
@@ -69,7 +70,7 @@ BEE.calc.baseline <- function(YourSpatraster,
   }
   dates <- as.Date(stats::time(YourSpatraster))  # Dates
   years <- as.integer(format(dates, "%Y")) # Years
-  # Build a dataframe with the layer number, the doy and the corrected doy 
+  # Build a dataframe with the layer number, the doy and the corrected doy
   # (366, 60 don't exist in non leap year)
   df <- data.frame(
     date = dates,
@@ -77,12 +78,15 @@ BEE.calc.baseline <- function(YourSpatraster,
     leap_year = is_leap_year((years)),
     doy = as.integer(format(dates, "%j"))
   ) #day of the year
-  df$doy2 <- ifelse(df$doy >= 60 & !df$leap_year, df$doy + 1, df$doy)
-  # For each day of the year from 0 to 366, get a list of the layers to use to 
+  df$doy2 <- ifelse(df$doy >= 60 &
+                      !df$leap_year, df$doy + 1, df$doy)
+  # For each day of the year from 0 to 366, get a list of the layers to use to
   # calculate baseline
   doy_indices <- vector("list", 366)
   for (j in 1:366) {
-    days_in_window <- ((j - time_window):(j + time_window)) %% 366 ## %% 366 is a 'modulo' which mean that when a number reach 366 it is converted to 0 and the series that over from 0, 1, 2...
+    days_in_window <- ((j - time_window):(j + time_window)) %% 366 # %% 366 is 
+    #a 'modulo' which mean that when a number reach 366 it is converted to 0 and
+    # the series that over from 0, 1, 2...
     days_in_window[days_in_window == 0] <- 366 # to avoid 0
     doy_indices[[j]] <- df$N_layer[which(df$doy2 %in% days_in_window)]
   }

@@ -20,3 +20,9 @@ Function that detects the unit of measurement of a pixel value in a
 SpatRaster (Celsius, Kelvin or Fahrenheit) and converts it to the
 international unit 'Celsius' if necessary.
 }
+\examples{
+#If your data are in kelvins (K), BEE.calc.celscius(YourSpatRaster) returns the
+#spatraster with cell values converted in celsius (<c2><b0>C) using : 
+#"former value - 273.15 = new value".
+#A pixel with a value of 295.15 K becomes a pixel with a value of 22 <c2><b0>C.
+}
