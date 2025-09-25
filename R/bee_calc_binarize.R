@@ -1,9 +1,10 @@
 #' Binarise the spatraster
 #'
-#' The function binarise a Spatraster by comparing the observed value with the 
+#' @description
+#'  The function binarise a Spatraster by comparing the observed value with the 
 #' baseline. If "direction" argument is "above", the values above the baseline 
 #' will be converted to 1, and the value bellow baseline will be converted to 0.
-#'  The process works in reverse when "direction" = below.
+#' The process works in reverse when "direction" = below.
 #'
 #' @param YourSpatraster The Spatraster containing the values of the studied 
 #' parameter, with one layer per timestep.

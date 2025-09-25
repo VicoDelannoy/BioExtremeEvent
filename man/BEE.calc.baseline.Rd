@@ -2,7 +2,7 @@
 % Please edit documentation in R/bee_calc_baseline.R
 \name{BEE.calc.baseline}
 \alias{BEE.calc.baseline}
-\title{Calculate baseline value for each pixel.}
+\title{Calculate baseline value for each date and pixel.}
 \usage{
 BEE.calc.baseline(
   YourSpatraster,
@@ -29,7 +29,9 @@ It must be in the format YYYY-MM-DD.}
 the observed value as threshold. Accepted arguments are "qt" to specify you
 want to compute a percentile of the observed values in the reference
 timeframe, or "mean" if you want to use the mean of the observed values in
-the timeframe provided as threshold.}
+the timeframe provided as threshold.
+If you want to use a fixed value as a threshold, you can skip this step and
+directly use BEE.calc.binarize().}
 
 \item{quantile_value}{indicates the desired percentile value. This must be
 between 0 and 1.}
@@ -43,12 +45,13 @@ end_date. (The example assume that you have one layer per day.)}
 \item{smooth_window}{number of days on either side of day 'd' that are used
 to compute a mean value assigned to the 'd' day. For example, if
 smooth_window is set to 10 days, the final value on day d will be the mean
-of the baseline values calculated for days d - 10 to d + 10 (eleven values).}
+of the baseline values calculated for days d - 10 to d + 10
+(eleven values).}
 }
 \value{
-A SpatRaster with on day of the year per layer (366 layers), having
+A SpatRaster with one day of the year per layer (366 layers), having
 the same extent, pixel resolution and crs than the provided SpatRaster.
 }
 \description{
-Calculate baseline value for each pixel.
+Calculate baseline value for each date and pixel.
 }

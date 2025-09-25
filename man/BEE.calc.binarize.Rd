@@ -2,24 +2,39 @@
 % Please edit documentation in R/bee_calc_binarize.R
 \name{BEE.calc.binarize}
 \alias{BEE.calc.binarize}
-\title{Add a title}
+\title{Binarise the spatraster}
 \usage{
 BEE.calc.binarize(YourSpatraster, baseline, direction)
 }
 \arguments{
-\item{YourSpatraster}{The Spatraster containing the values of the studied parameter, with one layer per timestep.}
+\item{YourSpatraster}{The Spatraster containing the values of the studied
+parameter, with one layer per timestep.}
 
-\item{baseline}{A Spatraster built using the BEE.calc.baseline function that contains the baseline value for each pixel on a given day of the year (with 366 layers).}
+\item{baseline}{A Spatraster built using the BEE.calc.baseline function that
+contains the baseline value for each pixel on a given day of the year (with
+366 layers).}
 
-\item{direction}{The accepted values for this argument are "above" or "below". This tells the function whether it values above baseline or below baseline are to be considered as extreme events.}
+\item{direction}{The accepted values for this argument are "above" or
+"below". This tells the function whether it values above baseline or below
+baseline are to be considered as extreme events.}
 }
 \value{
-The function returns a list containing a Spatraster for each day of a typical year (366 Spatraster, with one layer per year provided in YourSpatraster). These rasters have the same properties as "YourSpatraster" but the values have been replace with 1 if the pixel value was more extreme than the baseline and with 0 if it was not.
+The function returns a list containing a Spatraster for each day of
+a typical year (366 Spatraster, with one layer per year provided in
+YourSpatraster). These rasters have the same properties as "YourSpatraster"
+but the values have been replace with 1 if the pixel value was more extreme
+than the baseline and with 0 if it was not.
 }
 \description{
-The function binarise a Spatraster by comparing the observed value with the baseline. If "direction" argument is "above", the values above the baseline will be converted to 1, and the value bellow baseline will be converted to 0. The process works in reverse when "direction" = below.
+The function binarise a Spatraster by comparing the observed value with the
+baseline. If "direction" argument is "above", the values above the baseline
+will be converted to 1, and the value bellow baseline will be converted to 0.
+The process works in reverse when "direction" = below.
 }
 \details{
-For computational purposes in the next functions of the pipeline, the order of the layers differs from that of "YourSpatraster". BEE.calc.binarize is not design to work on 4D data (3D in space + time). To do so, please refer to BEE.calc.4thD.
-#-------------------------------------------------------------------------------
+For computational purposes in the next functions of the pipeline,
+the order of the layers differs from that of "YourSpatraster".
+BEE.calc.binarize is not design to work on 4D data (3D in space + time).
+To do so, please refer to BEE.calc.4thD.
+#---------------------------------------------------------------------------
 }
