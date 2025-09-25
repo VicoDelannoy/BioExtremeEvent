@@ -70,9 +70,9 @@ designed to work on 4D data (time + spatial 3D).
 # - Minimum number of consecutive day above threshold to 
 #  consider that there is an extreme event: n  (>=)
 #  
-# -   Maximum number of days bellow thershold to consider two series of value
-#  above threshold as a single extreme event (distance max in days btw 2 
-# event to merge them): d (<=)
+# -   Maximum number of days bellow thershold to consider two series of 
+# value above threshold as a single extreme event (distance max in days btw 
+# 2 events to merge them): d (<=)
 #   
 # Examples: n >= 5  d>= 2
 #       0 0 0 1 1 1 1 ** 1 ** 0 0 0 = 1 event, 
