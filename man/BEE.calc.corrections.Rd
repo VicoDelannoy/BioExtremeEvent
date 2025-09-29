@@ -8,19 +8,20 @@ of days of extreme event}
 BEE.calc.corrections(Events_corrected)
 }
 \arguments{
-\item{dataframe}{The second element of the output of BEE.calc.true_event
-(a list of data.table containing information about the value of each pixel
-before and after applying criteria to distinguish anormal days from extreme
-events).}
+\item{Events_corrected}{The second element of the BEE.calc.true_event ouput,
+which is a list of data.table containing information
+about the value of each pixel before and after definition criteria are
+applied to distinguish isolated extreme days from extreme events).}
 }
 \value{
 A text summarising the modifications induced.
 }
 \description{
-Computes the number of modifications between the raw binerised
-Spatraster and the Spartraster produced using BEE.calc.true_event. This
-provides an indication of the differences between the number of days above
-the threshold/baseline and the number of days that are considered to be
+It computes the number of modifications between the raw
+binerised Spatraster and the Spartraster produced using the
+BEE.calc.true_event.
+This indicates of the differences in the number of days above the
+threshold/baseline and the number of days that are considered to be
 extreme events, according to the criteria set in BEE.calc.true_event.
 }
 \examples{

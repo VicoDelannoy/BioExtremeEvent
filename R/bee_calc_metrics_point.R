@@ -1,73 +1,145 @@
 # BEE.calc.metrics_point is not designed to work on 4D data (time + spatial 3D).
 
-# start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
-BEE.calc.metrics_point <- function(Events_corrected, Values, GPS, 
-                                   start_date=NULL, end_date=NULL, 
-                                   baseline_qt90 = baseline_qt90, baseline_mean = baseline_mean, 
-                                   group_by_event=TRUE){
-  ########################################## WARNINGS ############################################################
-  if ( is.null(start_date) | is.null(end_date)) {
-    warning("You didn't specify a begining date and a ending date (see argument 'start_date' and 'end_date'), the first date and last date in your time Values SpatRaster will be used.")
+
+#' BEE.calc.metrics_point compute metrics through time for specific locations.
+#'
+#' @param Events_corrected Is the list of data tables produced by: 
+#' bee_calc_true_event (the second element of the output). For each pixel, it 
+#' contains a data.table with dates in the rows and a column indicating whether 
+#' it is a day belonging to a heatwave (1) or not (0).
+#' @param Values is the spatraster with the values of the studded parameter,
+#'  through time and space.
+#' @param GPS is a data frame containing the positions for which you want to 
+#' compute metrics. It must contain columns labelled 'x' and 'y', which should
+#' contain longitudes and latitudes, respectively.
+#' @param start_date First day on which you want to start computing metrics.
+#' @param end_date Last day on which you want to start computing metrics.
+#' @param baseline_qt90 Spatraster of the 90th percentil baseline.
+#' @param baseline_mean Spatraster of the 90mean value baseline.
+#' @param group_by_event Whether you want an output summarise by extreme event
+#' or not. If not, you just get daily metrics.
+#'
+#' @returns 
+#' @export
+#'
+#' @examples
+
+# start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; 
+# GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
+BEE.calc.metrics_point <- function(Events_corrected,
+                                   Values,
+                                   GPS,
+                                   start_date = NULL,
+                                   end_date = NULL,
+                                   baseline_qt90 = baseline_qt90,
+                                   baseline_mean = baseline_mean,
+                                   group_by_event = TRUE){
+# WARNINGS
+  if (is.null(start_date) | is.null(end_date)) {
+    warning(
+      "You didn't specify a begining date and a ending date (see argument 
+      'start_date' and 'end_date'), the first date and last date in your time 
+      Values SpatRaster will be used."
+    )
     start_date <- min(as.Date.character(names(Values)))
     end_date <- max(as.Date.character(names(period_of_interest)))
   }
-  if(class(start_date) != class(names(Values[[1]]))  | 
-     class(end_date)   != class(names(Values[[1]]))  | 
-     class(start_date) != class(end_date)){
-    warning("The date formats are inconsistent between start_date, end_date and Values. Please ensure that the layer names follow a consistent date format. Use class(YourObject) to verify the current format.")
+  if (class(start_date) != class(names(Values[[1]]))  |
+      class(end_date)   != class(names(Values[[1]]))  |
+      class(start_date) != class(end_date)) {
+    warning(
+      "The date formats are inconsistent between start_date, end_date and 
+      Values. Please ensure that the layer names follow a consistent date 
+      format. Use class(YourObject) to verify the current format."
+    )
   }
   #Check that start date and end_date are within the SpatRasters provided
-  if (!(start_date %in% names(Values)) | !(end_date %in% names(Values))) {
-    warning("One or both the specified layers are not present in the SpatRaster containning corrected binarized extreme event.")
+  if (!(start_date %in% names(Values)) |
+      !(end_date %in% names(Values))) {
+    warning(
+      "One or both the specified layers are not present in the SpatRaster 
+      containning corrected binarized extreme event."
+    )
   }
   Values_extent <- terra::ext(Values)
   #Check that all GPS points are within Values and period_of_interest extent
-  if ( !all(abs(GPS[1]) <= abs(Values_extent$xmax) & 
-            abs(GPS[1]) >= abs(Values_extent$xmin)) ){
-    warning("At least one longitude coordinate falls outside the extent of the SpatRaster containing the binarized corrected events. Ensure the first column of the dataframe contains valid longitude (x) values for analysis.")
+  if (!all(abs(GPS[1]) <= abs(Values_extent$xmax) &
+           abs(GPS[1]) >= abs(Values_extent$xmin))) {
+    warning(
+      "At least one longitude coordinate falls outside the extent of the 
+      SpatRaster containing the binarized corrected events. Ensure the first 
+      column of the dataframe contains valid longitude (x) values for analysis."
+    )
   }
-  if (!all(abs(GPS[2]) <= abs(Values_extent$ymax) & 
-           abs(GPS[2]) >= abs(Values_extent$ymin))){
-    warning("At least one latitude coordinate falls outside the extent of the SpatRaster containing the binarized corrected events. Ensure the second column of the dataframe contains valid latitude (y) values for analysis.")
+  if (!all(abs(GPS[2]) <= abs(Values_extent$ymax) &
+           abs(GPS[2]) >= abs(Values_extent$ymin))) {
+    warning(
+      "At least one latitude coordinate falls outside the extent of the 
+      SpatRaster containing the binarized corrected events. Ensure the second
+      column of the dataframe contains valid latitude (y) values for analysis."
+    )
   }
-  # Check that one of the GPS position is not in a pixel that is always an NA (it may indicates that it falls in an area that is not interesting for the study)
-  NA_pixels <- which(sapply(Events_corrected, function(df) all(is.na(df$Original_value)))) # List of pixel that are always NA 
-  GPS$pixel <- terra::cellFromXY(Values, GPS) # List of the pixels corresponding to the GPS position provided
-  if (any(GPS$pixel %in% NA_pixels)){
+  # Check that one of the GPS position is not in a pixel that is always an NA 
+  # (it may indicates that it falls in an area that is not interesting for the 
+  # study)
+  NA_pixels <- which(sapply(Events_corrected, function(df)
+    all(is.na(
+      df$Original_value
+    )))) # List of pixel that are always NA
+  GPS$pixel <- terra::cellFromXY(Values, GPS) # List of the pixels corresponding
+  # to the GPS position provided
+  if (any(GPS$pixel %in% NA_pixels)) {
     wrong_position <- which(GPS$pixel %in% NA_pixels)
     message("Problematic GPS positions:\n")
     message(capture.output(print(GPS[wrong_position, ])))
   }
   
-  ########################################## CODE ############################################################
+  # CODE 
   #Extract values for the given GPS position
-  df_list  <- lapply(GPS$pixel, function(p) Events_corrected[[p]]) # on df per points/pixel
-  Values <- t(terra::extract(Values,GPS[,3]))
+  df_list  <- lapply(GPS$pixel, function(p)
+    Events_corrected[[p]]) # on df per points/pixel
+  Values <- t(terra::extract(Values, GPS[, 3]))
   
-  # Subset both dataset so they match the timeframe provided with 'start_date' and 'end_date'.
+  # Subset both dataset so they match the timeframe provided with 'start_date' 
+  # and 'end_date'.
   Date <- rownames(Values)
-  Values <- Values[which(as.Date(rownames(Values)) >= as.Date(start_date) & as.Date(rownames(Values)) <= as.Date(end_date)),]
+  Values <- Values[which(
+    as.Date(rownames(Values)) >= as.Date(start_date) &
+      as.Date(rownames(Values)) <= as.Date(end_date)
+  ), ]
   Values <- as.matrix(Values)
-  df_list <- Map(function(df, col_idx) {  # col_idx is the id  
+  df_list <- Map(function(df, col_idx) {
+    # col_idx is the id
     df$Date <- Date
     df <- df[df$Date >= start_date & df$Date <= end_date, ]
-    df$value <- Values[, col_idx] #Merge df_list and Values  # Ad to each dataframe the corresponding column of pixel value
+    df$value <- Values[, col_idx] #Merge df_list and Values  # Ad to each 
+    # dataframe the corresponding column of pixel value
     return(df)
   }, df_list, seq_along(df_list))
   
-  # For each event I want : duration, maximum intensity, mean and median intensity, category, sum of anomalies, date of maximum intensity, position of the day of maximum intensity, mean increasing slop, mean decreasing slope, start_date, end_date
-  ##Contrary to Events_corrected, Values didn't kept this information of which extreme event were merge together because they were separated by d days or less. Thus, we need to use Events corrected if we want to calculate a metric that describe an event.
+  # For each event I want : duration, maximum intensity, mean and median 
+  # intensity, category, sum of anomalies, date of maximum intensity, position
+  # of the day of maximum intensity, mean increasing slop, mean decreasing 
+  # slope, start_date, end_date
+  ##Contrary to Events_corrected, Values didn't kept this information of which
+  # extreme event were merge together because they were separated by d days or 
+  # less. Thus, we need to use Events corrected if we want to calculate a metric
+  # that describe an event.
   
-  #Create a list of dataframe to store the information using one element (df) per pixel and one row per event
-  colnames(GPS)<-c("x","y", names(GPS[3]))
+  #Create a list of dataframe to store the information using one element (df) 
+  # per pixel and one row per event
+  colnames(GPS) <- c("x", "y", names(GPS[3]))
   
   #Get daily anomaly to baseline_qt90 and to baseline_mean
-  qt90 <- as.data.frame(t(terra::extract(baseline_qt90, GPS[,3])))
-  qt90$dates <-format(seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"), "%m-%d")
-  mean <- as.data.frame(t(terra::extract(baseline_mean, GPS[,3])))
-  mean$dates <- format(seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"), "%m-%d")
+  qt90 <- as.data.frame(t(terra::extract(baseline_qt90, GPS[, 3])))
+  qt90$dates <- format(seq(as.Date("2024-01-01"), as.Date("2024-12-31"), 
+                           by = "day"), "%m-%d")
+  mean <- as.data.frame(t(terra::extract(baseline_mean, GPS[, 3])))
+  mean$dates <- format(seq(as.Date("2024-01-01"), as.Date("2024-12-31"), 
+                           by = "day"), "%m-%d")
   
-  metrics <- lapply(1:length(df_list), function(p) { # Go through each pixel
+  metrics <- lapply(1:length(df_list), function(p) {
+    # Go through each pixel
     df <- df_list[[p]]
     df$Date <- as.Date(df$Date)
     df$dates <- format(as.Date(df$Date), "%m-%d")
@@ -79,20 +151,21 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
       mutate(
         prev_value = lag(value),
         prev_ID = lag(ID),
-        last_value_prev_group = ifelse(row_num == 1 & ID != prev_ID, prev_value, NA)
+        last_value_prev_group = ifelse(row_num == 1 &
+                                         ID != prev_ID, prev_value, NA)
       ) %>%
       fill(last_value_prev_group, .direction = "down") %>%
       group_by(ID) %>%
       mutate(
         # Get GPS position of each point
-        x = GPS$x[p],  
-        y = GPS$y[p],  
+        x = GPS$x[p],
+        y = GPS$y[p],
         
         # Get the ID of each event
-        event_ID = unique(ID),  
+        event_ID = unique(ID),
         
         # Duration of each event (assuming Nb_days is constant per ID)
-        Nb_days = first(Nb_days),  
+        Nb_days = first(Nb_days),
         
         # First and last day of each event
         first_date = as.Date(min(Date)),
@@ -115,45 +188,63 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
         raw_onset_rate_abs = ifelse(
           days_onset_abs > 0,
           (max_value - value[which(Date == first_date)]) / days_onset_abs,
-          value[1] - first(last_value_prev_group)),
+          value[1] - first(last_value_prev_group)
+        ),
         ## mean
-        mean_onset_rate_abs = ifelse( days_onset_abs >0 ,
-                                      mean(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
-                                      raw_onset_rate_abs),
-        ## Median onset rate 
-        median_onset_rate_abs = ifelse( days_onset_abs >0 ,
-                                        median(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
-                                        raw_onset_rate_abs),
+        mean_onset_rate_abs = ifelse(
+          days_onset_abs > 0 ,
+          mean(daily_rates[Date >= first_date &
+                             Date <= date_max_value], na.rm = TRUE),
+          raw_onset_rate_abs
+        ),
+        ## Median onset rate
+        median_onset_rate_abs = ifelse(
+          days_onset_abs > 0 ,
+          median(daily_rates[Date >= first_date &
+                               Date <= date_max_value], na.rm = TRUE),
+          raw_onset_rate_abs
+        ),
         ## Standard deviation
-        sd_onset_rate_abs = ifelse( days_onset_abs >0 ,
-                                    sd(daily_rates[Date >= first_date & Date <= date_max_value], na.rm = TRUE),
-                                    NA),
+        sd_onset_rate_abs = ifelse(days_onset_abs > 0 ,
+                                   sd(daily_rates[Date >= first_date &
+                                      Date <= date_max_value], na.rm = TRUE),
+                                   NA),
         
         # Offset rate (from the absolut maximum value during the event)
         days_offset_abs = as.numeric(last_date - date_max_value),
         ## raw
-        raw_offset_rate_abs = ifelse( days_offset_abs >0 ,
-                                      (value[which(Date==last_date)] - max_value) / days_offset_abs , 
-                                      tail(value, 1) - tail(value, 2)[1]),
+        raw_offset_rate_abs = ifelse(
+          days_offset_abs > 0 ,
+          (value[which(Date == last_date)] - max_value) / days_offset_abs ,
+          tail(value, 1) - tail(value, 2)[1]
+        ),
         ## mean
-        mean_offset_rate_abs = ifelse( days_offset_abs >0 ,
-                                       mean(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
-                                       raw_offset_rate_abs),
+        mean_offset_rate_abs = ifelse(
+          days_offset_abs > 0 ,
+          mean(daily_rates[Date >= date_max_value &
+                             Date <= last_date], na.rm = TRUE),
+          raw_offset_rate_abs
+        ),
         
-        median_offset_rate_abs = ifelse( days_offset_abs >0 ,
-                                         median(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
-                                         raw_offset_rate_abs),
+        median_offset_rate_abs = ifelse(
+          days_offset_abs > 0 ,
+          median(daily_rates[Date >= date_max_value &
+                               Date <= last_date], na.rm = TRUE),
+          raw_offset_rate_abs
+        ),
         ## Standard deviation
-        sd_offset_rate_abs = ifelse( days_offset_abs >0 ,
-                                     sd(daily_rates[Date >= date_max_value & Date <= last_date], na.rm = TRUE),
-                                     NA)
+        sd_offset_rate_abs = ifelse(days_offset_abs > 0, 
+                                    sd(daily_rates[Date >= date_max_value &
+                                       Date <= last_date], na.rm = TRUE), NA)
       ) %>%
-      ungroup()  
+      ungroup()
     # Add daily baseline_qt90 and daily baseline_mean
     df <- df %>%
-      left_join(qt90[, c("dates", paste0("V", as.character(p)))], by = "dates") %>%
+      left_join(qt90[, c("dates", paste0("V", as.character(p)))],
+                by = "dates") %>%
       rename(baseline_qt90 = paste0("V", as.character(p))) %>%
-      left_join(mean[, c("dates", paste0("V", as.character(p)))], by = "dates") %>%
+      left_join(mean[, c("dates", paste0("V", as.character(p)))],
+                by = "dates") %>%
       rename(baseline_mean = paste0("V", as.character(p)))
     # Calculate anomalies
     df <- df %>%
@@ -170,31 +261,32 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
         )
       )
     # Keep the maximum category reached by each event
-    category_order <- c("Category I", "Category II", "Category III", "Category IV")
+    category_order <- c("Category I", "Category II", "Category III",
+                        "Category IV")
     df <- df %>%
       mutate(daily_category = factor(daily_category, levels = category_order))
-    df <- df %>% mutate( event_ID = ID)
+    df <- df %>% mutate(event_ID = ID)
     max_category <- df %>%
       filter(!is.na(daily_category)) %>%
       group_by(event_ID) %>%
-      summarise(
-        max_category = category_order[max(as.numeric(daily_category))],
-        .groups = 'drop'
-      )
+      summarise(max_category = category_order[max(as.numeric(daily_category))],
+                .groups = 'drop')
     df <- df %>%
       left_join(max_category, by = "event_ID")
     
-    # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to the ouputs + add maximal category of each event
+    # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to
+    # the ouputs + add maximal category of each event
     summary_stats <- df %>%
       group_by(ID) %>%
       summarise(
         mean_anomaly_qt90 = mean(anomaly_qt90, na.rm = TRUE),
         sd_anomaly_qt90 = sd(anomaly_qt90, na.rm = TRUE),
         max_anomaly_qt90 = max(anomaly_qt90, na.rm = TRUE),
-        mean_anomaly_mean= mean(anomaly_mean, na.rm = TRUE),
+        mean_anomaly_mean = mean(anomaly_mean, na.rm = TRUE),
         sd_anomaly_mean = sd(anomaly_mean, na.rm = TRUE),
         max_anomaly_mean = max(anomaly_mean, na.rm = TRUE),
-        max_category = names(sort(table(daily_category), decreasing = TRUE))[1],  # Catégorie la plus fréquente
+        max_category = names(sort(table(daily_category), decreasing = TRUE))[1],
+        # Catégorie la plus fréquente
         .groups = 'drop'
       )
     df <- df %>%
@@ -204,23 +296,52 @@ BEE.calc.metrics_point <- function(Events_corrected, Values, GPS,
     if (group_by_event) {
       df <- df %>%
         # Delete daily values that are not usefull to describe the full event
-        select(-baseline_qt90, -baseline_mean, -anomaly_mean, -anomaly_qt90, -anomaly_unit, -daily_category, -date, -ID, -daily_category, - row_num, -prev_value, -prev_ID, -last_value_prev_group) %>%
+        select(
+          -baseline_qt90,
+          -baseline_mean,
+          -anomaly_mean,
+          -anomaly_qt90,
+          -anomaly_unit,
+          -daily_category,
+          -date,
+          -ID,
+          -daily_category,
+          -row_num,
+          -prev_value,
+          -prev_ID,
+          -last_value_prev_group
+        ) %>%
         distinct(event_ID, .keep_all = TRUE)  # Une seule ligne par ID
       
     } else {
-      df <- df %>% select(-date, -ID, - row_num, -prev_value, -prev_ID, -last_value_prev_group)
+      df <- df %>% select(-date,
+                          -ID,
+                          -row_num,
+                          -prev_value,
+                          -prev_ID,
+                          -last_value_prev_group)
     }
     return(df)
   })
+}
   
-  # OTHER PART TO DEVELOP : 
-  # For each pixels : 
+  # OTHER PART TO DEVELOP :
+  # For each pixels :
   # - anomalie cumulée par événements
   # - catégories
-  # - onset rate, offset_rate (dans l'événement et depuis une période donnée avant et après dont la durée est fixée par l'utilisateur)
-  #For the all period I want : Frequency, maximum intensity, mean and median intensity, sum of anomalies, date of maximum intensity, first date 1, last date 1
-
-
-The categorie of each event are determined according according Hobday et al. 2018 definition
-
-Category I : btw the 90th percentile and twice the value of the anomalies between mean value end 90th percentile. Category II : btw twice and 3 times the anomalie Category III : btw 3 times and four time the anomaly Category IV : observed value are higher than four times the anomaly btw mean and 90th percentile + the mean value.
+  # - onset rate, offset_rate (dans l'événement et depuis une période donnée 
+  # avant et après dont la durée est fixée par l'utilisateur)
+  #For the all period I want : Frequency, maximum intensity, mean and median 
+  # intensity, sum of anomalies, date of maximum intensity, first date 1, last
+  # date 1
+  
+  
+  #The categorie of each event are determined according according Hobday et al.
+  # 2018 definition
+  
+  #Category I : btw the 90th percentile and twice the value of the anomalies 
+  # between mean value end 90th percentile. Category II : btw twice and 3 times
+  # the anomalie Category III : btw 3 times and four time the anomaly 
+  # Category IV : observed value are higher than four times the anomaly btw mean
+  # and 90th percentile + the mean value.
+  
