@@ -24,10 +24,10 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters,
 # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)) {
     ## Check that date format matches
-    format_start_date <- guess_formats(start_date,
+    format_start_date <- lubridate::guess_formats(start_date,
                                        orders = c("dmy", "ymd", "mdy"))
-    format_end_date <- guess_formats(end_date, orders = c("dmy", "ymd", "mdy"))
-    format_layers_names <- guess_formats(names(Corrected_rasters[[1]]),
+    format_end_date <- lubridate::guess_formats(end_date, orders = c("dmy", "ymd", "mdy"))
+    format_layers_names <- lubridate::guess_formats(names(Corrected_rasters[[1]]),
                                          orders = c("dmy", "ymd", "mdy"))
     same_format <- all(format_start_date %in% format_layers_names)
     same_format <- c(same_format,
@@ -60,7 +60,7 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters,
   patch_list <- lapply(
     rasters,
     FUN = function(rasters) {
-      patch <- patches(
+      patch <- terra::patches(
         rasters,
         directions = 8,
         zeroAsNA = T,
@@ -70,7 +70,7 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters,
     }
   )
   
-  nb_NA <- unique(global(
+  nb_NA <- unique(terra::global(
     rasters,
     fun = function(x)
       sum(is.na(x))
@@ -81,25 +81,25 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters,
       unexpected results in the output of that funciton."
     )
   }
-  nb_pixel_studied <- ncell(rasters[[1]]) - nb_NA
+  nb_pixel_studied <- terra::ncell(rasters[[1]]) - nb_NA
   dist_list <- lapply(patch_list, function(x) {
     # x <- patch_list[[1]]
     # Create a df with on row per pixel
-    vals <- values(x)
-    cell_size <- values(cellSize(x))[, 1]
+    vals <- terra::values(x)
+    cell_size <- terra::values(terra::cellSize(x))[, 1]
     boundary <- terra::boundaries(x, directions = 8)
-    coordonates <- xyFromCell(x, 1:ncell(x)) #each pixel coordinates
+    coordonates <- xyFromCell(x, 1:terra::ncell(x)) #each pixel coordinates
     d <- terra::time(x) # PAS CERTAINE QUE ÇA SOIT LA FONCTION DE TERRA QUI SOIT
     #APPELLEE ICI
     
-    data <- data.table(
+    data <- data.table::data.table(
       x = coordonates[, 1],
       y = coordonates[, 2],
       values = vals,
       # value of the patch
       cell_size = cell_size,
-      boundary = values(terra::boundaries(x, directions = 8))
-    ) %>% rename(patch_id = values.patches, boundary = boundary.patches)
+      boundary = terra::values(terra::boundaries(x, directions = 8))
+    ) %>% dplyr::rename(patch_id = values.patches, boundary = boundary.patches)
     
     data[, length_boundary := ifelse(is.nan(patch_id),
                                      NA_real_, sum(boundary),
@@ -118,11 +118,11 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters,
     data[, cover_percent := n_pixel / as.numeric(nb_pixel_studied),
          by = patch_id]
     data[, core_pixel := n_pixel - length_boundary]
-    date <- time(x)
+    date <- terra::time(x)
     data[, ID := ifelse(is.nan(patch_id), NA, paste0(date, "_", patch_id))]
     data[, pixel_id := .I]
-    polygon <- as.polygons(x, aggregate = T, round = F)
-    perim <- data.table(perimeter = terra::perim(polygon))
+    polygon <- terra::as.polygons(x, aggregate = T, round = F)
+    perim <- data.table::data.table(perimeter = terra::perim(polygon))
     
     id <- data[!is.nan(patch_id), .(patch_id = unique(patch_id))]
     
@@ -131,7 +131,7 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters,
     data <- merge(data, perim, by = "patch_id", all.x = TRUE)
     
     data <- data %>%
-      select(-cell_size)
+      dplyr::select(-cell_size)
     
     if (length(polygon) == 0) {
       data[, centroid_x := rep(NA_real_, nrow(data))]
@@ -149,7 +149,7 @@ by = patch_id]
       centro <- terra::extract(x, centro, xy = TRUE)
       centro <- centro %>%
         dplyr::select(patches, x, y) %>%
-        rename(
+        dplyr::rename(
           centroid_x = x,
           centroid_y = y,
           patch_id = patches
@@ -167,7 +167,7 @@ by = patch_id]
     return(data)
   }) # one dt per pixel
   
-  names(dist_list) <- time(rasters)
+  names(dist_list) <- terra::time(rasters)
   
   # Summarise by patch
   data_summarised <- lapply(dist_list, function(x) {
@@ -182,19 +182,19 @@ by = patch_id]
   # because we cannot do spatio-temporal analysis here)
   if (per_pix == TRUE) {
     pixels_nb <- seq(1, nrow(dist_list[[1]]))
-    dist_tab <- bind_rows(dist_list)
-    setDT(dist_tab)
+    dist_tab <- dplyr::bind_rows(dist_list)
+    data.table::setDT(dist_tab)
     dist_tab <- dist_tab %>%
-      mutate(valid_patch_ID = ifelse(!is.nan(patch_id), date, NA)) # keeps only
+      dplyr::mutate(valid_patch_ID = ifelse(!is.nan(patch_id), date, NA)) # keeps only
     # the patch that represents an EE
     patch_list <- terra::rast(patch_list)
-    names(patch_list) <- time(rasters)
+    names(patch_list) <- terra::time(rasters)
     output <- list(dist_tab, patch_list)
     return(output)
   }
   patch_list <- terra::rast(patch_list)
-  names(patch_list) <- time(rasters)
-  data_summarised <- rbindlist(data_summarised)
+  names(patch_list) <- terra::time(rasters)
+  data_summarised <- data.table::rbindlist(data_summarised)
   output <- list(data_summarised, patch_list)
   return(output)
 }
