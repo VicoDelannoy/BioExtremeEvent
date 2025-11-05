@@ -3,4 +3,5 @@
 export(BEE.calc.baseline)
 export(BEE.calc.celsius)
 export(BEE.calc.corrections)
+export(BEE.calc.metrics_point)
 export(moyenne)

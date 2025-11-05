@@ -25,7 +25,8 @@ threshold/baseline and the number of days that are considered to be
 extreme events, according to the criteria set in BEE.calc.true_event.
 }
 \examples{
-TO BE ADD
+# to be added
+
 
 
 }

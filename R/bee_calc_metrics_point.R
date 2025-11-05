@@ -19,10 +19,14 @@
 #' @param group_by_event Whether you want an output summarise by extreme event
 #' or not. If not, you just get daily metrics.
 #'
-#' @returns 
+#' @returns A list of dataframe (one per GPS point), each dataframe contains
+#' informations on the date of the extrem events, mean, median, max and min 
+#' values, peak day, onset-rate, off-set rate, mean anomaly, maximum category 
+#' etc. Categories are defined in Hobday et al. 2018.
 #' @export
 #'
-#' @examples
+#' @examples 
+#' # To be added
 
 # start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; 
 # GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
@@ -41,11 +45,11 @@ BEE.calc.metrics_point <- function(Events_corrected,
       'start_date' and 'end_date'), the first date and last date in your time 
       Values SpatRaster will be used."
     )
-    start_date <- min(as.Date.character(names(Values)))
-    end_date <- max(as.Date.character(names(period_of_interest)))
+    start_date <- min(as.Date.character(terra::names(Values)))
+    end_date <- max(as.Date.character(terra::names(period_of_interest)))
   }
-  if (class(start_date) != class(names(Values[[1]]))  |
-      class(end_date)   != class(names(Values[[1]]))  |
+  if (class(start_date) != class(terra::names(Values[[1]]))  |
+      class(end_date)   != class(terra::names(Values[[1]]))  |
       class(start_date) != class(end_date)) {
     warning(
       "The date formats are inconsistent between start_date, end_date and 
@@ -54,8 +58,8 @@ BEE.calc.metrics_point <- function(Events_corrected,
     )
   }
   #Check that start date and end_date are within the SpatRasters provided
-  if (!(start_date %in% names(Values)) |
-      !(end_date %in% names(Values))) {
+  if (!(start_date %in% terra::names(Values)) |
+      !(end_date %in% terra::names(Values))) {
     warning(
       "One or both the specified layers are not present in the SpatRaster 
       containning corrected binarized extreme event."
@@ -91,7 +95,7 @@ BEE.calc.metrics_point <- function(Events_corrected,
   if (any(GPS$pixel %in% NA_pixels)) {
     wrong_position <- which(GPS$pixel %in% NA_pixels)
     message("Problematic GPS positions:\n")
-    message(capture.output(print(GPS[wrong_position, ])))
+    message(utils::capture.output(print(GPS[wrong_position, ])))
   }
   
   # CODE 
@@ -165,7 +169,9 @@ BEE.calc.metrics_point <- function(Events_corrected,
         event_ID = unique(ID),
         
         # Duration of each event (assuming Nb_days is constant per ID)
-        Nb_days = first(Nb_days),
+        Nb_days = first(Nb_days), # Nb_days N'EST PAS CRÉÉ AVANT, À VOIR SI 
+        # CETTE LIGNE EST TOUJOURS UTILE OU SI C'EST UN RÉSIDU D'UN TRUC 
+        # SUPPPRIMÉ
         
         # First and last day of each event
         first_date = as.Date(min(Date)),
@@ -173,7 +179,7 @@ BEE.calc.metrics_point <- function(Events_corrected,
         
         # Mean, median, max temperature per event
         mean_value = mean(value),
-        median_value = median(value),
+        median_value = stats::median(value),
         max_value = max(value),
         
         # Day of absolute maximum temperature
@@ -200,13 +206,13 @@ BEE.calc.metrics_point <- function(Events_corrected,
         ## Median onset rate
         median_onset_rate_abs = ifelse(
           days_onset_abs > 0 ,
-          median(daily_rates[Date >= first_date &
+          stats::median(daily_rates[Date >= first_date &
                                Date <= date_max_value], na.rm = TRUE),
           raw_onset_rate_abs
         ),
         ## Standard deviation
         sd_onset_rate_abs = ifelse(days_onset_abs > 0 ,
-                                   sd(daily_rates[Date >= first_date &
+                                   stats::sd(daily_rates[Date >= first_date &
                                       Date <= date_max_value], na.rm = TRUE),
                                    NA),
         
@@ -216,7 +222,7 @@ BEE.calc.metrics_point <- function(Events_corrected,
         raw_offset_rate_abs = ifelse(
           days_offset_abs > 0 ,
           (value[which(Date == last_date)] - max_value) / days_offset_abs ,
-          tail(value, 1) - tail(value, 2)[1]
+          utils::tail(value, 1) - utils::tail(value, 2)[1]
         ),
         ## mean
         mean_offset_rate_abs = ifelse(
@@ -228,13 +234,13 @@ BEE.calc.metrics_point <- function(Events_corrected,
         
         median_offset_rate_abs = ifelse(
           days_offset_abs > 0 ,
-          median(daily_rates[Date >= date_max_value &
+          stats::median(daily_rates[Date >= date_max_value &
                                Date <= last_date], na.rm = TRUE),
           raw_offset_rate_abs
         ),
         ## Standard deviation
         sd_offset_rate_abs = ifelse(days_offset_abs > 0, 
-                                    sd(daily_rates[Date >= date_max_value &
+                                    stats::sd(daily_rates[Date >= date_max_value &
                                        Date <= last_date], na.rm = TRUE), NA)
       ) %>%
       ungroup()
@@ -280,10 +286,10 @@ BEE.calc.metrics_point <- function(Events_corrected,
       group_by(ID) %>%
       summarise(
         mean_anomaly_qt90 = mean(anomaly_qt90, na.rm = TRUE),
-        sd_anomaly_qt90 = sd(anomaly_qt90, na.rm = TRUE),
+        sd_anomaly_qt90 = stats::sd(anomaly_qt90, na.rm = TRUE),
         max_anomaly_qt90 = max(anomaly_qt90, na.rm = TRUE),
         mean_anomaly_mean = mean(anomaly_mean, na.rm = TRUE),
-        sd_anomaly_mean = sd(anomaly_mean, na.rm = TRUE),
+        sd_anomaly_mean = stats::sd(anomaly_mean, na.rm = TRUE),
         max_anomaly_mean = max(anomaly_mean, na.rm = TRUE),
         max_category = names(sort(table(daily_category), decreasing = TRUE))[1],
         # Catégorie la plus fréquente
@@ -291,8 +297,8 @@ BEE.calc.metrics_point <- function(Events_corrected,
       )
     df <- df %>%
       left_join(summary_stats, by = "ID")
-    setnames(df, old = "max_category.y", new = "most_frequent_category")
-    setnames(df, old = "max_category.x", new = "max_category")
+    data.table::setnames(df, old = "max_category.y", new = "most_frequent_category")
+    data.table::setnames(df, old = "max_category.x", new = "max_category")
     if (group_by_event) {
       df <- df %>%
         # Delete daily values that are not usefull to describe the full event

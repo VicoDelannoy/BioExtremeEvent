@@ -16,7 +16,8 @@
 #' @export
 #'
 #' @examples 
-#' TO BE ADD
+#' # to be added
+#' 
 #' 
 #'
 
