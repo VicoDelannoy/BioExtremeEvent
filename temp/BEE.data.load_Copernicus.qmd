@@ -24,10 +24,10 @@ BEE.data.load_Copernicus <- function(username,
     output_directory = here::here("Data")){
   
     # Create a virtual Python space and connect to Copernicus API
-    virtualenv_create(envname = "CopernicusMarine")
-    virtualenv_install("CopernicusMarine", packages = c("copernicusmarine"))
+    reticulate::virtualenv_create(envname = "CopernicusMarine")
+    reticulate::virtualenv_install("CopernicusMarine", packages = c("copernicusmarine"))
     reticulate::use_virtualenv("CopernicusMarine", required = TRUE)
-    py_install("copernicusmarine", pip = TRUE)
+    reticulate::py_install("copernicusmarine", pip = TRUE)
     # Check that it work, usually, if it doesn't works it is because Pyhton is nowhere in the system.
     version <- system("python3 --version", intern = TRUE)
   
@@ -35,14 +35,14 @@ BEE.data.load_Copernicus <- function(username,
     version <- system("python3 --version", intern = TRUE)
     user_response <- tolower(readline(prompt = "No Python version was found on your device. Python is required to use the CopernicusMarine interface, which allows downloading Marine Copernicus datasets from R. Would you like to install Python in a virtual environment within the 'reticulate' package? This process will take approximately 5 minutes and needs to be done only once. (Yes/No):"))
     if (user_response == "YES" || user_response == "yes") {
-      install_python(version = "3.10")
+      reticulate::install_python(version = "3.10")
       version <- reticulate::py_config()
       print(version)
       # Create a virtual Python space and connect to Copernicus API
-      virtualenv_create(envname = "CopernicusMarine")
-      virtualenv_install("CopernicusMarine", packages = c("copernicusmarine"))
+      reticulate::virtualenv_create(envname = "CopernicusMarine")
+      reticulate::virtualenv_install("CopernicusMarine", packages = c("copernicusmarine"))
       reticulate::use_virtualenv("CopernicusMarine", required = TRUE)
-      py_install("copernicusmarine", pip = TRUE)
+      reticulate::py_install("copernicusmarine", pip = TRUE)
     }
     if (user_response == "NO" || user_response == "No"){
       return("At last update, Copernicus Marine data center has not provided an API that allows downloding directly from R, thus creating a virutal pyhton environment is necessary. If you want to download a small area or a short time window, you may consider downloding rasters directly on https://data.marine.copernicus.eu/ . Both methods work well with the other functions.")

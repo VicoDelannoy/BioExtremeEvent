@@ -32,6 +32,10 @@
 #'
 #' @export
 
+# For tests : YourSpatraster = ds; start_date = "1982-01-01" 
+# end_date = "2010-12-31"; threshold = "qt"; quantile_value = 0.9
+# time_window = 5; smooth_window = 7
+
 BEE.calc.baseline <- function(YourSpatraster,
                               start_date = NULL,
                               end_date = NULL,
@@ -40,29 +44,28 @@ BEE.calc.baseline <- function(YourSpatraster,
                               time_window = 5,
                               smooth_window = 10) {
   # Subset the dataset to the chosen start_date and end-date if necessary
-  if (is.null(start_date) | !is.null(end_date)) {
-    if (is.null(start_date)) {
-      start_date <- terra::names(YourSpatraster)[1]
-      warning(
-        "You have provided an 'end_date' but no 'start_date', first ",
-        "date of the dataset (",
-        start_date,
-        ") have been used as first ",
-        "day of the baseline."
-      )
-    }
-    if (is.null(end_date)) {
-      end_date <- terra::names(YourSpatraster)[terra::nlyr(YourSpatraster)]
-      warning(
-        "You have provided a 'start_date' but no 'end_date', last date of ",
-        "the dataset (",
-        end_date,
-        ") have been used as last day of the baseline."
-      )
-    }
+  if (is.null(start_date)) {
+    start_date <- terra::names(YourSpatraster)[1]
+    warning(
+      "You have provided an 'end_date' but no 'start_date', first ",
+      "date of the dataset (",
+      start_date,
+      ") have been used as first ",
+      "day of the baseline."
+    )
+  }
+  if (is.null(end_date)) {
+    end_date <- terra::names(YourSpatraster)[terra::nlyr(YourSpatraster)]
+    warning(
+      "You have provided a 'start_date' but no 'end_date', last date of ",
+      "the dataset (",
+      end_date,
+      ") have been used as last day of the baseline."
+    )
   }
   # Cut YourSpatraster to only keep the part between start_date and end_date
-  dates <- as.Date(stats::time(YourSpatraster))
+  dates <- as.Date(terra::time(YourSpatraster))
+  print("test")
   to_keep <- which(dates >= as.Date(start_date) &
                      dates <= as.Date(end_date))
   YourSpatraster <- YourSpatraster[[to_keep]]

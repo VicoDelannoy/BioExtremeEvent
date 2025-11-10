@@ -397,7 +397,7 @@ BEE.calc.baseline &lt;- function(YourSpatraster, start_date=NULL, end_date=NULL,
       warning(&quot;You have provided an &#39;end_date&#39; but no &#39;start_date&#39;, first date of the dataset (&quot;,start_date,&quot;) have been used as first day of the baseline.&quot;  )
     }
     if ( is.null(end_date) ){
-      end_date &lt;- names(YourSpatraster)[nlyr(YourSpatraster)]
+      end_date &lt;- terra::names(YourSpatraster)[terra::nlyr(YourSpatraster)]
       warning(&quot;You have provided a &#39;start_date&#39; but no &#39;end_date&#39;, last date of the dataset (&quot;, end_date,&quot;) have been used as last day of the baseline.&quot;  )
     }
   }
@@ -413,7 +413,7 @@ BEE.calc.baseline &lt;- function(YourSpatraster, start_date=NULL, end_date=NULL,
   years &lt;- as.integer(format(dates, &quot;%Y&quot;)) # Years
   # Build a dataframe with the layer number, the doy and the corrected doy (366, 60 don&#39;t exist in non leap year)
   df &lt;- data.frame( date = dates,
-                    N_layer = seq(1,nlyr(YourSpatraster),1),
+                    N_layer = seq(1,terra::nlyr(YourSpatraster),1),
                     leap_year = is_leap_year((years)),
                     doy = as.integer(format(dates, &quot;%j&quot;))) #day of the year
   df$doy2 &lt;- ifelse(df$doy &gt;= 60 &amp; !df$leap_year, df$doy+1, df$doy)
@@ -433,12 +433,12 @@ BEE.calc.baseline &lt;- function(YourSpatraster, start_date=NULL, end_date=NULL,
   baseline_list &lt;- lapply(1:366, function(i) {
       terra::app(YourSpatraster[[doy_indices[[i]]]], fun = q_rolling)
     })
-  baseline &lt;- rast(baseline_list) #convert to Spatraster
+  baseline &lt;- terra::rast(baseline_list) #convert to Spatraster
   } else if (threshold == &quot;mean&quot;){        # if the baseline chosen is a mean value then enter loop bellow
     baseline_list &lt;- lapply(1:366, function(i) {
       terra::app(YourSpatraster[[doy_indices[[i]]]], fun = mean)
     })
-  baseline &lt;- rast(baseline_list) #convert to Spatraster
+  baseline &lt;- terra::rast(baseline_list) #convert to Spatraster
   }   
   # Smooth the value with an 11 days moving average
   smooth_indices &lt;- vector(&quot;list&quot;, 366)
@@ -450,7 +450,7 @@ BEE.calc.baseline &lt;- function(YourSpatraster, start_date=NULL, end_date=NULL,
   baseline &lt;- lapply(1:366, function(i) {
     terra::app(baseline[[smooth_indices[[i]]]], fun = mean, na.rm = TRUE)
     })
-  baseline &lt;- rast(baseline)
+  baseline &lt;- terra::rast(baseline)
   return(baseline)
 }</code></pre>
 </div>

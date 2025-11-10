@@ -357,50 +357,60 @@ display: none;
 
 <p>BEE.calc.binarize is not designed to work on 4D data (time + spatial
 3D).</p>
-<p>#rast_name= ds; baseline=baseline_qt90; direction = “above”</p>
-<pre class="r"><code>BEE.calc.binarize &lt;- function(rast_name, baseline, direction) {
+<p>#YourSpatraster= ds; baseline=baseline_qt90; direction = “above”</p>
+<pre class="r"><code>#------------------------------------------------------------------------------- 
+#&#39; @BEE.calc.binarize
+#&#39; @description The function binarise a Spatraster by comparing the observed value with the baseline. If &quot;direction&quot; argument is &quot;above&quot;, the values above the baseline will be converted to 1, and the value bellow baseline will be converted to 0. The process works in reverse when &quot;direction&quot; = below.
+#&#39; @param YourSpatraster The Spatraster containing the values of the studied parameter, with one layer per timestep.
+#&#39; @param baseline A Spatraster built using the BEE.calc.baseline function that contains the baseline value for each pixel on a given day of the year (with 366 layers).
+#&#39; @param direction The accepted values for this argument are &quot;above&quot; or &quot;below&quot;. This tells the function whether it values above baseline or below baseline are to be considered as extreme events.
+#&#39; @return The function returns a list containing a Spatraster for each day of a typical year (366 Spatraster, with one layer per year provided in YourSpatraster). These rasters have the same properties as &quot;YourSpatraster&quot; but the values have been replace with 1 if the pixel value was more extreme than the baseline and with 0 if it was not. 
+#&#39; @detail For computational purposes in the next functions of the pipeline, the order of the layers differs from that of &quot;YourSpatraster&quot;. BEE.calc.binarize is not design to work on 4D data (3D in space + time). To do so, please refer to BEE.calc.4thD.
+#&#39; #------------------------------------------------------------------------------- 
+
+BEE.calc.binarize &lt;- function(YourSpatraster, baseline, direction) {
 
   if(class(baseline) == &quot;SpatRaster&quot;){
-    new_extent &lt;- ext(rast_name) # Retrieve the extent of rast_name
-    baseline &lt;- resample(baseline, rast_name, method = &quot;near&quot;) # Change the extent to match that of rast_name
-    #baseline &lt;- crop(baseline, new_extent, snap = &quot;in&quot;) # Crop to obtain the same area as rast_name
-    time_list_exp &lt;- time(rast_name, format=&quot;days&quot;) # Retrieve the dates
+    new_extent &lt;- terra::ext(YourSpatraster) # Retrieve the extent of YourSpatraster
+    baseline &lt;- terra::resample(baseline, YourSpatraster, method = &quot;near&quot;) # Change the extent to match that of YourSpatraster
+    #baseline &lt;- crop(baseline, new_extent, snap = &quot;in&quot;) # Crop to obtain the same area as YourSpatraster
+    time_list_exp &lt;- terra::time(YourSpatraster, format=&quot;days&quot;) # Retrieve the dates
     time_list_base &lt;- generate_month_day(2024) # Create dates in the format %m.%d for a leap year
-    names(rast_name) &lt;- time_list_exp # Rename the layers with the dates
+    names(YourSpatraster) &lt;- time_list_exp # Rename the layers with the dates
     names(baseline) &lt;- time_list_base # Rename the layers with the dates
     # Check if there is a fourth hidden dimension. For instance there could be several depths or several altitudes which would result in several layer having the same dates and thus the same length.
-    if (any(table(time(rast_name))!=1)){ #at least one date has several layers
-      rep &lt;- sum(table(time(rast_name)))/length(table(time(rast_name)))
+    if (any(table(terra::time(YourSpatraster))!=1)){ #at least one date has several layers
+      rep &lt;- sum(table(terra::time(YourSpatraster)))/length(table(terra::time(YourSpatraster)))
       if (rep==round(rep)){# all dates are repeted the same number of time
         rast_list &lt;- list()
-        n &lt;- nlyr(rast_name)
+        n &lt;- terra::nlyr(YourSpatraster)
         for (l in seq(1,rep,1)){ # create a list with all days from the same depths
           layers &lt;- seq(l,n,rep) 
-          rast_list[[l]]&lt;-terra::rast(rast_name[[layers]])
+          rast_list[[l]]&lt;-terra::rast(YourSpatraster[[layers]])
         } 
         delta &lt;- list() 
         for ( d in seq(1, length(rast_list))){
           delta[[d]] &lt;- binarize_spat(rast_list[[d]], baseline, direction)
         }
-        delta &lt;- binarize_spat(rast_name, baseline, direction) # Binarize the pixels to 1 &amp; 0 (function from the packacge itself, see bellow) /!\ this part doesn&#39;t check if the value is above for five consecutive days or any duration
+        delta &lt;- binarize_spat(YourSpatraster, baseline, direction) # Binarize the pixels to 1 &amp; 0 (function from the packacge itself, see bellow) /!\ this part doesn&#39;t check if the value is above for five consecutive days or any duration
         delta_list &lt;- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
         return(delta_list) # Output the list
       }
     }
     
-    delta &lt;- binarize_spat(rast_name, baseline, direction) # Binarize the pixels to 1 &amp; 0 (function from the packacge itself, see bellow) /!\ this part doesn&#39;t check if the value is above for five consecutive days or any duration
+    delta &lt;- binarize_spat(YourSpatraster, baseline, direction) # Binarize the pixels to 1 &amp; 0 (function from the packacge itself, see bellow) /!\ this part doesn&#39;t check if the value is above for five consecutive days or any duration
     delta_list &lt;- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
     return(delta_list) # Output the list
   }
   
   if(class(baseline) == &quot;numeric&quot;){
-    time_list_exp &lt;- time(rast_name, format=&quot;days&quot;) # Retrieve the dates
-    names(rast_name) &lt;- time_list_exp # Rename the layers with the dates
+    time_list_exp &lt;- terra::time(YourSpatraster, format=&quot;days&quot;) # Retrieve the dates
+    names(YourSpatraster) &lt;- time_list_exp # Rename the layers with the dates
     if (direction == &quot;above&quot;){
-      delta &lt;- terra::ifel(rast_name &lt; baseline, 0,1) # Binarize the cells based on the condition
+      delta &lt;- terra::ifel(YourSpatraster &lt; baseline, 0,1) # Binarize the cells based on the condition
       }
     if (direction == &quot;bellow&quot;){
-      delta &lt;- terra::ifel(rast_name &lt; baseline, 1,0) # Binarize the cells based on the condition
+      delta &lt;- terra::ifel(YourSpatraster &lt; baseline, 1,0) # Binarize the cells based on the condition
     }
     delta_list &lt;- RastToList(delta) # Create a list of SpatRaster by date in the format %d.%m
     return(delta_list) # Output the list
@@ -418,10 +428,10 @@ list of date (format %m.%d) for a year</p>
 <div id="binarise-spatrasters-cells-with-1-0-if-true-or-false-to-a-reference-condition" class="section level1">
 <h1>Binarise SpatRaster’s cells with 1 &amp; 0 if true or false to a
 reference condition</h1>
-<p>obs &lt;- rast_name ; base &lt;- baseline_qt90</p>
+<p>obs &lt;- YourSpatraster ; base &lt;- baseline_qt90</p>
 <pre class="r"><code>binarize_spat &lt;- function(obs, base, direction=&quot;above&quot;){
   #adjust dimension of &#39;base&#39; so it matches those of &#39;obs&#39;
-  dates &lt;- as.Date(time(obs))  # Dates
+  dates &lt;- as.Date(terra::time(obs))  # Dates
   years &lt;- as.integer(format(dates, &quot;%Y&quot;)) # Years
   is_leap_year &lt;- function(years) {
     return((years %% 4 == 0 &amp; years %% 100 != 0) | (years %% 400 == 0))
@@ -436,7 +446,7 @@ reference condition</h1>
       return(base)
     }
   })
-  base_extended &lt;- rast(base_list) 
+  base_extended &lt;- terra::rast(base_list) 
   # In case data dont start a first of January and:or don&#39;t end the 31th of december, I need to adapt base_extended
   first_year &lt;- min(years)
   last_year &lt;- max(years)
@@ -446,7 +456,7 @@ reference condition</h1>
   nb_last_day &lt;- which(dates == last_date) 
   last_layer &lt;- doy_first_year + nb_last_day -1
   base_extended &lt;- base_extended[[doy_first_year:last_layer]]
-  time(base_extended) &lt;- dates
+  terra::time(base_extended) &lt;- dates
   #calculate anomalia
   delta &lt;- obs - base_extended
 

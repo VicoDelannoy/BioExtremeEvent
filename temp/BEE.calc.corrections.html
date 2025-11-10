@@ -360,6 +360,13 @@ EE.calc.true_events have induced. BEE.calc.corrections is not designed
 to work on 4D data (time + spatial 3D).</p>
 <pre class="r"><code>#function for 1 dataframe (=one date in Events_corrected)
 analyze_changes &lt;- function(dataframe) {
+  #-------------------------------------------------------------------------------  
+#&#39; @BEE.calc.corrections
+#&#39; @description Computes the number of modifications between the raw binerised Spatraster and the Spartraster produced using BEE.calc.true_event. This provides an indication of the differences between the number of days above the threshold/baseline and the number of days that are considered to be extreme events, according to the criteria set in BEE.calc.true_event.
+#&#39; @param Events_corrected The second element of the output of BEE.calc.true_event (a list of data.table containing information about the value of each pixel before and after applying criteria to distinguish anormal days from extreme events).
+#&#39; @return A text summarising the modifications induced.
+#-------------------------------------------------------------------------------
+  
   # Count modifications
   one_to_zero &lt;- sum(dataframe$Original_value == 1 &amp; dataframe$Cleanned_value == 0, na.rm = TRUE)
   zero_to_one &lt;- sum(dataframe$Original_value == 0 &amp; dataframe$Cleanned_value == 1, na.rm = TRUE)

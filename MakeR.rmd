@@ -78,14 +78,13 @@ ds <- BEE.data.load_Copernicus( username=username, password=password,
 HERE I MUST ADD A WRAPPED VERSION OF HEATWAVE3
 
 ## Get your dataset in the environnement
-
 You can start from here is your data are already in your computer.
 
 ```{r}
 # SST
-ds <- rast("Data/cnmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_1982_2024.nc.nc")
-time(ds) <- as.Date(time(ds))
-names(ds) <- time(ds)
+ds <- terra::rast("Data/cnmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_1982_2024.nc.nc")
+terra::time(ds) <- as.Date(terra::time(ds))
+names(ds) <- terra::time(ds)
 
 # ML
 ds2 <- rast("Data/med-cmcc-tem-rean-d_1741965343789.nc")
@@ -103,7 +102,7 @@ If your using the package to work on temperature raster, you can check that the 
 ```{r}
 ds <- BEE.calc.celsius(ds)
 terra::writeRaster(ds, "Data/ds_Golfe_du_lion.tiff")
-ds <- rast("Data/ds_Golfe_du_lion.tiff")
+ds <- terra::rast("Data/ds_Golfe_du_lion.tiff")
 ```
 
 # 3. Calculate a baseline value for each cell in your dataset using one of two methods with *"BEE.calc.baseline"* :
@@ -117,7 +116,7 @@ ds <- rast("Data/ds_Golfe_du_lion.tiff")
 -   start_date and end_date are NULL if no date provided. Warning, dates must be under "YYYY-MM-DD" format.
 
 ```{r}
-baseline_qt90 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "2009-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 
+baseline_qt90 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 
 baseline_qt10 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
 baseline_mean <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
 
