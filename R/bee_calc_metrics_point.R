@@ -28,6 +28,7 @@
 #' @examples 
 #' # To be added
 
+#-------------------------------------------------------------------------------
 # start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; 
 # GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
 BEE.calc.metrics_point <- function(Events_corrected,
@@ -147,20 +148,20 @@ BEE.calc.metrics_point <- function(Events_corrected,
     df <- df_list[[p]]
     df$Date <- as.Date(df$Date)
     df$dates <- format(as.Date(df$Date), "%m-%d")
-    df <- df %>%
-      arrange(ID, Date) %>% # put data in pixel order and chronological order
-      group_by(ID) %>% # Create columns with info on the previous group
-      mutate(row_num = row_number()) %>%  # useful later
-      ungroup() %>%
-      mutate(
-        prev_value = lag(value),
-        prev_ID = lag(ID),
+    df <- df |>
+      dplyr::arrange(ID, Date) |> # put data in pixel order and chronological order
+      dplyr::group_by(ID) |> # Create columns with info on the previous group
+      dplyr::mutate(row_num = dplyr::row_number()) |>  # useful later
+      dplyr::ungroup() |>
+      dplyr::mutate(
+        prev_value = dplyr::lag(value),
+        prev_ID = dplyr::lag(ID),
         last_value_prev_group = ifelse(row_num == 1 &
                                          ID != prev_ID, prev_value, NA)
-      ) %>%
-      fill(last_value_prev_group, .direction = "down") %>%
-      group_by(ID) %>%
-      mutate(
+      ) |>
+      tidyr::fill(last_value_prev_group, .direction = "down") |>
+      dplyr::group_by(ID) |>
+      dplyr::mutate(
         # Get GPS position of each point
         x = GPS$x[p],
         y = GPS$y[p],
@@ -169,9 +170,7 @@ BEE.calc.metrics_point <- function(Events_corrected,
         event_ID = unique(ID),
         
         # Duration of each event (assuming Nb_days is constant per ID)
-        Nb_days = first(Nb_days), # Nb_days N'EST PAS CRÉÉ AVANT, À VOIR SI 
-        # CETTE LIGNE EST TOUJOURS UTILE OU SI C'EST UN RÉSIDU D'UN TRUC 
-        # SUPPPRIMÉ
+        Nb_days = data.table::first(Nb_days), 
         
         # First and last day of each event
         first_date = as.Date(min(Date)),
@@ -186,7 +185,7 @@ BEE.calc.metrics_point <- function(Events_corrected,
         date_max_value = as.Date(Date[which.max(value)]),
         
         #Daily rates
-        daily_rates = (lead(value) - value) / as.numeric(lead(Date) - Date),
+        daily_rates = (dplyr::lead(value) - value) / as.numeric(dplyr::lead(Date) - Date),
         
         # Onset rate (up to the absolut maximum value during the event)
         days_onset_abs = as.numeric(date_max_value - first_date),
@@ -194,7 +193,7 @@ BEE.calc.metrics_point <- function(Events_corrected,
         raw_onset_rate_abs = ifelse(
           days_onset_abs > 0,
           (max_value - value[which(Date == first_date)]) / days_onset_abs,
-          value[1] - first(last_value_prev_group)
+          value[1] - data.table::first(last_value_prev_group)
         ),
         ## mean
         mean_onset_rate_abs = ifelse(
@@ -242,49 +241,51 @@ BEE.calc.metrics_point <- function(Events_corrected,
         sd_offset_rate_abs = ifelse(days_offset_abs > 0, 
                                     stats::sd(daily_rates[Date >= date_max_value &
                                        Date <= last_date], na.rm = TRUE), NA)
-      ) %>%
-      ungroup()
+      ) |>
+      dplyr::ungroup()
     # Add daily baseline_qt90 and daily baseline_mean
-    df <- df %>%
-      left_join(qt90[, c("dates", paste0("V", as.character(p)))],
-                by = "dates") %>%
-      rename(baseline_qt90 = paste0("V", as.character(p))) %>%
-      left_join(mean[, c("dates", paste0("V", as.character(p)))],
-                by = "dates") %>%
-      rename(baseline_mean = paste0("V", as.character(p)))
+    df <- df |>
+       dplyr::left_join(qt90[, c("dates", paste0("V", as.character(p)))],
+                by = "dates") |>
+       dplyr::rename(baseline_qt90 = paste0("V", as.character(p))) |>
+       dplyr::left_join(mean[, c("dates", paste0("V", as.character(p)))],
+                by = "dates") |>
+       dplyr::rename(baseline_mean = paste0("V", as.character(p)))
     # Calculate anomalies
-    df <- df %>%
-      mutate(
+    df <- df |>
+      dplyr::mutate(
         anomaly_qt90 = value - baseline_qt90,
         anomaly_mean = value - baseline_mean,
         anomaly_unit = baseline_qt90 - baseline_mean,
-        daily_category = case_when(
-          anomaly_qt90 < anomaly_unit ~ "Category I",
-          anomaly_qt90 < 2 * anomaly_unit ~ "Category II",
-          anomaly_qt90 < 3 * anomaly_unit ~ "Category III",
-          anomaly_qt90 >= 3 * anomaly_unit ~ "Category IV",
+        daily_category =  dplyr::case_when(
+          anomaly_qt90 < 0 ~ "No extreme event",
+          anomaly_qt90 < anomaly_unit & anomaly_qt90 >= 0 ~ "Category I",
+          anomaly_qt90 < 2 * anomaly_unit & anomaly_qt90 >= 0 ~ "Category II",
+          anomaly_qt90 < 3 * anomaly_unit & anomaly_qt90 >= 0 ~ "Category III",
+          anomaly_qt90 >= 3 * anomaly_unit & anomaly_qt90 >= 0~ "Category IV",
           TRUE ~ NA_character_
         )
       )
     # Keep the maximum category reached by each event
-    category_order <- c("Category I", "Category II", "Category III",
+    category_order <- c("No extreme event","Category I", "Category II", "Category III",
                         "Category IV")
-    df <- df %>%
-      mutate(daily_category = factor(daily_category, levels = category_order))
-    df <- df %>% mutate(event_ID = ID)
-    max_category <- df %>%
-      filter(!is.na(daily_category)) %>%
-      group_by(event_ID) %>%
-      summarise(max_category = category_order[max(as.numeric(daily_category))],
+    df <- df |>
+      dplyr::mutate(daily_category = factor(daily_category,
+                                            levels = category_order))
+    df <- df |> dplyr::mutate(event_ID = ID)
+    max_category <- df |>
+      filter(!is.na(daily_category)) |>
+      dplyr::group_by(event_ID) |>
+      dplyr::summarise(max_category = max(daily_category),
                 .groups = 'drop')
-    df <- df %>%
-      left_join(max_category, by = "event_ID")
+    df <- df |>
+       dplyr::left_join(max_category, by = "event_ID")
     
     # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to
     # the ouputs + add maximal category of each event
-    summary_stats <- df %>%
-      group_by(ID) %>%
-      summarise(
+    summary_stats <- df |>
+      dplyr::group_by(ID) |>
+       dplyr::summarise(
         mean_anomaly_qt90 = mean(anomaly_qt90, na.rm = TRUE),
         sd_anomaly_qt90 = stats::sd(anomaly_qt90, na.rm = TRUE),
         max_anomaly_qt90 = max(anomaly_qt90, na.rm = TRUE),
@@ -295,12 +296,12 @@ BEE.calc.metrics_point <- function(Events_corrected,
         # Catégorie la plus fréquente
         .groups = 'drop'
       )
-    df <- df %>%
-      left_join(summary_stats, by = "ID")
+    df <- df |>
+       dplyr::left_join(summary_stats, by = "ID")
     data.table::setnames(df, old = "max_category.y", new = "most_frequent_category")
     data.table::setnames(df, old = "max_category.x", new = "max_category")
     if (group_by_event) {
-      df <- df %>%
+      df <- df |>
         # Delete daily values that are not usefull to describe the full event
         select(
           -baseline_qt90,
@@ -316,11 +317,11 @@ BEE.calc.metrics_point <- function(Events_corrected,
           -prev_value,
           -prev_ID,
           -last_value_prev_group
-        ) %>%
+        ) |>
         distinct(event_ID, .keep_all = TRUE)  # Une seule ligne par ID
       
     } else {
-      df <- df %>% select(-date,
+      df <- df |> select(-date,
                           -ID,
                           -row_num,
                           -prev_value,

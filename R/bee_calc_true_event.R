@@ -103,6 +103,7 @@
 #' # low complexity with n = 4 and d = 1)
 #-------------------------------------------------------------------------------
 
+# n = 5, d= 3
 BEE.calc.true_event <- function(binarized_EE,
                                 n,
                                 d = NULL,
@@ -112,13 +113,12 @@ BEE.calc.true_event <- function(binarized_EE,
   # Extract all rasters (If we have to think to a faster way we could filter so
   # pixel that are always NA (land) are not processed and we could create 
   # "all_dates" starting from scratch, only knowing first day and last day and 
-  # assuming there is no missing day)
+  # assuming there is no missing day) 
   all_data <- lapply(seq_along(binarized_EE), function(i) {
     j_indices <- seq(1, length(names(binarized_EE[[i]])), 1)
     list(dates = names(binarized_EE[[i]][j_indices]), 
          rasters = binarized_EE[[i]][[j_indices]])
   })
-  
   # Merge data to save memory
   all_dates <- unlist(lapply(all_data, `[[`, "dates"), recursive = FALSE)
   all_rasters <- terra::rast(lapply(all_data, `[[`, "rasters"))
@@ -188,20 +188,20 @@ BEE.calc.true_event <- function(binarized_EE,
       # the series of 0, this way series of zeros are re-defined to include 0 
       # and 1 transformed to 0 in one same serie when they are next to each
       # other.
-      pixel <- data.table::data.table(
-        Original_value = as.vector(pixel_values),
-        #need to go through a dataframe because I don't know how to modify the
-        # ID directly in rle object
-        Cleanned_value = unlist(pixel_values_cleanned),
-        ID = rep(
-          seq_along(rle_series_cleanned$lengths),
-          rle_series_cleanned$lengths
-        ),
-        Nb_days = rep(
-          rle_series_cleanned$lengths,
-          rle_series_cleanned$lengths
+      pixel <- local({
+        dt <- data.table::data.table(
+          Original_value = as.vector(pixel_values),
+          #need to go through a dataframe because I don't know how to modify the
+          # ID directly in rle object
+          Cleanned_value = unlist(pixel_values_cleanned),
+          ID = rep(
+            seq_along(rle_series_cleanned$lengths),
+            rle_series_cleanned$lengths),
+          Nb_days = rep(rle_series_cleanned$lengths, 
+                        rle_series_cleanned$lengths)
         )
-      )
+        dt
+      })
       
       # Rename event that should gathered because they are separated by d days
       # (or less) bellow threshold
@@ -213,9 +213,10 @@ BEE.calc.true_event <- function(binarized_EE,
       zero_series <- setdiff(zero_series, c(1, max(pixel$ID))) # withdraw the
       # beginning and end of the timeserie as it cannot be surrounded by
       # '1' values
-      to_modify <- sort(c(zero_series, zero_series + 1))  #list of futur index
-      # to rename zero series and one series under one same name when necessary,
-      # using the first one serie's name (only when 0 serie length <=d)
+      to_modify <- sort(c(zero_series, zero_series + 1))  #list of futur EE 
+      # index to rename zero series and one series under one same name when 
+      # necessary, using the first one serie's name (only when 0 serie length 
+      # <=d)
       modifier <- zero_series - 1 #sequence of one before the short sequence of
       # 0, <-> the sequence of one that will be merge with the next sequence of
       # 1
@@ -225,17 +226,28 @@ BEE.calc.true_event <- function(binarized_EE,
       # Here above, if you have something like 111110111110111110 you will get 
       # aaabb as ID instead of aaaaa to adress this issue, I've added the lines
       # bellow :
-      pixel[, ID := ifelse(ID %in% names(replacement_map),
-                           as.numeric(replacement_map[as.character(ID)]),
-                           ID)]
-      pixel[, Nb_days := rep(rle(ID)$lengths, rle(ID)$lengths)]
-      pixel[, ID := paste0(pix, '_', ID)]
-      pixel[, date := sort(all_dates)]
-      pixel[, id := data.table::tstrsplit(ID, "_", keep = 1)]  # Extraire la 
-      #partie avant le premier "_"
-      pixel[, ID := paste0(id, "_", min(date, na.rm = TRUE), "_",
-                           max(date, na.rm = TRUE)), by = ID]
-      pixel[, id := NULL]  # Supprimer la colonne temporaire "id"
+      pixel$ID <- ifelse(pixel$ID %in% names(replacement_map),
+                         as.numeric(replacement_map[as.character(pixel$ID)]),
+                         pixel$ID)
+      
+      pixel$Nb_days <- rep(rle(pixel$ID)$lengths, rle(pixel$ID)$lengths)
+      
+      pixel$ID <- paste0(c, "_", pixel$ID)
+      
+      pixel$date <- sort(all_dates)
+      
+      pixel$id_part <- data.table::tstrsplit(pixel$ID, "_", keep = 2)[[1]] 
+      
+      # Get the first and last date of each extreme event
+      first_date <- stats::ave(pixel$date, pixel$id_part,
+                        FUN = function(x) min(x, na.rm = TRUE))
+      last_date  <- stats::ave(pixel$date, pixel$id_part,
+                        FUN = function(x) max(x, na.rm = TRUE))
+      
+      # Create new extreme event id has pixel_first_day_last_day
+      pixel$ID <- paste0(pixel$id_part, "_", first_date, "_", last_date)
+      pixel$id <- NULL# Supprimer la colonne temporaire "id"
+      
       return(pixel)
     }
     #pixel_time_series <- as.data.table(pixel_time_series)

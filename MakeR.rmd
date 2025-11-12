@@ -34,14 +34,6 @@ remotes::install_deps(dependencies = TRUE, upgrade = "never", force = TRUE) #lis
 ## Load Project Addins (R Functions and Packages) ----
 pkgload::load_all(here::here()) #here::here find files were the skeleton file is located
 
-
-
-## Load .qmd file (functions)
-files.source <- list.files(path = here::here(), pattern = "\\.R$", full.names = TRUE, recursive = TRUE)
-
-sapply(files.source, function(file) {
-  rmarkdown::render(file, envir = .GlobalEnv)  #Excute code and load functions
-})
 ```
 
 # 2. Get your data ready
@@ -110,11 +102,11 @@ baseline_mean <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01
 
 # Save and load baselines 
 terra::writeRaster(baseline_qt90, "Data/baseline_qt90_Golfe_du_lion.tiff", overwrite = TRUE)
-baseline_qt90 <- rast("Data/baseline_qt90_Golfe_du_lion.tiff")
+baseline_qt90 <- terra::rast("Data/baseline_qt90_Golfe_du_lion.tiff")
 terra::writeRaster(baseline_qt10, "Data/baseline_qt10_Golfe_du_lion.tiff", overwrite = TRUE)
-baseline_qt10 <- rast("Data/baseline_qt10_Golfe_du_lion.tiff")
+baseline_qt10 <- terra::rast("Data/baseline_qt10_Golfe_du_lion.tiff")
 terra::writeRaster(baseline_mean, "Data/baseline_mean_Golfe_du_lion.tiff", overwrite = TRUE)
-baseline_mean <- rast("Data/baseline_mean_Golfe_du_lion.tiff")
+baseline_mean <- terra::rast("Data/baseline_mean_Golfe_du_lion.tiff")
 
 # PLot climatology in Frontignan
 df_plot <- data.frame(doy=seq(1:366),
@@ -124,6 +116,7 @@ df_plot <- data.frame(doy=seq(1:366),
 mois_labels <- c("Jan", "Fév", "Mar", "Avr", "Mai", "Juin", 
                  "Juil", "Août", "Sept", "Oct", "Nov", "Déc")
 mois_jours <- c(1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336)
+library(ggplot2)
 ggplot(df_plot, aes(x = doy)) +
   geom_line(aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
   geom_line(aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
@@ -141,7 +134,7 @@ ggplot(df_plot, aes(x = doy)) +
 It provide a raw information for each day and each pixel without applying any definition of the Extreme Event. Of course, one may be interesting in applying a more restrictive definition of "Extreme Event". This will be done when BEE.calc.true_event will be used (later). This intermediate step is necessary to apply BEE.calc.true_event.
 
 ```{r chunk-5}
-binarized_EE <- BEE.calc.binarize(rast_name = ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above" #16:20
+binarized_EE <- BEE.calc.binarize(ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above" #16:20
 
 # plot(baseline_qt90[[1]]) ; plot(binarized_EE$`01.01`$`1983-01-01`)
 # Save or load
@@ -185,7 +178,7 @@ BEE.calc.corrections(Events_corrected)
 saveRDS(Events_corrected, file = "Data/Events_corrected.rds")
 Events_corrected <- readRDS("Data/Events_corrected.rds")
 terra::writeRaster(Corrected_rasters, "Data/Corrected_rasters_Golfe_du_lion.tiff", overwrite = TRUE)
-Corrected_rasters <- rast("Data/Corrected_rasters_Golfe_du_lion.tiff")
+Corrected_rasters <- terra::rast("Data/Corrected_rasters_Golfe_du_lion.tiff")
 result <- list(Corrected_rasters, Events_corrected)
 names(result) <- c("stacked_rasters_corrected", "Event_corrected")
 ```

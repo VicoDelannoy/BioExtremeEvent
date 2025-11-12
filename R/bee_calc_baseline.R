@@ -77,8 +77,6 @@ BEE.calc.baseline <- function(YourSpatraster,
   years <- as.integer(format(dates, "%Y")) # Years
   # Build a dataframe with the layer number, the doy and the corrected doy
   # (366, 60 don't exist in non leap year)
-  print(lenght(dates))
-  print(dates[1:60])
   df <- data.frame(
     date = dates,
     N_layer = seq(1, terra::nlyr(YourSpatraster), 1),
@@ -99,20 +97,19 @@ BEE.calc.baseline <- function(YourSpatraster,
   }
   # Calculate baseline according the chosen methodology
   if (threshold == "qt") {
-    # function to calculate percentile on a specific time_window
-    q_rolling <- function(values, na.rm = TRUE) {
-      terra::quantile(values, probs = quantile_value, na.rm = na.rm)
-    }
-    baseline_list <- lapply(1:366, function(i) {
-      terra::app(YourSpatraster[[doy_indices[[i]]]], fun = q_rolling)
-    })
-    baseline <- terra::rast(baseline_list) #convert to Spatraster
+    baseline <- terra::tapp(YourSpatraster,
+                           index = doy_indices,
+                           fun   = terra::quantile,
+                           probs = quantile_value,
+                           na.rm = TRUE)
   } else if (threshold == "mean") {
-    # if the baseline chosen is a mean value then enter loop bellow
-    baseline_list <- lapply(1:366, function(i) {
-      terra::app(YourSpatraster[[doy_indices[[i]]]], fun = mean)
-    })
-    baseline <- terra::rast(baseline_list) #convert to Spatraster
+    # if the baseline chosen is a mean value 
+    baseline <- terra::tapp(
+      YourSpatraster,
+      index = doy_indices,
+      fun   = mean,
+      na.rm = TRUE
+    )
   }
   # Smooth the value with an 11 days moving average
   smooth_indices <- vector("list", 366)

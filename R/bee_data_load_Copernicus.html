@@ -467,7 +467,7 @@ BEE.data.load_Copernicus &lt;- function(username,
     }
   }
   if (length(version) &gt; 0) {
-    cm &lt;- import(&quot;copernicusmarine&quot;) #not called in R
+    cm &lt;- reticulate::import(&quot;copernicusmarine&quot;) #not called in R
     cm$login(username, password)
     
     # Get the data

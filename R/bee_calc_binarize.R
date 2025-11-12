@@ -26,11 +26,13 @@
 #' BEE.calc.binarize is not design to work on 4D data (3D in space + time). 
 #' To do so, please refer to BEE.calc.4thD.
 #' #---------------------------------------------------------------------------
+#' 
+# baseline <- baseline_qt90 ; direction <- "above"
 
 BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
-  if (inherits(class(baseline), "SpatRaster")) {
+  if (class(baseline)[1] == "SpatRaster") {
     # Retrieve the extent of YourSpatraster
-    new_extent <- terra::ext(YourSpatraster) 
+    new_extent <- terra::ext(YourSpatraster)
     # Change the extent to match that of YourSpatraster
     baseline <- terra::resample(baseline, YourSpatraster, method = "near")
     # Crop to obtain the same area as YourSpatraster
