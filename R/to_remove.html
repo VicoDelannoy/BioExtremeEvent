@@ -9,10 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Victoria" />
+<meta name="author" content="victoria" />
 
+<meta name="date" content="2025-11-12" />
 
-<title>BEE.data.load_Copernicus</title>
+<title>to_remove.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,77 +350,21 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.data.load_Copernicus</h1>
-<h4 class="author">Victoria</h4>
+<h1 class="title toc-ignore">to_remove.R</h1>
+<h4 class="author">victoria</h4>
+<h4 class="date">2025-11-12</h4>
 
 </div>
 
 
-<p>This function is a wrapper from the CopernicusMarine function from
-pyhton. A pyhton setup must be present in your computer, thus this
-function is testing if some pyhton is present and if not it offer to
-download it from R.</p>
-<pre class="r"><code>BEE.data.load_Copernicus &lt;- function(username, 
-                                     password, 
-                                dataset_id, 
-                                dataset_version, 
-                            variables,
-                        minimum_longitude,
-                        maximum_longitude,
-                        minimum_latitude,
-                        maximum_latitude,
-                  start_datetime,
-                  end_datetime,
-            coordinates_selection_method=&quot;strict-inside&quot;,
-    disable_progress_bar=FALSE,
-    output_directory = here::here(&quot;Data&quot;)){
-  
-    # Create a virtual Python space and connect to Copernicus API
-    reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-    reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-    reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-    reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
-    # Check that it work, usually, if it doesn&#39;t works it is because Pyhton is nowhere in the system.
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-  
-  if (length(version) == 0) {
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-    user_response &lt;- tolower(readline(prompt = &quot;No Python version was found on your device. Python is required to use the CopernicusMarine interface, which allows downloading Marine Copernicus datasets from R. Would you like to install Python in a virtual environment within the &#39;reticulate&#39; package? This process will take approximately 5 minutes and needs to be done only once. (Yes/No):&quot;))
-    if (user_response == &quot;YES&quot; || user_response == &quot;yes&quot;) {
-      reticulate::install_python(version = &quot;3.10&quot;)
-      version &lt;- reticulate::py_config()
-      print(version)
-      # Create a virtual Python space and connect to Copernicus API
-      reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-      reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-      reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-      reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
-    }
-    if (user_response == &quot;NO&quot; || user_response == &quot;No&quot;){
-      return(&quot;At last update, Copernicus Marine data center has not provided an API that allows downloding directly from R, thus creating a virutal pyhton environment is necessary. If you want to download a small area or a short time window, you may consider downloding rasters directly on https://data.marine.copernicus.eu/ . Both methods work well with the other functions.&quot;)
-    }
-  }
-  if (length(version) &gt; 0) {
-    cm &lt;- import(&quot;copernicusmarine&quot;)
-    cm$login(username, password)
-    
-    # Get the data
-  ds &lt;- cm$subset(
-    dataset_id = dataset_id,
-    dataset_version = dataset_version,
-    variables= list(gsub(pattern = &quot;[\\[\\]]&quot;, replacement = &quot;&quot;, variables)),
-    minimum_longitude=minimum_longitude,
-    maximum_longitude=maximum_longitude,
-    minimum_latitude=minimum_latitude,
-    maximum_latitude=maximum_latitude,
-    start_datetime=start_datetime,
-    end_datetime=end_datetime,
-    coordinates_selection_method=coordinates_selection_method,
-    disable_progress_bar=disable_progress_bar,
-    output_directory = output_directory
-  )
-  } 
-}</code></pre>
+<p>Compute the arithmetic mean</p>
+<p>This function computes the arithmetic mean of a numeric variable.</p>
+<p><span class="citation">@param</span> x a numeric vector</p>
+<p><span class="citation">@return</span> A <code>numeric</code>
+representing the arithmetic mean of <code>x</code>.</p>
+<p><span class="citation">@export</span></p>
+<p><span class="citation">@examples</span> x &lt;- 1:10 moyenne(x)</p>
+<pre class="r"><code>moyenne &lt;- function(x) sum(x) / length(x)</code></pre>
 
 
 

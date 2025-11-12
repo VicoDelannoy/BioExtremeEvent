@@ -9,10 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Victoria" />
+<meta name="author" content="victoria" />
 
+<meta name="date" content="2025-11-12" />
 
-<title>BEE.data.load_Copernicus</title>
+<title>bee_calc_metrics_point.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,77 +350,360 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.data.load_Copernicus</h1>
-<h4 class="author">Victoria</h4>
+<h1 class="title toc-ignore">bee_calc_metrics_point.R</h1>
+<h4 class="author">victoria</h4>
+<h4 class="date">2025-11-12</h4>
 
 </div>
 
 
-<p>This function is a wrapper from the CopernicusMarine function from
-pyhton. A pyhton setup must be present in your computer, thus this
-function is testing if some pyhton is present and if not it offer to
-download it from R.</p>
-<pre class="r"><code>BEE.data.load_Copernicus &lt;- function(username, 
-                                     password, 
-                                dataset_id, 
-                                dataset_version, 
-                            variables,
-                        minimum_longitude,
-                        maximum_longitude,
-                        minimum_latitude,
-                        maximum_latitude,
-                  start_datetime,
-                  end_datetime,
-            coordinates_selection_method=&quot;strict-inside&quot;,
-    disable_progress_bar=FALSE,
-    output_directory = here::here(&quot;Data&quot;)){
-  
-    # Create a virtual Python space and connect to Copernicus API
-    reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-    reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-    reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-    reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
-    # Check that it work, usually, if it doesn&#39;t works it is because Pyhton is nowhere in the system.
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-  
-  if (length(version) == 0) {
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-    user_response &lt;- tolower(readline(prompt = &quot;No Python version was found on your device. Python is required to use the CopernicusMarine interface, which allows downloading Marine Copernicus datasets from R. Would you like to install Python in a virtual environment within the &#39;reticulate&#39; package? This process will take approximately 5 minutes and needs to be done only once. (Yes/No):&quot;))
-    if (user_response == &quot;YES&quot; || user_response == &quot;yes&quot;) {
-      reticulate::install_python(version = &quot;3.10&quot;)
-      version &lt;- reticulate::py_config()
-      print(version)
-      # Create a virtual Python space and connect to Copernicus API
-      reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-      reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-      reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-      reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
-    }
-    if (user_response == &quot;NO&quot; || user_response == &quot;No&quot;){
-      return(&quot;At last update, Copernicus Marine data center has not provided an API that allows downloding directly from R, thus creating a virutal pyhton environment is necessary. If you want to download a small area or a short time window, you may consider downloding rasters directly on https://data.marine.copernicus.eu/ . Both methods work well with the other functions.&quot;)
-    }
+<pre class="r"><code># BEE.calc.metrics_point is not designed to work on 4D data (time + spatial 3D).</code></pre>
+<p>BEE.calc.metrics_point compute metrics through time for specific
+locations.</p>
+<p><span class="citation">@param</span> Events_corrected Is the list of
+data tables produced by: bee_calc_true_event (the second element of the
+output). For each pixel, it contains a data.table with dates in the rows
+and a column indicating whether it is a day belonging to a heatwave (1)
+or not (0). <span class="citation">@param</span> Values is the
+spatraster with the values of the studded parameter, through time and
+space. <span class="citation">@param</span> GPS is a data frame
+containing the positions for which you want to compute metrics. It must
+contain columns labelled ‘x’ and ‘y’, which should contain longitudes
+and latitudes, respectively. <span class="citation">@param</span>
+start_date First day on which you want to start computing metrics. <span class="citation">@param</span> end_date Last day on which you want to
+start computing metrics. <span class="citation">@param</span>
+baseline_qt90 Spatraster of the 90th percentil baseline. <span class="citation">@param</span> baseline_mean Spatraster of the 90mean
+value baseline. <span class="citation">@param</span> group_by_event
+Whether you want an output summarise by extreme event or not. If not,
+you just get daily metrics.</p>
+<p><span class="citation">@returns</span> A list of dataframe (one per
+GPS point), each dataframe contains informations on the date of the
+extrem events, mean, median, max and min values, peak day, onset-rate,
+off-set rate, mean anomaly, maximum category etc. Categories are defined
+in Hobday et al. 2018. <span class="citation">@export</span></p>
+<p><span class="citation">@examples</span> # To be added</p>
+<pre class="r"><code># start_date &lt;- &quot;2022-01-01&quot; ; end_date &lt;- &quot;2023-12-31&quot; ; Values &lt;- ds ; 
+# GPS &lt;- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
+BEE.calc.metrics_point &lt;- function(Events_corrected,
+                                   Values,
+                                   GPS,
+                                   start_date = NULL,
+                                   end_date = NULL,
+                                   baseline_qt90 = baseline_qt90,
+                                   baseline_mean = baseline_mean,
+                                   group_by_event = TRUE){
+# WARNINGS
+  if (is.null(start_date) | is.null(end_date)) {
+    warning(
+      &quot;You didn&#39;t specify a begining date and a ending date (see argument 
+      &#39;start_date&#39; and &#39;end_date&#39;), the first date and last date in your time 
+      Values SpatRaster will be used.&quot;
+    )
+    start_date &lt;- min(as.Date.character(terra::names(Values)))
+    end_date &lt;- max(as.Date.character(terra::names(period_of_interest)))
   }
-  if (length(version) &gt; 0) {
-    cm &lt;- import(&quot;copernicusmarine&quot;)
-    cm$login(username, password)
+  if (class(start_date) != class(terra::names(Values[[1]]))  |
+      class(end_date)   != class(terra::names(Values[[1]]))  |
+      class(start_date) != class(end_date)) {
+    warning(
+      &quot;The date formats are inconsistent between start_date, end_date and 
+      Values. Please ensure that the layer names follow a consistent date 
+      format. Use class(YourObject) to verify the current format.&quot;
+    )
+  }
+  #Check that start date and end_date are within the SpatRasters provided
+  if (!(start_date %in% terra::names(Values)) |
+      !(end_date %in% terra::names(Values))) {
+    warning(
+      &quot;One or both the specified layers are not present in the SpatRaster 
+      containning corrected binarized extreme event.&quot;
+    )
+  }
+  Values_extent &lt;- terra::ext(Values)
+  #Check that all GPS points are within Values and period_of_interest extent
+  if (!all(abs(GPS[1]) &lt;= abs(Values_extent$xmax) &amp;
+           abs(GPS[1]) &gt;= abs(Values_extent$xmin))) {
+    warning(
+      &quot;At least one longitude coordinate falls outside the extent of the 
+      SpatRaster containing the binarized corrected events. Ensure the first 
+      column of the dataframe contains valid longitude (x) values for analysis.&quot;
+    )
+  }
+  if (!all(abs(GPS[2]) &lt;= abs(Values_extent$ymax) &amp;
+           abs(GPS[2]) &gt;= abs(Values_extent$ymin))) {
+    warning(
+      &quot;At least one latitude coordinate falls outside the extent of the 
+      SpatRaster containing the binarized corrected events. Ensure the second
+      column of the dataframe contains valid latitude (y) values for analysis.&quot;
+    )
+  }
+  # Check that one of the GPS position is not in a pixel that is always an NA 
+  # (it may indicates that it falls in an area that is not interesting for the 
+  # study)
+  NA_pixels &lt;- which(sapply(Events_corrected, function(df)
+    all(is.na(
+      df$Original_value
+    )))) # List of pixel that are always NA
+  GPS$pixel &lt;- terra::cellFromXY(Values, GPS) # List of the pixels corresponding
+  # to the GPS position provided
+  if (any(GPS$pixel %in% NA_pixels)) {
+    wrong_position &lt;- which(GPS$pixel %in% NA_pixels)
+    message(&quot;Problematic GPS positions:\n&quot;)
+    message(utils::capture.output(print(GPS[wrong_position, ])))
+  }
+  
+  # CODE 
+  #Extract values for the given GPS position
+  df_list  &lt;- lapply(GPS$pixel, function(p)
+    Events_corrected[[p]]) # on df per points/pixel
+  Values &lt;- t(terra::extract(Values, GPS[, 3]))
+  
+  # Subset both dataset so they match the timeframe provided with &#39;start_date&#39; 
+  # and &#39;end_date&#39;.
+  Date &lt;- rownames(Values)
+  Values &lt;- Values[which(
+    as.Date(rownames(Values)) &gt;= as.Date(start_date) &amp;
+      as.Date(rownames(Values)) &lt;= as.Date(end_date)
+  ), ]
+  Values &lt;- as.matrix(Values)
+  df_list &lt;- Map(function(df, col_idx) {
+    # col_idx is the id
+    df$Date &lt;- Date
+    df &lt;- df[df$Date &gt;= start_date &amp; df$Date &lt;= end_date, ]
+    df$value &lt;- Values[, col_idx] #Merge df_list and Values  # Ad to each 
+    # dataframe the corresponding column of pixel value
+    return(df)
+  }, df_list, seq_along(df_list))
+  
+  # For each event I want : duration, maximum intensity, mean and median 
+  # intensity, category, sum of anomalies, date of maximum intensity, position
+  # of the day of maximum intensity, mean increasing slop, mean decreasing 
+  # slope, start_date, end_date
+  ##Contrary to Events_corrected, Values didn&#39;t kept this information of which
+  # extreme event were merge together because they were separated by d days or 
+  # less. Thus, we need to use Events corrected if we want to calculate a metric
+  # that describe an event.
+  
+  #Create a list of dataframe to store the information using one element (df) 
+  # per pixel and one row per event
+  colnames(GPS) &lt;- c(&quot;x&quot;, &quot;y&quot;, names(GPS[3]))
+  
+  #Get daily anomaly to baseline_qt90 and to baseline_mean
+  qt90 &lt;- as.data.frame(t(terra::extract(baseline_qt90, GPS[, 3])))
+  qt90$dates &lt;- format(seq(as.Date(&quot;2024-01-01&quot;), as.Date(&quot;2024-12-31&quot;), 
+                           by = &quot;day&quot;), &quot;%m-%d&quot;)
+  mean &lt;- as.data.frame(t(terra::extract(baseline_mean, GPS[, 3])))
+  mean$dates &lt;- format(seq(as.Date(&quot;2024-01-01&quot;), as.Date(&quot;2024-12-31&quot;), 
+                           by = &quot;day&quot;), &quot;%m-%d&quot;)
+  
+  metrics &lt;- lapply(1:length(df_list), function(p) {
+    # Go through each pixel
+    df &lt;- df_list[[p]]
+    df$Date &lt;- as.Date(df$Date)
+    df$dates &lt;- format(as.Date(df$Date), &quot;%m-%d&quot;)
+    df &lt;- df %&gt;%
+      arrange(ID, Date) %&gt;% # put data in pixel order and chronological order
+      group_by(ID) %&gt;% # Create columns with info on the previous group
+      mutate(row_num = row_number()) %&gt;%  # useful later
+      ungroup() %&gt;%
+      mutate(
+        prev_value = lag(value),
+        prev_ID = lag(ID),
+        last_value_prev_group = ifelse(row_num == 1 &amp;
+                                         ID != prev_ID, prev_value, NA)
+      ) %&gt;%
+      fill(last_value_prev_group, .direction = &quot;down&quot;) %&gt;%
+      group_by(ID) %&gt;%
+      mutate(
+        # Get GPS position of each point
+        x = GPS$x[p],
+        y = GPS$y[p],
+        
+        # Get the ID of each event
+        event_ID = unique(ID),
+        
+        # Duration of each event (assuming Nb_days is constant per ID)
+        Nb_days = first(Nb_days), # Nb_days N&#39;EST PAS CRÉÉ AVANT, À VOIR SI 
+        # CETTE LIGNE EST TOUJOURS UTILE OU SI C&#39;EST UN RÉSIDU D&#39;UN TRUC 
+        # SUPPPRIMÉ
+        
+        # First and last day of each event
+        first_date = as.Date(min(Date)),
+        last_date = as.Date(max(Date)),
+        
+        # Mean, median, max temperature per event
+        mean_value = mean(value),
+        median_value = stats::median(value),
+        max_value = max(value),
+        
+        # Day of absolute maximum temperature
+        date_max_value = as.Date(Date[which.max(value)]),
+        
+        #Daily rates
+        daily_rates = (lead(value) - value) / as.numeric(lead(Date) - Date),
+        
+        # Onset rate (up to the absolut maximum value during the event)
+        days_onset_abs = as.numeric(date_max_value - first_date),
+        ## raw
+        raw_onset_rate_abs = ifelse(
+          days_onset_abs &gt; 0,
+          (max_value - value[which(Date == first_date)]) / days_onset_abs,
+          value[1] - first(last_value_prev_group)
+        ),
+        ## mean
+        mean_onset_rate_abs = ifelse(
+          days_onset_abs &gt; 0 ,
+          mean(daily_rates[Date &gt;= first_date &amp;
+                             Date &lt;= date_max_value], na.rm = TRUE),
+          raw_onset_rate_abs
+        ),
+        ## Median onset rate
+        median_onset_rate_abs = ifelse(
+          days_onset_abs &gt; 0 ,
+          stats::median(daily_rates[Date &gt;= first_date &amp;
+                               Date &lt;= date_max_value], na.rm = TRUE),
+          raw_onset_rate_abs
+        ),
+        ## Standard deviation
+        sd_onset_rate_abs = ifelse(days_onset_abs &gt; 0 ,
+                                   stats::sd(daily_rates[Date &gt;= first_date &amp;
+                                      Date &lt;= date_max_value], na.rm = TRUE),
+                                   NA),
+        
+        # Offset rate (from the absolut maximum value during the event)
+        days_offset_abs = as.numeric(last_date - date_max_value),
+        ## raw
+        raw_offset_rate_abs = ifelse(
+          days_offset_abs &gt; 0 ,
+          (value[which(Date == last_date)] - max_value) / days_offset_abs ,
+          utils::tail(value, 1) - utils::tail(value, 2)[1]
+        ),
+        ## mean
+        mean_offset_rate_abs = ifelse(
+          days_offset_abs &gt; 0 ,
+          mean(daily_rates[Date &gt;= date_max_value &amp;
+                             Date &lt;= last_date], na.rm = TRUE),
+          raw_offset_rate_abs
+        ),
+        
+        median_offset_rate_abs = ifelse(
+          days_offset_abs &gt; 0 ,
+          stats::median(daily_rates[Date &gt;= date_max_value &amp;
+                               Date &lt;= last_date], na.rm = TRUE),
+          raw_offset_rate_abs
+        ),
+        ## Standard deviation
+        sd_offset_rate_abs = ifelse(days_offset_abs &gt; 0, 
+                                    stats::sd(daily_rates[Date &gt;= date_max_value &amp;
+                                       Date &lt;= last_date], na.rm = TRUE), NA)
+      ) %&gt;%
+      ungroup()
+    # Add daily baseline_qt90 and daily baseline_mean
+    df &lt;- df %&gt;%
+      left_join(qt90[, c(&quot;dates&quot;, paste0(&quot;V&quot;, as.character(p)))],
+                by = &quot;dates&quot;) %&gt;%
+      rename(baseline_qt90 = paste0(&quot;V&quot;, as.character(p))) %&gt;%
+      left_join(mean[, c(&quot;dates&quot;, paste0(&quot;V&quot;, as.character(p)))],
+                by = &quot;dates&quot;) %&gt;%
+      rename(baseline_mean = paste0(&quot;V&quot;, as.character(p)))
+    # Calculate anomalies
+    df &lt;- df %&gt;%
+      mutate(
+        anomaly_qt90 = value - baseline_qt90,
+        anomaly_mean = value - baseline_mean,
+        anomaly_unit = baseline_qt90 - baseline_mean,
+        daily_category = case_when(
+          anomaly_qt90 &lt; anomaly_unit ~ &quot;Category I&quot;,
+          anomaly_qt90 &lt; 2 * anomaly_unit ~ &quot;Category II&quot;,
+          anomaly_qt90 &lt; 3 * anomaly_unit ~ &quot;Category III&quot;,
+          anomaly_qt90 &gt;= 3 * anomaly_unit ~ &quot;Category IV&quot;,
+          TRUE ~ NA_character_
+        )
+      )
+    # Keep the maximum category reached by each event
+    category_order &lt;- c(&quot;Category I&quot;, &quot;Category II&quot;, &quot;Category III&quot;,
+                        &quot;Category IV&quot;)
+    df &lt;- df %&gt;%
+      mutate(daily_category = factor(daily_category, levels = category_order))
+    df &lt;- df %&gt;% mutate(event_ID = ID)
+    max_category &lt;- df %&gt;%
+      filter(!is.na(daily_category)) %&gt;%
+      group_by(event_ID) %&gt;%
+      summarise(max_category = category_order[max(as.numeric(daily_category))],
+                .groups = &#39;drop&#39;)
+    df &lt;- df %&gt;%
+      left_join(max_category, by = &quot;event_ID&quot;)
     
-    # Get the data
-  ds &lt;- cm$subset(
-    dataset_id = dataset_id,
-    dataset_version = dataset_version,
-    variables= list(gsub(pattern = &quot;[\\[\\]]&quot;, replacement = &quot;&quot;, variables)),
-    minimum_longitude=minimum_longitude,
-    maximum_longitude=maximum_longitude,
-    minimum_latitude=minimum_latitude,
-    maximum_latitude=maximum_latitude,
-    start_datetime=start_datetime,
-    end_datetime=end_datetime,
-    coordinates_selection_method=coordinates_selection_method,
-    disable_progress_bar=disable_progress_bar,
-    output_directory = output_directory
-  )
-  } 
-}</code></pre>
+    # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to
+    # the ouputs + add maximal category of each event
+    summary_stats &lt;- df %&gt;%
+      group_by(ID) %&gt;%
+      summarise(
+        mean_anomaly_qt90 = mean(anomaly_qt90, na.rm = TRUE),
+        sd_anomaly_qt90 = stats::sd(anomaly_qt90, na.rm = TRUE),
+        max_anomaly_qt90 = max(anomaly_qt90, na.rm = TRUE),
+        mean_anomaly_mean = mean(anomaly_mean, na.rm = TRUE),
+        sd_anomaly_mean = stats::sd(anomaly_mean, na.rm = TRUE),
+        max_anomaly_mean = max(anomaly_mean, na.rm = TRUE),
+        max_category = names(sort(table(daily_category), decreasing = TRUE))[1],
+        # Catégorie la plus fréquente
+        .groups = &#39;drop&#39;
+      )
+    df &lt;- df %&gt;%
+      left_join(summary_stats, by = &quot;ID&quot;)
+    data.table::setnames(df, old = &quot;max_category.y&quot;, new = &quot;most_frequent_category&quot;)
+    data.table::setnames(df, old = &quot;max_category.x&quot;, new = &quot;max_category&quot;)
+    if (group_by_event) {
+      df &lt;- df %&gt;%
+        # Delete daily values that are not usefull to describe the full event
+        select(
+          -baseline_qt90,
+          -baseline_mean,
+          -anomaly_mean,
+          -anomaly_qt90,
+          -anomaly_unit,
+          -daily_category,
+          -date,
+          -ID,
+          -daily_category,
+          -row_num,
+          -prev_value,
+          -prev_ID,
+          -last_value_prev_group
+        ) %&gt;%
+        distinct(event_ID, .keep_all = TRUE)  # Une seule ligne par ID
+      
+    } else {
+      df &lt;- df %&gt;% select(-date,
+                          -ID,
+                          -row_num,
+                          -prev_value,
+                          -prev_ID,
+                          -last_value_prev_group)
+    }
+    return(df)
+  })
+}
+  
+  # OTHER PART TO DEVELOP :
+  # For each pixels :
+  # - anomalie cumulée par événements
+  # - catégories
+  # - onset rate, offset_rate (dans l&#39;événement et depuis une période donnée 
+  # avant et après dont la durée est fixée par l&#39;utilisateur)
+  #For the all period I want : Frequency, maximum intensity, mean and median 
+  # intensity, sum of anomalies, date of maximum intensity, first date 1, last
+  # date 1
+  
+  
+  #The categorie of each event are determined according according Hobday et al.
+  # 2018 definition
+  
+  #Category I : btw the 90th percentile and twice the value of the anomalies 
+  # between mean value end 90th percentile. Category II : btw twice and 3 times
+  # the anomalie Category III : btw 3 times and four time the anomaly 
+  # Category IV : observed value are higher than four times the anomaly btw mean
+  # and 90th percentile + the mean value.</code></pre>
 
 
 

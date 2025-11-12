@@ -9,10 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Victoria" />
+<meta name="author" content="victoria" />
 
+<meta name="date" content="2025-11-12" />
 
-<title>BEE.data.load_Copernicus</title>
+<title>bee_calc_escape.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,76 +350,384 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.data.load_Copernicus</h1>
-<h4 class="author">Victoria</h4>
+<h1 class="title toc-ignore">bee_calc_escape.R</h1>
+<h4 class="author">victoria</h4>
+<h4 class="date">2025-11-12</h4>
 
 </div>
 
 
-<p>This function is a wrapper from the CopernicusMarine function from
-pyhton. A pyhton setup must be present in your computer, thus this
-function is testing if some pyhton is present and if not it offer to
-download it from R.</p>
-<pre class="r"><code>BEE.data.load_Copernicus &lt;- function(username, 
-                                     password, 
-                                dataset_id, 
-                                dataset_version, 
-                            variables,
-                        minimum_longitude,
-                        maximum_longitude,
-                        minimum_latitude,
-                        maximum_latitude,
-                  start_datetime,
-                  end_datetime,
-            coordinates_selection_method=&quot;strict-inside&quot;,
-    disable_progress_bar=FALSE,
-    output_directory = here::here(&quot;Data&quot;)){
+<p>Computes metrics relative to the distance to the border of the
+extreme event (in surface, 2D)</p>
+<p><span class="citation">@description</span> This function calculate
+the mediane distance, mean distance and standard deviation of distance
+to escape form an extreme event ‘as the crow files’ (but avoiding NA
+pixels, which are suppose to represent a place that cannot be crossed)
+through time for a given GPS position or for all pixels.</p>
+<p><span class="citation">@param</span> true_event_output is
+Corrected_rasters, a binarized Spatraster obtained using function
+BEE.calc.true_event()[[“stacked_rasters_corrected”]]). (0 outside of
+event, 1 extreme event, NA land or missing data) OR Events_corrected, a
+list of df (obtained using BEE.calc.true_event()[[“Event_corrected”]] ).
+<span class="citation">@param</span> start_date and <span class="citation">@param</span> end_date defines the timeframe in during
+which you want to analyse distance to escape. If no dates are provided,
+computation will be done on all days_provided <span class="citation">@param</span> only_days_EE = ‘TRUE’ if you want to
+perform calculations using all the days. Use account = ‘FALSE’ when you
+want to calculate only for the days when your reference point is
+experiencing an extreme event. By default, account_all_days is set on
+FALSE <span class="citation">@param</span> each_event allows to specify
+if you want your result by extreme event or for the whole time periode
+specified. “each_event” = TRUE : compute one mean distance per event.
+“each_event” = FALSE : mean distance will be based on distances from all
+days in the time frame (belonging to an extreme event or not), including
+all days belonging to this event event if they are a ‘0’ day, TRUE :
+compute one mean distance accounting only for days that belong to an EE.
+<span class="citation">@param</span> pixel is a vector with x,y
+coordinates or a df of x,y coordinates or “all” if you want to compute
+distance metrics for all pixels in the raster provided through
+true_event_output</p>
+<p><span class="citation">@note</span> all distance metrics are limited
+by the size of the Spatraster your are providing.</p>
+<pre class="r"><code>#-------------------------------------------------------------------------------
+
+# BEE.calc.escape is not designed to work on 4D data (time + spatial 3D).
+# true_event_output &lt;- result ; start_date = &quot;2022-08-01&quot;; 
+# end_date = &quot;2022-08-12&quot; ; pixel = test ; only_days_EE = FALSE ; 
+# each_event = FALSE
+
+BEE.calc.escape &lt;- function(true_event_output,
+                            start_date = NULL,
+                            end_date = NULL,
+                            pixel,
+                            only_days_EE = TRUE,
+                            each_event = TRUE) {
   
-    # Create a virtual Python space and connect to Copernicus API
-    reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-    reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-    reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-    reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
-    # Check that it work, usually, if it doesn&#39;t works it is because Pyhton is nowhere in the system.
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
+  ### Recreate a Spatraster using Events_corrected. In this list, there are one
+  # df per pixel and one raw per dates
+  ## Get data and shell
+  data &lt;- true_event_output[[2]]
+  shell &lt;- true_event_output[[1]]
+  ## Select timeframe of interest to save computation time later
+  # Check that dates from the two products of result match
+  if (length(data[[1]]$Original_value) != terra::nlyr(shell)) {
+    warning(
+      &quot;The two elements you provided as &#39;true_event_output don&#39;t cover the same
+      number of days, please use the output of BEE.calc.true_event.&quot;
+    )
+  }
+  date_indices &lt;- match(c(start_date, end_date), names(shell))
+  dates &lt;- names(shell)[date_indices[1]:date_indices[2]]
+  data &lt;- lapply(data, \(df) df[date_indices[1]:date_indices[2], ])
   
-  if (length(version) == 0) {
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-    user_response &lt;- tolower(readline(prompt = &quot;No Python version was found on your device. Python is required to use the CopernicusMarine interface, which allows downloading Marine Copernicus datasets from R. Would you like to install Python in a virtual environment within the &#39;reticulate&#39; package? This process will take approximately 5 minutes and needs to be done only once. (Yes/No):&quot;))
-    if (user_response == &quot;YES&quot; || user_response == &quot;yes&quot;) {
-      reticulate::install_python(version = &quot;3.10&quot;)
-      version &lt;- reticulate::py_config()
-      print(version)
-      # Create a virtual Python space and connect to Copernicus API
-      reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-      reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-      reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-      reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
+  # Subset the layers in the timeframe of interest
+  rasters &lt;- subset(
+    true_event_output$stacked_rasters_corrected,
+    which(
+      names(true_event_output$stacked_rasters_corrected) &gt;= start_date &amp;
+        names(true_event_output$stacked_rasters_corrected) &lt;= end_date
+    )
+  )
+  
+  # coordinates of every pixel in the dataset :
+  coords_all &lt;- terra::crds(rasters[[1]],
+                     df = TRUE,
+                     na.rm = FALSE,
+                     na.all = TRUE)
+  
+  # Compute by data/layer
+  dist_dir &lt;- lapply(rasters, function(x) {
+    # x &lt;- rasters[[70]] # 1 : no MHX , 700 : 1 MHW # &lt;-&gt; iterate through dates
+    values_x &lt;- terra::values(x)
+    if (only_days_EE == TRUE) {
+      pixels_from &lt;- which(values_x == 1)
     }
-    if (user_response == &quot;NO&quot; || user_response == &quot;No&quot;){
-      return(&quot;At last update, Copernicus Marine data center has not provided an API that allows downloding directly from R, thus creating a virutal pyhton environment is necessary. If you want to download a small area or a short time window, you may consider downloding rasters directly on https://data.marine.copernicus.eu/ . Both methods work well with the other functions.&quot;)
+    if (only_days_EE == FALSE) {
+      pixels_from &lt;- which(!is.na(values_x))
+    }
+    pixels_to &lt;- which(values_x == 0)
+    
+    if (is.vector(pixel) | class(pixel) == &quot;data.frame&quot;) {
+      if (class(pixel) == &quot;data.frame&quot;) {
+        pixels_to_do &lt;- terra::cellFromXY(
+          true_event_output$stacked_rasters_corrected, pixel)
+      }
+      else{
+        pixels_to_do &lt;- terra::cellFromXY(
+          true_event_output$stacked_rasters_corrected,
+                                          t(matrix(pixel)))
+      }
+      pixels_from &lt;- pixels_from[which(pixels_from %in% pixels_to_do)]
+    }
+    
+    # If there are some pixels to flee but no pixel where to escape :
+    if (length(pixels_from) != 0 &amp;
+        length(pixels_to) == 0) {
+      # the whole area is an EE
+      coords_from &lt;- coords_all[pixels_from, ]  # Coord to flee
+      if (as.character(pixel)[1] == &quot;all&quot;) {
+        points &lt;- data.table::data.table(
+          date = terra::time(x),
+          from_x = coords_from[, 1],
+          from_y = coords_from[, 2],
+          to_x = &quot;unkown&quot;,
+          to_y = &quot;unkown&quot;,
+          pixel_from_id =  as.integer(pixels_from),
+          pixel_to_id = &quot;no escape&quot;,
+          distance = &quot;outside of the raster&quot;,
+          azimut = &quot;not possible to compute&quot;
+        )
+      }
+      if (class(pixel) == &quot;data.frame&quot;) {
+        points &lt;- data.table::data.table(
+          date = rep(terra::time(x), nrow(pixel)),
+          from_x = pixel[, 1],
+          from_y = pixel[, 2],
+          to_x = &quot;unkown&quot;,
+          to_y = &quot;unkown&quot;,
+          pixel_from_id =  as.integer(pixels_from),
+          pixel_to_id = &quot;no escape&quot;,
+          distance = &quot;outside of the raster&quot;,
+          azimut = &quot;not possible to compute&quot;
+        )
+      }
+      if (is.vector(pixel)) {
+        points &lt;- data.table::data.table(
+          date = rep(terra::time(x), nrow(t(
+            matrix(pixel)
+          ))),
+          from_x = t(matrix(pixel))[, 1],
+          from_y = t(matrix(pixel))[, 2],
+          to_x = &quot;unkown&quot;,
+          to_y = &quot;unkown&quot;,
+          pixel_from_id =  as.integer(pixels_from),
+          pixel_to_id = &quot;no escape&quot;,
+          distance = &quot;outside of the raster&quot;,
+          azimut = &quot;not possible to compute&quot;
+        )
+      }
+    }
+    if (length(pixels_from) == 0) {
+      # nothing to escape from AND only_days_EE==TRUE (because when 
+      # only_days_EE==FALSE, all pixel are considered as pixel to escape
+      # because we want to compute the distance to escape that are = 0.)
+      if (as.character(pixel)[1] == &quot;all&quot;) {
+        points &lt;- data.table::data.table(
+          date = terra::time(x),
+          from_x = NA,
+          from_y = NA,
+          to_x = NA,
+          to_y = NA,
+          pixel_from_id = NA,
+          pixel_to_id = NA,
+          distance = 0,
+          azimut = NA
+        )
+      }
+      if (class(pixel) == &quot;data.frame&quot;) {
+        points &lt;- data.table::data.table(
+          date = rep(terra::time(x), nrow(pixel)),
+          from_x = pixel[, 1],
+          from_y = pixel[, 2],
+          to_x = NA,
+          to_y = NA,
+          pixel_from_id = pixels_to_do,
+          pixel_to_id = NA,
+          distance = rep(0, length(pixels_to_do)),
+          azimut = NA
+        )
+        if (is.vector(pixel)) {
+          points &lt;- data.table::data.table(
+            date = rep(terra::time(x), nrow(t(
+              matrix(pixel)
+            ))),
+            from_x = t(matrix(pixel))[, 1],
+            from_y = t(matrix(pixel))[, 2],
+            to_x = NA,
+            to_y = NA,
+            pixel_from_id = pixels_to_do,
+            pixel_to_id = NA,
+            distance = rep(0, length(pixels_to_do)),
+            azimut = NA
+          )
+        }
+      }
+    }
+    if (length(pixels_from) != 0 &amp;
+        length(pixels_to) != 0) {
+      #Basic situation
+      # Get coordinates of pixel to flee and pixel where to escape
+      coords_from &lt;- coords_all[pixels_from, ]  # Coord to flee
+      coords_to &lt;- coords_all[pixels_to, ]  # Coord refuge
+      # Create a data.table
+      points &lt;- data.table::data.table(
+        date = rep(terra::time(x), nrow(coords_from) * nrow(coords_to)),
+        from_x = rep(coords_from[[1]], each = nrow(coords_to)),
+        from_y = rep(coords_from[[2]], each = nrow(coords_to)),
+        to_x = rep(coords_to[[1]], times = nrow(coords_from)),
+        to_y = rep(coords_to[[2]], times = nrow(coords_from)),
+        pixel_from_id = rep(pixels_from, each = nrow(coords_to)),
+        pixel_to_id = rep(pixels_to, times = nrow(coords_from))
+      )
+      # Compute distances btw each points
+      points[, distance := geosphere::distHaversine(cbind(from_x, from_y),
+                                                    cbind(to_x, to_y))]
+      data.table::setorder(points, pixel_from_id, distance) # sort point by id (from_id) 
+      # and then by shortest distance, when ex aequo, it keeps the same order 
+      # as in &#39;points&#39;
+      points &lt;- points[!duplicated(pixel_from_id), ] # keep only the first 
+      # occurrence of each &#39;from_id&#39; &lt;-&gt; the occurence with the shortest 
+      # distance
+      points[, azimut := (geosphere::bearing(cbind(from_x, from_y), 
+                                             cbind(to_x, to_y)) + 360) %% 360]
+    }
+    if (length(pixels_from) == 0 &amp; length(pixels_to) == 0) {
+      warning(
+        &quot;There are no pixel of value 1 AND there are no pixel of value 0, 
+        the raster are probably not binarized (please see BEE.calc.binarized_EE
+        and BEE.calc.true_event) or the raster is fully covered by NA.&quot;
+      )
+    }
+    # Make sure that when they are no reason to leave a pixel (distance = 0),
+    # the azimut is NA
+    points[, azimut := ifelse(distance == 0, NA, azimut)]
+    return(points)
+  })
+  warnings(
+    &quot;When several pixels are the &#39;closest pixel&#39;, the one with the smallest 
+    number/id is kept to compute shortest distance and azimut. Moreover, this 
+    function uses &#39;geosphere::distHaversine&#39; to compute distances, it accounts 
+    for earth rotondity, which is better than euclidian distance, but it 
+    consider the earth as a sphere, thus near the poles, this methods is less 
+    percise than geosphere::distVincentyEllipsoid. This is a compromise between
+    computation speed and precision. The estimate error using distHaversine 
+    compare to distVincentyEllipsoid is between 1 km and 5 km for a distance of 
+    300 km.&quot;
+  )
+  dist_dir &lt;- data.table::rbindlist(dist_dir)
+  no_event &lt;- dist_dir[which(pixel_to_id == &quot;no escape&quot;), ] # saving the lines 
+  # where there are no distances to compute for the case only_days_EE == FALSE
+  if (only_days_EE == TRUE) {
+    dist_dir &lt;- dist_dir[distance != 0, ]
+    if (nrow(dist_dir) == 0) {
+      message(&quot;There were no extreme event for the given pixels and timeframe.&quot;)
     }
   }
-  if (length(version) &gt; 0) {
-    cm &lt;- import(&quot;copernicusmarine&quot;)
-    cm$login(username, password)
+  if (any(dist_dir$pixel_to_id == &quot;no escape&quot;, na.rm = TRUE)) {
+    dangerous_date &lt;- dist_dir$date[which(dist_dir$pixel_to_id == &quot;no escape&quot;)]
+    message(
+      &quot;During the following dates, the raster was fully covered by an EE and it
+      was no possible to compute a distance to escape or an azimut.&quot;,
+      paste(dangerous_date, collapse = &quot;, &quot;)
+    )
+  }
+  
+  if (each_event == FALSE) {
+    # dist_dir &lt;- points
+    return(dist_dir)
+  }
+  if (each_event == TRUE) {
+    # Here we want to give &#39;summary&#39; type value compute across all day of a 
+    # same event for each pixel (and event)
+    # First, we need to re-identify all the days that belong to a same event :
+    ## Create a data.table from  true_event_output[[2]] (data) with a column to
+    # easly identify the pixel represented in each row :
+    data &lt;- data[unique(dist_dir$pixel_from_id)]
+    names(data) &lt;- unique(dist_dir$pixel_from_id)
+    data &lt;- data.table::rbindlist(data, idcol = &quot;pixel_from_id&quot;)
+    ## Recreate a column for the time interval of the event using the 
+    # informaiton in the ID, this will be necessay to use foverlaps, the fastest
+    # function to identify if a date belongs to a specific timeframe or not :) :
+    data[, c(&quot;start_date&quot;, &quot;end_date&quot;) := data.table::tstrsplit(ID, &quot;_&quot;, keep = 2:3)]
+    data[, `:=`(start_date = as.Date(start_date),
+                end_date = as.Date(end_date))]
+    dist_dir[, `:=`(date_start = date, date_end = date)]
+    ## Convert the pixel_id to the same format in both data.table :
+    dist_dir[, pixel_from_id := as.integer(pixel_from_id)]
+    data[, pixel_from_id := as.integer(pixel_from_id)]
+    ## We need to delete &#39;event&#39; that are bellow threshold (&lt;-&gt; distance == 0)
     
-    # Get the data
-  ds &lt;- cm$subset(
-    dataset_id = dataset_id,
-    dataset_version = dataset_version,
-    variables= list(gsub(pattern = &quot;[\\[\\]]&quot;, replacement = &quot;&quot;, variables)),
-    minimum_longitude=minimum_longitude,
-    maximum_longitude=maximum_longitude,
-    minimum_latitude=minimum_latitude,
-    maximum_latitude=maximum_latitude,
-    start_datetime=start_datetime,
-    end_datetime=end_datetime,
-    coordinates_selection_method=coordinates_selection_method,
-    disable_progress_bar=disable_progress_bar,
-    output_directory = output_directory
-  )
-  } 
+    ## Define the &#39;key&#39; &lt;-&gt; the combination of colum used to create sub-group
+    # in a data.table format :
+    data.table::setkey(dist_dir, pixel_from_id, date_start, date_end) # PB
+    data.table::setkey(data, pixel_from_id, start_date, end_date)
+    
+    dist_dir &lt;- data.table::foverlaps(
+      # magic function that found if the line from dt x is inside the time frame
+      # of a line from dt y and identify which one AND joint the 2 dt respecting
+      # correspondanies btw several column.
+      dist_dir,
+      data[, .(pixel_from_id, start_date, end_date, ID)],
+      by.x = c(&quot;pixel_from_id&quot;, &quot;date_start&quot;, &quot;date_end&quot;),
+      # dt for which we need to know if it is inside the time frames of the 
+      # other dt
+      by.y = c(&quot;pixel_from_id&quot;, &quot;start_date&quot;, &quot;end_date&quot;),
+      # the other dt, that contains all the reference timeframe
+      nomatch = NA
+    )
+    ## Clean the columns date_start and date_end that are redondant with date
+    dist_dir[, c(&quot;date_start&quot;, &quot;date_end&quot;) := NULL]
+    
+    # Now we can compute some metrics of the metrics distance and azimut !!
+    old_warn &lt;- options(&quot;warn&quot;) # Save curent warning settings
+    options(warn = -1) # unactivate warnings
+    ## Distance
+    dist_dir[, distance_mean := mean(as.numeric(distance), na.rm = T), by = ID]
+    dist_dir[, distance_sd := stats::sd(as.numeric(distance), na.rm = T), by = ID]
+    dist_dir[, distance_median := stats::median(as.numeric(distance), na.rm = T),
+             by = ID]
+    dist_dir[, distance_min := min(as.numeric(distance), na.rm = T), by = ID]
+    dist_dir[, distance_max := max(as.numeric(distance), na.rm = T), by = ID]
+    
+    ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a 
+    # special way to compute it :
+    # Conversion to circular angle :
+    dist_dir[, azimut_num := as.numeric(azimut)]
+    dist_dir[, azimut_circ := ifelse(
+      !is.na(azimut_num),
+      circular::circular(azimut_num, units = &quot;degrees&quot;,
+                         template = &quot;geographics&quot;),
+      NA
+    )]
+    dist_dir[, azimut_mean := as.numeric(mean(azimut_circ, na.rm = TRUE)),
+             by = ID]
+    dist_dir[, azimut_med := stats::median(azimut_circ, na.rm = TRUE), by = ID] 
+    # not possible to compute median on NA + if I just put NA, it is going to
+    # expect logical instead of numerical value, that&#39;s why NA-real and not NA
+    dist_dir[, azimut_sd := {
+      az_group &lt;- azimut_circ[!is.na(azimut_circ)] #when there are to many 
+      # decimals in azimut_circ, sin and cos used inside circular::sd induce 
+      # little imprecisions that leads to NA value when azimut_circ is constant,
+      # to deal with this, when azimut-circ is constant, a value of 0 is forced
+      # into the dt.
+      if (length(az_group) &lt;= 1 ||
+          max(az_group) - min(az_group) &lt; 1e-6) {
+        0
+      } else {
+        val &lt;- suppressWarnings(as.numeric(stats::sd(az_group)))
+        if (is.nan(val))
+          0
+        else
+          val
+      }
+    }, by = ID]
+    dist_dir[, azimut_min := min(azimut_num, na.rm = TRUE), by = ID]
+    dist_dir[, azimut_max := max(azimut_num, na.rm = TRUE), by = ID]
+    options(warn = old_warn$warn) # reactivate warnings
+    # Delete column that refer to daily value and not to value compute on all 
+    # the event :
+    dist_dir[, 
+          c(&#39;date&#39;, &#39;distance&#39;, &#39;azimut&#39;, &#39;azimut_num&#39;, &#39;azimut_circ&#39;) := NULL]
+    # Keep only one row per EE (&lt;-&gt; per value of ID column) :
+    dist_dir &lt;- dist_dir[, .SD[1], by = ID] #.SD keep the first line of every 
+    # group of same value of ID
+    # delete the column x_to and y_to as the represent the pixel where to 
+    # escape on first day and not a characteristic of the all event
+    dist_dir &lt;- dist_dir %&gt;% dplyr::select(-to_x, -to_y, -pixel_to_id)
+    dist_dir &lt;- dist_dir[!is.na(pixel_from_id)] # withrdraw the line of NA
+    
+    return(dist_dir)
+  }
+  message(&quot;this combination of argument is not endle by the function&quot;)
 }</code></pre>
 
 

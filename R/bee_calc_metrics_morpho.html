@@ -9,10 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Victoria" />
+<meta name="author" content="victoria" />
 
+<meta name="date" content="2025-11-12" />
 
-<title>BEE.data.load_Copernicus</title>
+<title>bee_calc_metrics_morpho.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,76 +350,213 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.data.load_Copernicus</h1>
-<h4 class="author">Victoria</h4>
+<h1 class="title toc-ignore">bee_calc_metrics_morpho.R</h1>
+<h4 class="author">victoria</h4>
+<h4 class="date">2025-11-12</h4>
 
 </div>
 
 
-<p>This function is a wrapper from the CopernicusMarine function from
-pyhton. A pyhton setup must be present in your computer, thus this
-function is testing if some pyhton is present and if not it offer to
-download it from R.</p>
-<pre class="r"><code>BEE.data.load_Copernicus &lt;- function(username, 
-                                     password, 
-                                dataset_id, 
-                                dataset_version, 
-                            variables,
-                        minimum_longitude,
-                        maximum_longitude,
-                        minimum_latitude,
-                        maximum_latitude,
-                  start_datetime,
-                  end_datetime,
-            coordinates_selection_method=&quot;strict-inside&quot;,
-    disable_progress_bar=FALSE,
-    output_directory = here::here(&quot;Data&quot;)){
-  
-    # Create a virtual Python space and connect to Copernicus API
-    reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-    reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-    reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-    reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
-    # Check that it work, usually, if it doesn&#39;t works it is because Pyhton is nowhere in the system.
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-  
-  if (length(version) == 0) {
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-    user_response &lt;- tolower(readline(prompt = &quot;No Python version was found on your device. Python is required to use the CopernicusMarine interface, which allows downloading Marine Copernicus datasets from R. Would you like to install Python in a virtual environment within the &#39;reticulate&#39; package? This process will take approximately 5 minutes and needs to be done only once. (Yes/No):&quot;))
-    if (user_response == &quot;YES&quot; || user_response == &quot;yes&quot;) {
-      reticulate::install_python(version = &quot;3.10&quot;)
-      version &lt;- reticulate::py_config()
-      print(version)
-      # Create a virtual Python space and connect to Copernicus API
-      reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-      reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-      reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-      reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
+<p>Compute metrics spatial features of the extreme event (only in
+surface, 2D)</p>
+<p><span class="citation">@description</span> This function give the
+morphological metrics for an extreme event, Corrected_raster is the
+SpatRaster you want to analyze (it needs to be binarise with the mhw
+function) <span class="citation">@param</span> Corrected_raster the
+SpatRaster you want to analyse <span class="citation">@param</span>
+start_date and <span class="citation">@param</span> end_date allows to
+perform the analysis on a specific time_frame, this allows to save
+computation time. <span class="citation">@param</span> per_pix use TRUE
+if you want a list with one dt per pixel as an output <span class="citation">@note</span> Your SpatRaster need to be binarised with
+the mhw function before you put it in this function
+BEE.calc.metrics_morpho is not designed to work on 4D data (time+spatial
+3D).</p>
+<pre class="r"><code>#-------------------------------------------------------------------------------
+
+#start_date \&lt;- &quot;2022-01-01&quot; ; end_date \&lt;- &quot;2023-12-31&quot;
+
+
+
+BEE.calc.metrics_morpho &lt;- function(Corrected_rasters,
+                                    start_date = NULL,
+                                    end_date = NULL,
+                                    per_pix = FALSE) {
+# Retrive the dataframe if required
+  if (!is.null(start_date) | !is.null(end_date)) {
+    ## Check that date format matches
+    format_start_date &lt;- lubridate::guess_formats(start_date,
+                                       orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
+    format_end_date &lt;- lubridate::guess_formats(end_date, orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
+    format_layers_names &lt;- lubridate::guess_formats(names(Corrected_rasters[[1]]),
+                                         orders = c(&quot;dmy&quot;, &quot;ymd&quot;, &quot;mdy&quot;))
+    same_format &lt;- all(format_start_date %in% format_layers_names)
+    same_format &lt;- c(same_format,
+                     all(format_end_date %in% format_layers_names))
+    if (any(same_format == FALSE)) {
+      warning(
+        &quot;The format of start_date or end_date does not match the format of the
+        dates in Corrected_raster. Please run names(Corrected_raster[[1]]) to 
+        check the required format.&quot;
+      )
+      stop()
     }
-    if (user_response == &quot;NO&quot; || user_response == &quot;No&quot;){
-      return(&quot;At last update, Copernicus Marine data center has not provided an API that allows downloding directly from R, thus creating a virutal pyhton environment is necessary. If you want to download a small area or a short time window, you may consider downloding rasters directly on https://data.marine.copernicus.eu/ . Both methods work well with the other functions.&quot;)
+    else{
+      ## Retrive
+      start_date &lt;- ifelse(is.null(start_date),
+                           names(Corrected_rasters[[1]]),
+                           start_date)
+      end_date &lt;- ifelse(is.null(end_date), 
+                         names(Corrected_rasters[[terra::nlyr(Corrected_rasters)]]), 
+                         end_date)
+      rasters &lt;- Corrected_rasters[[which(names(Corrected_rasters) &gt;= start_date
+                                    &amp; names(Corrected_rasters) &lt;= end_date)]]
     }
   }
-  if (length(version) &gt; 0) {
-    cm &lt;- import(&quot;copernicusmarine&quot;)
-    cm$login(username, password)
-    
-    # Get the data
-  ds &lt;- cm$subset(
-    dataset_id = dataset_id,
-    dataset_version = dataset_version,
-    variables= list(gsub(pattern = &quot;[\\[\\]]&quot;, replacement = &quot;&quot;, variables)),
-    minimum_longitude=minimum_longitude,
-    maximum_longitude=maximum_longitude,
-    minimum_latitude=minimum_latitude,
-    maximum_latitude=maximum_latitude,
-    start_datetime=start_datetime,
-    end_datetime=end_datetime,
-    coordinates_selection_method=coordinates_selection_method,
-    disable_progress_bar=disable_progress_bar,
-    output_directory = output_directory
+  if (is.null(start_date) &amp; is.null(end_date)) {
+    ## Adjust variable name to match the rest of the function
+    rasters &lt;- Corrected_rasters
+  }
+  
+  patch_list &lt;- lapply(
+    rasters,
+    FUN = function(rasters) {
+      patch &lt;- terra::patches(
+        rasters,
+        directions = 8,
+        zeroAsNA = T,
+        allowGaps = T
+      )
+      return(patch)
+    }
   )
-  } 
+  
+  nb_NA &lt;- unique(terra::global(
+    rasters,
+    fun = function(x)
+      sum(is.na(x))
+  ))
+  if (length(nb_NA) &gt; 1) {
+    message(
+      &quot;The number of NA pixels varies through the layers, this may leads to 
+      unexpected results in the output of that funciton.&quot;
+    )
+  }
+  nb_pixel_studied &lt;- terra::ncell(rasters[[1]]) - nb_NA
+  dist_list &lt;- lapply(patch_list, function(x) {
+    # x &lt;- patch_list[[1]]
+    # Create a df with on row per pixel
+    vals &lt;- terra::values(x)
+    cell_size &lt;- terra::values(terra::cellSize(x))[, 1]
+    boundary &lt;- terra::boundaries(x, directions = 8)
+    coordonates &lt;- xyFromCell(x, 1:terra::ncell(x)) #each pixel coordinates
+    d &lt;- terra::time(x) # PAS CERTAINE QUE ÇA SOIT LA FONCTION DE TERRA QUI SOIT
+    #APPELLEE ICI
+    
+    data &lt;- data.table::data.table(
+      x = coordonates[, 1],
+      y = coordonates[, 2],
+      values = vals,
+      # value of the patch
+      cell_size = cell_size,
+      boundary = terra::values(terra::boundaries(x, directions = 8))
+    ) %&gt;% dplyr::rename(patch_id = values.patches, boundary = boundary.patches)
+    
+    data[, length_boundary := ifelse(is.nan(patch_id),
+                                     NA_real_, sum(boundary),
+                                     by = patch_id)]
+    data[, patch_area := ifelse(is.nan(patch_id),
+                                NA_real_, sum(cell_size)),
+         by = patch_id]
+    data[, core_area := ifelse(is.nan(patch_id), NA_real_,
+                               sum(cell_size * (boundary == 0))),
+         by = patch_id]
+    data[, core_area_index := core_area / as.numeric(nb_pixel_studied)]
+    data[, n_pixel := ifelse(is.nan(patch_id), NA_real_, .N),
+         by = patch_id]
+    data[, pixel_EE_tot := ifelse(is.nan(patch_id), NA_real_,
+                                  sum(unique(n_pixel), na.rm = T))]
+    data[, cover_percent := n_pixel / as.numeric(nb_pixel_studied),
+         by = patch_id]
+    data[, core_pixel := n_pixel - length_boundary]
+    date &lt;- terra::time(x)
+    data[, ID := ifelse(is.nan(patch_id), NA, paste0(date, &quot;_&quot;, patch_id))]
+    data[, pixel_id := .I]
+    polygon &lt;- terra::as.polygons(x, aggregate = T, round = F)
+    perim &lt;- data.table::data.table(perimeter = terra::perim(polygon))
+    
+    id &lt;- data[!is.nan(patch_id), .(patch_id = unique(patch_id))]
+    
+    perim[, patch_id := id]
+    
+    data &lt;- merge(data, perim, by = &quot;patch_id&quot;, all.x = TRUE)
+    
+    data &lt;- data %&gt;%
+      dplyr::select(-cell_size)
+    
+    if (length(polygon) == 0) {
+      data[, centroid_x := rep(NA_real_, nrow(data))]
+      data[, centroid_y := rep(NA_real_, nrow(data))]
+      data[, perim_area_ratio := length_boundary / n_pixel, by = patch_id]
+      data[, shape_index := (0.25 * length_boundary / (n_pixel)^0.5),
+           by = patch_id]
+      data[, fract_corel_dim := 
+(2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))),
+by = patch_id]
+      data[, date := d]
+      
+    } else {
+      centro &lt;- terra::centroids(polygon, TRUE)
+      centro &lt;- terra::extract(x, centro, xy = TRUE)
+      centro &lt;- centro %&gt;%
+        dplyr::select(patches, x, y) %&gt;%
+        dplyr::rename(
+          centroid_x = x,
+          centroid_y = y,
+          patch_id = patches
+        )
+      data &lt;- merge(data, centro, by = &quot;patch_id&quot;, all.x = TRUE)
+      
+      data[, perim_area_ratio := length_boundary / n_pixel, by = patch_id]
+      data[, shape_index := (0.25 * length_boundary / (n_pixel)^0.5),
+           by = patch_id]
+      data[, fract_corel_dim := (2 * log(0.25 * length_boundary,
+                            base = exp(1)) / log(n_pixel, base = exp(1))),
+           by = patch_id]
+      data[, date := d]
+    }
+    return(data)
+  }) # one dt per pixel
+  
+  names(dist_list) &lt;- terra::time(rasters)
+  
+  # Summarise by patch
+  data_summarised &lt;- lapply(dist_list, function(x) {
+    # x &lt;- dist_list[[1]]
+    x &lt;- unique(x, by = &quot;patch_id&quot;)
+    x[, &#39;:=&#39;(x = NULL, y = NULL)]
+    return(x)
+  })
+  
+  data_summarised$pixel_id &lt;- NULL
+  # Add a list of patch_ID per pixel (/!\ there are several patch_ID per EE 
+  # because we cannot do spatio-temporal analysis here)
+  if (per_pix == TRUE) {
+    pixels_nb &lt;- seq(1, nrow(dist_list[[1]]))
+    dist_tab &lt;- dplyr::bind_rows(dist_list)
+    data.table::setDT(dist_tab)
+    dist_tab &lt;- dist_tab %&gt;%
+      dplyr::mutate(valid_patch_ID = ifelse(!is.nan(patch_id), date, NA)) # keeps only
+    # the patch that represents an EE
+    patch_list &lt;- terra::rast(patch_list)
+    names(patch_list) &lt;- terra::time(rasters)
+    output &lt;- list(dist_tab, patch_list)
+    return(output)
+  }
+  patch_list &lt;- terra::rast(patch_list)
+  names(patch_list) &lt;- terra::time(rasters)
+  data_summarised &lt;- data.table::rbindlist(data_summarised)
+  output &lt;- list(data_summarised, patch_list)
+  return(output)
 }</code></pre>
 
 

@@ -9,10 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Victoria" />
+<meta name="author" content="victoria" />
 
+<meta name="date" content="2025-11-12" />
 
-<title>BEE.data.load_Copernicus</title>
+<title>bee_calc_corrections.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,76 +350,170 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.data.load_Copernicus</h1>
-<h4 class="author">Victoria</h4>
+<h1 class="title toc-ignore">bee_calc_corrections.R</h1>
+<h4 class="author">victoria</h4>
+<h4 class="date">2025-11-12</h4>
 
 </div>
 
 
-<p>This function is a wrapper from the CopernicusMarine function from
-pyhton. A pyhton setup must be present in your computer, thus this
-function is testing if some pyhton is present and if not it offer to
-download it from R.</p>
-<pre class="r"><code>BEE.data.load_Copernicus &lt;- function(username, 
-                                     password, 
-                                dataset_id, 
-                                dataset_version, 
-                            variables,
-                        minimum_longitude,
-                        maximum_longitude,
-                        minimum_latitude,
-                        maximum_latitude,
-                  start_datetime,
-                  end_datetime,
-            coordinates_selection_method=&quot;strict-inside&quot;,
-    disable_progress_bar=FALSE,
-    output_directory = here::here(&quot;Data&quot;)){
+<p>Compute the impact of the selected definition of extreme events on
+the number of days of extreme event</p>
+<p><span class="citation">@description</span> It computes the number of
+modifications between the raw binerised Spatraster and the Spartraster
+produced using the BEE.calc.true_event. This indicates of the
+differences in the number of days above the threshold/baseline and the
+number of days that are considered to be extreme events, according to
+the criteria set in BEE.calc.true_event. <span class="citation">@param</span> Events_corrected The second element of
+the BEE.calc.true_event ouput, which is a list of data.table containing
+information about the value of each pixel before and after definition
+criteria are applied to distinguish isolated extreme days from extreme
+events).</p>
+<p><span class="citation">@returns</span> A text summarising the
+modifications induced. <span class="citation">@export</span></p>
+<p><span class="citation">@examples</span> # to be added</p>
+<pre class="r"><code># La fonction analyse change était au tout début du script mais je l&#39;ai déplacée
+# après pour pas avoir de problème avec le Roxygen et l&#39;aide.
+
+#Apply to the list of dataframe
+# results = c()
+
+
+BEE.calc.corrections &lt;- function(Events_corrected) {
+  # Number of cores available
+  num_cores &lt;- parallel::detectCores() - 2
+  # Calculate changes
+  results &lt;- parallel::mclapply(Events_corrected, analyze_changes, mc.cores = num_cores)
+  results_df &lt;- do.call(rbind, results)
+  rm(results)
   
-    # Create a virtual Python space and connect to Copernicus API
-    reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-    reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-    reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-    reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
-    # Check that it work, usually, if it doesn&#39;t works it is because Pyhton is nowhere in the system.
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
+  #Calculate percentages (data for the whole area and the whole time period)
+  abs_one_to_zero &lt;- as.numeric(sum(results_df$one_to_zero, na.rm = TRUE))
+  abs_1 &lt;-  as.numeric(sum(results_df$total_ones, na.rm = TRUE))
+  abs_zero_to_one &lt;-  as.numeric(sum(results_df$zero_to_one, na.rm = TRUE))
+  abs_0 &lt;-  as.numeric(sum(results_df$total_zeros, na.rm = TRUE))
+  #percentage of 1 converted to 0 :
+  percentage_one_to_zero &lt;- abs_one_to_zero * 100 / abs_1 
+  percentage_zero_to_one &lt;- abs_zero_to_one * 100 / abs_0
   
-  if (length(version) == 0) {
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-    user_response &lt;- tolower(readline(prompt = &quot;No Python version was found on your device. Python is required to use the CopernicusMarine interface, which allows downloading Marine Copernicus datasets from R. Would you like to install Python in a virtual environment within the &#39;reticulate&#39; package? This process will take approximately 5 minutes and needs to be done only once. (Yes/No):&quot;))
-    if (user_response == &quot;YES&quot; || user_response == &quot;yes&quot;) {
-      reticulate::install_python(version = &quot;3.10&quot;)
-      version &lt;- reticulate::py_config()
-      print(version)
-      # Create a virtual Python space and connect to Copernicus API
-      reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-      reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-      reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-      reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
-    }
-    if (user_response == &quot;NO&quot; || user_response == &quot;No&quot;){
-      return(&quot;At last update, Copernicus Marine data center has not provided an API that allows downloding directly from R, thus creating a virutal pyhton environment is necessary. If you want to download a small area or a short time window, you may consider downloding rasters directly on https://data.marine.copernicus.eu/ . Both methods work well with the other functions.&quot;)
-    }
-  }
-  if (length(version) &gt; 0) {
-    cm &lt;- import(&quot;copernicusmarine&quot;)
-    cm$login(username, password)
-    
-    # Get the data
-  ds &lt;- cm$subset(
-    dataset_id = dataset_id,
-    dataset_version = dataset_version,
-    variables= list(gsub(pattern = &quot;[\\[\\]]&quot;, replacement = &quot;&quot;, variables)),
-    minimum_longitude=minimum_longitude,
-    maximum_longitude=maximum_longitude,
-    minimum_latitude=minimum_latitude,
-    maximum_latitude=maximum_latitude,
-    start_datetime=start_datetime,
-    end_datetime=end_datetime,
-    coordinates_selection_method=coordinates_selection_method,
-    disable_progress_bar=disable_progress_bar,
-    output_directory = output_directory
+  #Calculate mean per year and pixel
+  total_nb_info = sum(results_df$total_not_NA)
+  abs_one_to_zero_Ymean &lt;- abs_one_to_zero * 100 / total_nb_info 
+  abs_1_Ymean &lt;- abs_1 / total_nb_info
+  # sd_1_Ymean &lt;- as.numeric(sd(results_df$total_ones, na.rm=TRUE)) / 
+  # total_nb_info # variability of being 1 among the pixel
+  # corrections among the pixel :
+  sd_1to0_Ymean &lt;- as.numeric(sd(results_df$one_to_zero, na.rm = TRUE))  
+  abs_zero_to_one_Ymean &lt;- abs_zero_to_one / total_nb_info
+  abs_0_Ymean &lt;- abs_0 / total_nb_info
+  # corrections among the pixel :
+  sd_1to0_Ymean &lt;- as.numeric(sd(results_df$zero_to_one, na.rm = TRUE))  
+  cat(
+    &quot;Absolut values for the whole area and whole time period :&quot;,
+    &quot;\n&quot;,
+    &quot;Original total number of days above threshold (1):&quot;,
+    &quot;\n&quot;,
+    abs_1,
+    &quot;\n&quot;,
+    &quot;Percentage of 1 converted to 0:&quot;,
+    &quot;\n&quot;,
+    percentage_one_to_zero,
+    &quot;%&quot;,
+    &quot;, (percentage among all initial &#39;1&#39; values)&quot;,
+    &quot;\n&quot;,
+    &quot;Original total number of days below threshold (0):&quot;,
+    &quot;\n&quot;,
+    abs_0,
+    &quot;\n&quot;,
+    &quot;Percentage of 0 converted to 1:&quot;,
+    &quot;\n&quot;,
+    percentage_zero_to_one,
+    &quot;%&quot;,
+    &quot;\n&quot;,
+    &quot;\n&quot;,
+    &quot;Mean values per pixel and date :&quot;,
+    &quot;\n&quot;,
+    &quot;Mean percentage of pixel value above threshold :&quot;,
+    &quot;\n&quot;,
+    abs_1_Ymean * 100,
+    &quot;%&quot;,
+    &quot;\n&quot;,
+    &quot;Mean percentage of corrections from 1 to 0:&quot;,
+    &quot;\n&quot;,
+    abs_one_to_zero_Ymean,
+    &quot;%&quot;,
+    &quot;(percentage among all values (1 &amp; 0))&quot;,
+    &quot;\n&quot;,
+    &quot;Standard deviation of corrections among pixel(1 to 0):&quot;,
+    &quot;\n&quot;,
+    sd_1to0_Ymean,
+    &quot;%&quot;,
+    &quot;\n&quot;,
+    &quot;Mean percentage of pixel value bellow thershold :&quot;,
+    &quot;\n&quot;,
+    abs_0_Ymean * 100,
+    &quot;%&quot;,
+    &quot;\n&quot;,
+    &quot;Mean percentage of corrections to 1 &quot;,
+    &quot;\n&quot;,
+    abs_zero_to_one_Ymean,
+    &quot;%&quot;,
+    &quot;\n&quot;,
+    &quot;Standard deviation of corrections among pixel (0 to 1)&quot;,
+    &quot;\n&quot;,
+    sd_1to0_Ymean,
+    &quot;%&quot;,
+    &quot;\n&quot;,
+    &quot;\n&quot;,
+    &quot;NA values in your dataset :&quot;,
+    &quot;\n&quot;,
+    &quot;Total number of NA values :&quot;,
+    sum(results_df$total_NA),
+    &quot;\n&quot;,
+    &quot;Total number of pixel that are always NA :&quot;,
+    sum(sapply(Events_corrected, function(df)
+      all(is.na(df$Original_value)))),
+    &quot;\n&quot;,
+    &quot;Total number of NA values excluding those from pixels that are 
+    always NA :&quot;,
+    # total NA value - number of pixels that alwayes are NA * number of days 
+    # in the time serie :
+    sum(results_df$total_NA) - sum(sapply(Events_corrected, function(df)
+all(is.na(df$Original_value)))) * length(Events_corrected[[1]]$Original_value),
+    &quot;\n&quot;  
   )
-  } 
+  
+}
+
+analyze_changes &lt;- function(dataframe) {
+  # Count modifications
+  one_to_zero &lt;- sum(dataframe$Original_value == 1 &amp;
+                       dataframe$Cleanned_value == 0,
+                     na.rm = TRUE)
+  zero_to_one &lt;- sum(dataframe$Original_value == 0 &amp;
+                       dataframe$Cleanned_value == 1,
+                     na.rm = TRUE)
+  
+  # Count orginal total value
+  total_ones &lt;- sum(dataframe$Original_value == 1, na.rm = TRUE)
+  total_zeros &lt;- sum(dataframe$Original_value == 0, na.rm = TRUE)
+  
+  # Count NA
+  total_NA &lt;- sum(is.na(dataframe$Original_value))
+  total_not_NA &lt;- sum(!is.na(dataframe$Original_value))
+  tot_value &lt;- total_not_NA + total_NA
+  
+  return(
+    data.frame(
+      one_to_zero = one_to_zero,
+      zero_to_one = zero_to_one,
+      total_ones = total_ones,
+      total_zeros = total_zeros,
+      total_NA = total_NA,
+      total_not_NA = total_not_NA,
+      tot_value = tot_value
+    )
+  )
 }</code></pre>
 
 

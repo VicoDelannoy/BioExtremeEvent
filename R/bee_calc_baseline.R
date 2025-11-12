@@ -65,7 +65,7 @@ BEE.calc.baseline <- function(YourSpatraster,
   }
   # Cut YourSpatraster to only keep the part between start_date and end_date
   dates <- as.Date(terra::time(YourSpatraster))
-  print("test")
+
   to_keep <- which(dates >= as.Date(start_date) &
                      dates <= as.Date(end_date))
   YourSpatraster <- YourSpatraster[[to_keep]]
@@ -73,16 +73,18 @@ BEE.calc.baseline <- function(YourSpatraster,
   is_leap_year <- function(years) {
     return((years %% 4 == 0 & years %% 100 != 0) | (years %% 400 == 0))
   }
-  dates <- as.Date(stats::time(YourSpatraster))  # Dates
+  dates <- as.Date(terra::time(YourSpatraster))  # Dates
   years <- as.integer(format(dates, "%Y")) # Years
   # Build a dataframe with the layer number, the doy and the corrected doy
   # (366, 60 don't exist in non leap year)
+  print(lenght(dates))
+  print(dates[1:60])
   df <- data.frame(
     date = dates,
     N_layer = seq(1, terra::nlyr(YourSpatraster), 1),
     leap_year = is_leap_year((years)),
     doy = as.integer(format(dates, "%j"))
-  ) #day of the year
+  ) #day of the year (with correction taking in account leapyear)
   df$doy2 <- ifelse(df$doy >= 60 &
                       !df$leap_year, df$doy + 1, df$doy)
   # For each day of the year from 0 to 366, get a list of the layers to use to

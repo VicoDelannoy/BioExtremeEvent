@@ -24,7 +24,6 @@ This file is the main skeleton of the package BioExtremEvent (BEE) and guide you
 # 1. Load dependencies and associated functions
 
 ```{r}
-#'@description
 ## R Parameters ----
 rm(list=ls())
 set.seed(666) #to get the same randomization across users
@@ -38,10 +37,7 @@ pkgload::load_all(here::here()) #here::here find files were the skeleton file is
 
 
 ## Load .qmd file (functions)
-files.source <- list.files(path = here::here(), pattern = "\\.qmd$", full.names = TRUE, recursive = TRUE)
-
-# Withdraw Make.R file from the list to avoid infinit loop
-files.source <- files.source[!grepl("MakeR.qmd", files.source)]
+files.source <- list.files(path = here::here(), pattern = "\\.R$", full.names = TRUE, recursive = TRUE)
 
 sapply(files.source, function(file) {
   rmarkdown::render(file, envir = .GlobalEnv)  #Excute code and load functions
@@ -101,19 +97,11 @@ If your using the package to work on temperature raster, you can check that the 
 
 ```{r}
 ds <- BEE.calc.celsius(ds)
-terra::writeRaster(ds, "Data/ds_Golfe_du_lion.tiff")
+terra::writeRaster(ds, "Data/ds_Golfe_du_lion.tiff", overwrite=TRUE)
 ds <- terra::rast("Data/ds_Golfe_du_lion.tiff")
 ```
 
 # 3. Calculate a baseline value for each cell in your dataset using one of two methods with *"BEE.calc.baseline"* :
-
--   [Dynamic Baseline]{.underline} (Seasonal Threshold): Compute a percentile of daily mean values for each cell and each day across the entire time series. Percentile must be between 0 and 1. Example: For daily data from 1981–2020, this creates 365 threshold values per grid cell, one for each day of the year. Use case: Broad studies (e.g., comparing community responses or regions). Note : if you want to study data bellow the seasonal mean you must calculate a baseline for the first quantile (in case distribution is not symmetric around the mean). Example : value = 0.1 to study the 10 percent lowest value.
-
--   [Mean Baseline]{.underline} : Use a mean value or a constant temperature value based on biological or ecological relevance (see later part XX). Example: A mortality threshold that does not vary by season or location. Use case: Specific models or questions focused on fixed biological limits.
-
--   [Fixed Threshold]{.underline} (Biological Threshold): you can set an absolute value as a threshold directly in *"BEE.calc.binarized"*.
-
--   start_date and end_date are NULL if no date provided. Warning, dates must be under "YYYY-MM-DD" format.
 
 ```{r}
 baseline_qt90 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 

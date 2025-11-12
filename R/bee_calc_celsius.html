@@ -9,10 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Victoria" />
+<meta name="author" content="victoria" />
 
+<meta name="date" content="2025-11-12" />
 
-<title>BEE.data.load_Copernicus</title>
+<title>bee_calc_celsius.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,76 +350,137 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">BEE.data.load_Copernicus</h1>
-<h4 class="author">Victoria</h4>
+<h1 class="title toc-ignore">bee_calc_celsius.R</h1>
+<h4 class="author">victoria</h4>
+<h4 class="date">2025-11-12</h4>
 
 </div>
 
 
-<p>This function is a wrapper from the CopernicusMarine function from
-pyhton. A pyhton setup must be present in your computer, thus this
-function is testing if some pyhton is present and if not it offer to
-download it from R.</p>
-<pre class="r"><code>BEE.data.load_Copernicus &lt;- function(username, 
-                                     password, 
-                                dataset_id, 
-                                dataset_version, 
-                            variables,
-                        minimum_longitude,
-                        maximum_longitude,
-                        minimum_latitude,
-                        maximum_latitude,
-                  start_datetime,
-                  end_datetime,
-            coordinates_selection_method=&quot;strict-inside&quot;,
-    disable_progress_bar=FALSE,
-    output_directory = here::here(&quot;Data&quot;)){
+<p>Convert temperature data to Celsius</p>
+<p><span class="citation">@description</span> Function that detects the
+unit of measurement of a pixel value in a SpatRaster (Celsius, Kelvin or
+Fahrenheit) and converts it to the international unit ‘Celsius’ if
+necessary. <span class="citation">@param</span> YourSpatRaster
+“YourSpatRaster” is the SpatRaster containing temperature data, for
+which you want to check the units and convert the values to Celsius.
+<span class="citation">@return</span> YourSpatRaster Your SpatRaster
+with values corrected to celsius and ‘unit’ metadata updated to
+‘Celsisus’. <span class="citation">@examples</span> #If your data are in
+kelvins (K), BEE.calc.celscius(YourSpatRaster) returns #the spatraster
+with cell values converted in celsius (<c2><b0>C) using : #“former value
+- 273.15 = new value”. #A pixel with a value of 295.15 K becomes a pixel
+with a value of #22 <c2><b0>C. <span class="citation">@export</span></p>
+<pre class="r"><code>#-------------------------------------------------------------------------------
+
+BEE.calc.celsius &lt;- function(YourSpatRaster) {
+  # Get the unit of each layer.
+  units_count &lt;- terra::units(YourSpatRaster)
   
-    # Create a virtual Python space and connect to Copernicus API
-    reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-    reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-    reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-    reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
-    # Check that it work, usually, if it doesn&#39;t works it is because Pyhton is nowhere in the system.
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-  
-  if (length(version) == 0) {
-    version &lt;- system(&quot;python3 --version&quot;, intern = TRUE)
-    user_response &lt;- tolower(readline(prompt = &quot;No Python version was found on your device. Python is required to use the CopernicusMarine interface, which allows downloading Marine Copernicus datasets from R. Would you like to install Python in a virtual environment within the &#39;reticulate&#39; package? This process will take approximately 5 minutes and needs to be done only once. (Yes/No):&quot;))
-    if (user_response == &quot;YES&quot; || user_response == &quot;yes&quot;) {
-      reticulate::install_python(version = &quot;3.10&quot;)
-      version &lt;- reticulate::py_config()
-      print(version)
-      # Create a virtual Python space and connect to Copernicus API
-      reticulate::virtualenv_create(envname = &quot;CopernicusMarine&quot;)
-      reticulate::virtualenv_install(&quot;CopernicusMarine&quot;, packages = c(&quot;copernicusmarine&quot;))
-      reticulate::use_virtualenv(&quot;CopernicusMarine&quot;, required = TRUE)
-      reticulate::py_install(&quot;copernicusmarine&quot;, pip = TRUE)
+  # Check that no layer contains several unit.
+  if (any(sapply(units_count, length) != 1)) {
+    if (any(sapply(units_count, length) &gt; 1)) {
+      warning(
+        &quot;Multiple units were detected for some layers.
+              Plot &#39;YourSpatRaster[[1]]&#39; to verify if a unit is provided, and
+              ensure that there are no multiple values assigned to a single
+              pixel in your raster. You can use terra::units to do so.&quot;
+      )
+      return(NULL)
     }
-    if (user_response == &quot;NO&quot; || user_response == &quot;No&quot;){
-      return(&quot;At last update, Copernicus Marine data center has not provided an API that allows downloding directly from R, thus creating a virutal pyhton environment is necessary. If you want to download a small area or a short time window, you may consider downloding rasters directly on https://data.marine.copernicus.eu/ . Both methods work well with the other functions.&quot;)
+    # Script goes here if there is one layer or more with no unit provided :
+    choice &lt;- utils::menu(
+      c(
+        &quot;Fahrenheit is the current unit of measurement for
+                     all provided layers.&quot;,
+        &quot;Kelvin is the current unit of all provided layers.&quot;,
+        &quot;Stop the function without modification.&quot;
+      ),
+      title = &quot;At least one of the layers of YourSpatRaster has no defined unit.
+    Please choose one of the following options :&quot;
+    )
+    if (choice == 1) {
+      unit &lt;- &quot;fahrenheit&quot;
+    }
+    if (choice == 2) {
+      unit &lt;- &quot;kelvin&quot;
+    }
+    if (choice == 3) {
+      return(NULL)
     }
   }
-  if (length(version) &gt; 0) {
-    cm &lt;- import(&quot;copernicusmarine&quot;)
-    cm$login(username, password)
-    
-    # Get the data
-  ds &lt;- cm$subset(
-    dataset_id = dataset_id,
-    dataset_version = dataset_version,
-    variables= list(gsub(pattern = &quot;[\\[\\]]&quot;, replacement = &quot;&quot;, variables)),
-    minimum_longitude=minimum_longitude,
-    maximum_longitude=maximum_longitude,
-    minimum_latitude=minimum_latitude,
-    maximum_latitude=maximum_latitude,
-    start_datetime=start_datetime,
-    end_datetime=end_datetime,
-    coordinates_selection_method=coordinates_selection_method,
-    disable_progress_bar=disable_progress_bar,
-    output_directory = output_directory
+  
+  # Check that all layers have the same unit.
+  unit &lt;- terra::unique(units_count)
+  if (length(unit) &gt; 1) {
+    warning(
+      &quot;Units differ between layers. If you have merged layers from
+            different datasets, ensure that all layers measure the same
+            parameter and that the units are consistent across datasets
+            before merging.&quot;
+    )
+    return(NULL)
+  }
+  
+  # Check that the unit is not already Celsius
+  if (unit %in% c(&quot;Celsius&quot;,
+                  &quot;celsius&quot;,
+                  &quot;&lt;c2&gt;&lt;b0&gt;C&quot;,
+                  &quot;&lt;c2&gt;&lt;b0&gt;c&quot;,
+                  &quot;c&quot;,
+                  &quot;C&quot;,
+                  &quot;degrees_C&quot;,
+                  &quot;degrees_c&quot;)) {
+    #buble symboles have been replaced
+    #by ASCII code to avoid bugs.
+    print(&quot;Your dataset is already in celsius, there is no need to use this
+          function.&quot;)
+    return(YourSpatRaster)
+  }
+  # Store original metadata for later
+  original_metadata &lt;- list(
+    time = terra::time(YourSpatRaster),
+    crs = terra::crs(YourSpatRaster),
+    extent = terra::ext(YourSpatRaster)
   )
-  } 
+  
+  # Convert from kelvin to celsius
+  if (tolower(unit) %in% c(&quot;kelvin&quot;, &quot;k&quot;, &quot;degrees_K&quot;, &quot;degrees_k&quot;)) {
+    # conversion en Celsius :
+    YourSpatRaster &lt;- terra::app(YourSpatRaster, function(x)
+      x - 273.15)
+    terra::units(YourSpatRaster) &lt;- &quot;Celsius&quot; # unfortunately this deletes other
+    # metadata
+    # restore other metadata
+    terra::time(YourSpatRaster) &lt;- original_metadata$time
+    terra::crs(YourSpatRaster) &lt;- original_metadata$crs
+    terra::ext(YourSpatRaster) &lt;- original_metadata$extent
+    warning(
+      &quot;Your data were in Kelvin and have been converted to Celsius using:
+            former value - 273.15 = new value.&quot;
+    )
+    return(YourSpatRaster)
+  }
+  
+  # Convert from Fahrenheit to celsius
+  if (tolower(unit) %in% c(&quot;fahrenheit&quot;, &quot;f&quot;, &quot;degrees_F&quot;, &quot;degrees_f&quot;)) {
+    YourSpatRaster &lt;- terra::app(YourSpatRaster, function(x)
+      terra::round((x - 32) * (5 / 9), digits = 3))  # conversion en celsius
+    terra::units(YourSpatRaster) &lt;- &quot;Celsius&quot;
+    # unfortunately this deletes other metadata
+    # restore other metadata
+    terra::time(YourSpatRaster) &lt;- original_metadata$time
+    terra::crs(YourSpatRaster) &lt;- original_metadata$crs
+    terra::ext(YourSpatRaster) &lt;- original_metadata$extent
+    warning(
+      &quot;Your data were in Fahrenheit and have been converted to Celsius
+            using: round((former value - 32)*(5/9), digits = 3) = new value.&quot;
+    )
+    return(YourSpatRaster)
+  }
+  
+  warning(&quot;The unit of your dataset is not recognized.&quot;)
+  return(NULL)
 }</code></pre>
 
 
