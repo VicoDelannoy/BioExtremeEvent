@@ -1,35 +1,37 @@
 #' Download spataraster from Copernicus to your local memory.
 #' 
-#' @note You can select your downloading conditions in 
-#' https://data.marine.copernicus.eu/products > Product > Data access > 
-#' Form and then copy and past the argument of the copernicusmarine.subset 
-#' function in https://data.marine.copernicus.eu/products > Product > 
-#' Data access > Form > Automate > Pyhton API and use them as this function 
-#' arguments.
+#' @details
+#' You can select your downloading conditions in 
+#'  https://data.marine.copernicus.eu/products : Product : Data access : 
+#'  Form and then copy and past the argument of the copernicusmarine.subset 
+#'  function in https://data.marine.copernicus.eu/products > Product > 
+#'  Data access : Form : Automate : Pyhton API and use them as this function 
+#'  arguments.
 #' 
 #' @param username is your Copernicus account username, you can create an 
-#' account here : 
+#'  account here : 
 #' https://data.marine.copernicus.eu/register?redirect=%2Fproducts%3Fdisc%3Dnone
 #' 
 #' @param password is your Copernicus account password.
 #' 
 #' @param dataset_id is available on the corpernicus page of your product, in 
-#' "Data access" rubric, under the temporal resolution name. It is usually 
-#' start by cmems_ ...
+#'  "Data access" rubric, under the temporal resolution name. It is usually 
+#'  start by cmems_ ...
 #'
 #' @param dataset_version it the version of the dataset, you can found it in 
-#' the "Product user manual" or as subtitle in the Marine Data Store, it is 
-#' usually in capital letters.
+#'  the "Product user manual" or as subtitle in the Marine Data Store, it is 
+#'  usually in capital letters.
 #' 
 #' @param variables is the variable you are interested in, you can only call 
-#' one variable at a time. Variables name are visible in Marine Data Store >
-#' Product > Data access > From (bellow subset) > use the name in grey before []
+#' one variable at a time. Variables name are visible in Marine Data Store :
+#' Product : Data access : From (bellow subset) : use the name in grey before
+#' square bracket
 #' 
 #' @param minimum_longitude You can use the "Draw on map" Copernicus tool to 
-#' select an area of interest in Marine Data Store > Product > Data access
-#'> Form (bellow subset) and copy the values using "N" (north) as the maximum 
-#' latitude and "W" (west) as the minimum longitude if working in the northwest 
-#' hemisphere. 
+#'  select an area of interest in Marine Data Store : Product : Data access
+#'  : Form (bellow subset) and copy the values using "N" (north) as the maximum 
+#'  latitude and "W" (west) as the minimum longitude if working in the northwest 
+#'  hemisphere. 
 #' 
 #' @param maximum_longitude
 #' 
@@ -38,27 +40,28 @@
 #' @param maximum_latitude
 #' 
 #' @param start_datetime First day wanted in the downloaded spatraster. Please 
-#' make sure that the date is available on copernicus. 
+#'  make sure that the date is available on copernicus. 
 #' 
 #' @param end_datetime Last day wanted in the downloaded spatraster. Please 
-#' make sure that the date is available on copernicus.
+#'  make sure that the date is available on copernicus.
 #' 
 #' @param description disable_progress_bar=FALSE, to get an idea of the downloding progress.
 #' 
 #' @param name description
 #' 
 #' @param coordinates_selection_method = stric-inside" by default, extraction 
-#' method, to see more info, check the python API help to get moer detail 
-#' https://help.marine.copernicus.eu/en/articles/7949409-copernicus-marine-
-#' toolbox-introduction
+#'  method, to see more info, check the python API help to get moer detail 
+#'  https://help.marine.copernicus.eu/en/articles/7949409-copernicus-marine-
+#'  toolbox-introduction
 #' 
 #' @param output_directory where you want the data to be save, by default it 
-#' goes to the "Data" file next to your script if there is one.
+#'   goes to the "Data" file next to your script if there is one.
 #' 
 #' @return A SpatRaster within the timeframe provided and the spatial frame 
-#' given. 
+#'  given. 
 #'
 #' @export
+
 #This function is a wrapper from the CopernicusMarine function from pyhton. 
 #A pyhton setup must be present in your computer, thus this function is testing 
 #if some pyhton is present and if not it offer to download it from R.
@@ -120,7 +123,7 @@ BEE.data.load_Copernicus <- function(username,
     }
   }
   if (length(version) > 0) {
-    cm <- import("copernicusmarine")
+    cm <- import("copernicusmarine") #not called in R
     cm$login(username, password)
     
     # Get the data
