@@ -29,14 +29,15 @@
 #' # To be added
 
 #-------------------------------------------------------------------------------
-# start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; 
+# start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; p <- 1
 # GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
+# group_by_event = TRUE
 BEE.calc.metrics_point <- function(Events_corrected,
                                    Values,
                                    GPS,
                                    start_date = NULL,
                                    end_date = NULL,
-                                   baseline_qt90 = baseline_qt90,
+                                   baseline_qt = baseline_qt90,
                                    baseline_mean = baseline_mean,
                                    group_by_event = TRUE){
 # WARNINGS
@@ -99,6 +100,7 @@ BEE.calc.metrics_point <- function(Events_corrected,
     message(utils::capture.output(print(GPS[wrong_position, ])))
   }
   
+  
   # CODE 
   #Extract values for the given GPS position
   df_list  <- lapply(GPS$pixel, function(p)
@@ -148,6 +150,26 @@ BEE.calc.metrics_point <- function(Events_corrected,
     df <- df_list[[p]]
     df$Date <- as.Date(df$Date)
     df$dates <- format(as.Date(df$Date), "%m-%d")
+    
+    # Check that the first/last extreme event didn't start before/after the
+    # selected timeframe.
+    if (sub(".*?_(\\d{4}-\\d{2}-\\d{2}).*", "\\1", df$ID[1]) < df$date[1]){
+      warnings("The first event starts before the start of the selected time 
+               frame. Please note that metrics will only be computed using data
+               within the selected time frame. Thus, metrics computed for the 
+               first event will be based on a sub-selection of values belonging 
+               to that event, using only values that are in the selected time
+               frame.")
+    }
+    if (sub(".*_(\\d{4}-\\d{2}-\\d{2})$", "\\1", df$ID[nrow(df)]) > df$date[nrow(df)]){
+      warnings("The last event end after the last day of the selected time 
+               frame. Please note that metrics will only be computed using data
+               within the selected time frame. Thus, metrics computed for the 
+               last event will be based on a sub-selection of values belonging 
+               to that event, using only values that are in the selected time
+               frame.")
+    }
+      
     df <- df |>
       dplyr::arrange(ID, Date) |> # put data in pixel order and chronological order
       dplyr::group_by(ID) |> # Create columns with info on the previous group
@@ -258,8 +280,8 @@ BEE.calc.metrics_point <- function(Events_corrected,
         anomaly_mean = value - baseline_mean,
         anomaly_unit = baseline_qt90 - baseline_mean,
         daily_category =  dplyr::case_when(
-          anomaly_qt90 < 0 ~ "No extreme event",
-          anomaly_qt90 < anomaly_unit & anomaly_qt90 >= 0 ~ "Category I",
+          Cleanned_value == 0 ~ "No extreme event",
+          anomaly_qt90 < anomaly_unit ~ "Category I",
           anomaly_qt90 < 2 * anomaly_unit & anomaly_qt90 >= 0 ~ "Category II",
           anomaly_qt90 < 3 * anomaly_unit & anomaly_qt90 >= 0 ~ "Category III",
           anomaly_qt90 >= 3 * anomaly_unit & anomaly_qt90 >= 0~ "Category IV",
@@ -267,14 +289,17 @@ BEE.calc.metrics_point <- function(Events_corrected,
         )
       )
     # Keep the maximum category reached by each event
-    category_order <- c("No extreme event","Category I", "Category II", "Category III",
-                        "Category IV")
     df <- df |>
       dplyr::mutate(daily_category = factor(daily_category,
-                                            levels = category_order))
+                                      levels = c("No extreme event",
+                                                       "Category I", 
+                                                       "Category II", 
+                                                       "Category III",
+                                                       "Category IV"),
+                                      ordered = TRUE ))
     df <- df |> dplyr::mutate(event_ID = ID)
     max_category <- df |>
-      filter(!is.na(daily_category)) |>
+      dplyr::filter(!is.na(daily_category)) |>
       dplyr::group_by(event_ID) |>
       dplyr::summarise(max_category = max(daily_category),
                 .groups = 'drop')
@@ -303,7 +328,7 @@ BEE.calc.metrics_point <- function(Events_corrected,
     if (group_by_event) {
       df <- df |>
         # Delete daily values that are not usefull to describe the full event
-        select(
+        dplyr::select(
           -baseline_qt90,
           -baseline_mean,
           -anomaly_mean,
@@ -318,10 +343,10 @@ BEE.calc.metrics_point <- function(Events_corrected,
           -prev_ID,
           -last_value_prev_group
         ) |>
-        distinct(event_ID, .keep_all = TRUE)  # Une seule ligne par ID
+        dplyr::distinct(event_ID, .keep_all = TRUE)  # Une seule ligne par ID
       
     } else {
-      df <- df |> select(-date,
+      df <- df |> dplyr::select(-date,
                           -ID,
                           -row_num,
                           -prev_value,

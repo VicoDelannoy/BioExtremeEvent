@@ -66,6 +66,7 @@ ds <- BEE.data.load_Copernicus( username=username, password=password,
 HERE I MUST ADD A WRAPPED VERSION OF HEATWAVE3
 
 ## Get your dataset in the environnement
+
 You can start from here is your data are already in your computer.
 
 ```{r}
