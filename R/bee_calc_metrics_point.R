@@ -14,7 +14,8 @@
 #' contain longitudes and latitudes, respectively.
 #' @param start_date First day on which you want to start computing metrics.
 #' @param end_date Last day on which you want to start computing metrics.
-#' @param baseline_qt90 Spatraster of the 90th percentil baseline.
+#' @param baseline_qt Spatraster of the 90th percentile baseline (or the 10th 
+#'  percentile baseline)
 #' @param baseline_mean Spatraster of the 90mean value baseline.
 #' @param group_by_event Whether you want an output summarise by extreme event
 #' or not. If not, you just get daily metrics.

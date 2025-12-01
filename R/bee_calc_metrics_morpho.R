@@ -13,7 +13,7 @@
 #' 
 #-------------------------------------------------------------------------------
 
-#start_date \<- "2022-01-01" ; end_date \<- "2023-12-31"
+#start_date <- "2024-06-01" ; end_date <- "2024-09-31" ;per_pix=TRUE ; 
 
 
 
@@ -82,15 +82,17 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters,
     )
   }
   nb_pixel_studied <- terra::ncell(rasters[[1]]) - nb_NA
+  
   dist_list <- lapply(patch_list, function(x) {
-    # x <- patch_list[[1]]
+    #  # 1 only NA # 41 one patch et 45 2 patches, 
+    # 100 4 patch dont un gros en premier #  x <- patch_list[[100]] 
     # Create a df with on row per pixel
     vals <- terra::values(x)
     cell_size <- terra::values(terra::cellSize(x))[, 1]
     boundary <- terra::boundaries(x, directions = 8)
-    coordonates <- xyFromCell(x, 1:terra::ncell(x)) #each pixel coordinates
-    d <- terra::time(x) # PAS CERTAINE QUE ÇA SOIT LA FONCTION DE TERRA QUI SOIT
-    #APPELLEE ICI
+    coordonates <- terra::xyFromCell(x, 1:terra::ncell(x)) #each pixel coordinates
+    d <- terra::time(x) 
+    print(d)
     
     data <- data.table::data.table(
       x = coordonates[, 1],
@@ -99,73 +101,144 @@ BEE.calc.metrics_morpho <- function(Corrected_rasters,
       # value of the patch
       cell_size = cell_size,
       boundary = terra::values(terra::boundaries(x, directions = 8))
-    ) %>% dplyr::rename(patch_id = values.patches, boundary = boundary.patches)
+    )
+    data.table::setnames(data,
+             old = c("values.patches", "boundary.patches"),
+             new = c("patch_id", "bordering"))
+
+    # Split the 'data' by patch id to process faster : 
+    sp <- split(data, data$patch_id)
     
-    data[, length_boundary := ifelse(is.nan(patch_id),
-                                     NA_real_, sum(boundary),
-                                     by = patch_id)]
-    data[, patch_area := ifelse(is.nan(patch_id),
-                                NA_real_, sum(cell_size)),
-         by = patch_id]
-    data[, core_area := ifelse(is.nan(patch_id), NA_real_,
-                               sum(cell_size * (boundary == 0))),
-         by = patch_id]
-    data[, core_area_index := core_area / as.numeric(nb_pixel_studied)]
-    data[, n_pixel := ifelse(is.nan(patch_id), NA_real_, .N),
-         by = patch_id]
-    data[, pixel_EE_tot := ifelse(is.nan(patch_id), NA_real_,
-                                  sum(unique(n_pixel), na.rm = T))]
-    data[, cover_percent := n_pixel / as.numeric(nb_pixel_studied),
-         by = patch_id]
-    data[, core_pixel := n_pixel - length_boundary]
+    # add metrics : 
+    patch_area <- vapply(
+      sp,
+      function(df) if(any(is.na(df$patch_id))) NA_real_ else sum(df$cell_size),
+      numeric(1)
+    )
+    
+    core_area <- vapply(
+      sp, 
+      function (df) if (any(is.na(df$patch_id))) NA_real_ 
+              else sum(as.numeric(df$cell_size) * as.numeric(df$bordering == 0)),
+      numeric(1)
+    )
+
+    # Remapping to data
+    data$patch_area      <- patch_area[ match(data$patch_id,
+                                        names(patch_area)) ]
+    data$core_area <- core_area[ match(data$patch_id,
+                                       names(core_area))]
+    sp <- split(data, data$patch_id)
+    # add metrics :
+    core_area_index <- vapply(
+      sp, 
+      function(df) {
+        if(length(df$core_area) == 0 || is.nan(df$core_area[1])){ NA_real_}
+      else { as.numeric(df$core_area[1]) / as.numeric(df$patch_area[1])}}, 
+      #only one  value per patch so corea_area[1] is ok and it prevent bugs linked to the
+      # linked to the numeric(1) bellow
+      numeric(1)
+    )
+    n_pixel <- vapply(
+      sp,
+      function(df) {
+        if (all(is.nan(df$patch_id))) NA_real_ else nrow(df)
+      },
+      numeric(1)
+    )
+    
+    # Remapping to data
+    data$core_area_index <- core_area_index[match(data$patch_id,
+                                                  names(core_area_index))]
+    data$n_pixel <- n_pixel[ match(data$patch_id, names(n_pixel)) ]
+    data$pixel_EE_tot <- sum(n_pixel, na.rm=TRUE)
+  
+    
+    # add metrics
+    sp <- split(data, data$patch_id)
+    cover_percent <- vapply(
+      sp,
+      function(df) as.numeric(df$n_pixel[1]) / as.numeric(nb_pixel_studied),
+      numeric(1) )
+    
+    data$cover_percent <- cover_percent[ match(data$patch_id,
+                                               names(cover_percent))]
+    data$core_pixel <- data$n_pixel - data$bordering
+    
+    data$date <- rep(date,nrow(data))
+    
     date <- terra::time(x)
-    data[, ID := ifelse(is.nan(patch_id), NA, paste0(date, "_", patch_id))]
-    data[, pixel_id := .I]
+    data$ID <- ifelse(is.nan(data$patch_id),
+                      NA,
+                    paste0(seq_len(nrow(data)), "_", date, "_", data$patch_id))
     polygon <- terra::as.polygons(x, aggregate = T, round = F)
-    perim <- data.table::data.table(perimeter = terra::perim(polygon))
+    perim_m <- data.table::data.table(perimeter = terra::perim(polygon))
     
-    id <- data[!is.nan(patch_id), .(patch_id = unique(patch_id))]
+    perim_m$patch_id <- unique(data$patch_id[!is.na(data$patch_id)]) # in meters
     
-    perim[, patch_id := id]
+    data$perimeter <- perim_m$perimeter[match(data$patch_id, perim_m$patch_id)]
     
-    data <- merge(data, perim, by = "patch_id", all.x = TRUE)
-    
-    data <- data %>%
+    data <- data |>
       dplyr::select(-cell_size)
     
     if (length(polygon) == 0) {
-      data[, centroid_x := rep(NA_real_, nrow(data))]
-      data[, centroid_y := rep(NA_real_, nrow(data))]
-      data[, perim_area_ratio := length_boundary / n_pixel, by = patch_id]
-      data[, shape_index := (0.25 * length_boundary / (n_pixel)^0.5),
-           by = patch_id]
-      data[, fract_corel_dim := 
-(2 * log(0.25 * length_boundary, base = exp(1)) / log(n_pixel, base = exp(1))),
-by = patch_id]
-      data[, date := d]
-      
+      data$centroid_x <- rep(NA_real_, nrow(data))
+      data$centroid_y <- rep(NA_real_, nrow(data))
+      data$perim_pixel_ratio <- rep(NA_real_, nrow(data))
+      data$Perim_area_ratios_m <- rep(NA_real_, nrow(data))
+      data$Shape_Index <- rep(NA_real_, nrow(data))
+      data$Fractal_cor_index <- rep(NA_real_, nrow(data))
+      data$Circle_ratio_index <- rep(NA_real_, nrow(data))
+      data$Contiguity_index <- rep(NA_real_, nrow(data))
+      data$Nearest_patch_df <- rep(NA_real_, nrow(data))
     } else {
       centro <- terra::centroids(polygon, TRUE)
       centro <- terra::extract(x, centro, xy = TRUE)
-      centro <- centro %>%
-        dplyr::select(patches, x, y) %>%
+      centro <- centro |>
+        dplyr::select(patches, x, y) |>
         dplyr::rename(
           centroid_x = x,
           centroid_y = y,
           patch_id = patches
         )
       data <- merge(data, centro, by = "patch_id", all.x = TRUE)
-      
-      data[, perim_area_ratio := length_boundary / n_pixel, by = patch_id]
-      data[, shape_index := (0.25 * length_boundary / (n_pixel)^0.5),
-           by = patch_id]
-      data[, fract_corel_dim := (2 * log(0.25 * length_boundary,
-                            base = exp(1)) / log(n_pixel, base = exp(1))),
-           by = patch_id]
-      data[, date := d]
+      #Perimeter ratio area in pixels :
+      perim_pixel_ratio <- vapply(
+        sp, # each df contains all info about a patch, thus noudary_length and 
+        # n_pixel have the same value for a given patch / for all rows of df
+        function(df) sum(df$bordering) / unique(df$n_pixel),
+        numeric(1)
+      )
+      data$perim_pixel_ratio <-perim_pixel_ratio[ match(data$patch_id,
+                                                     names(perim_pixel_ratio))]
+      #Perimeter ratio area in meters :
+      Perim_area_ratios_m <- landscapemetrics::lsm_p_para(x_raster)
+      data$Perim_area_ratio_m <- Perim_area_ratios_m$value[match(data$patch_id,
+                                                        Perim_area_ratios_m$id)]
+      #Shape Index :
+      x_raster <- raster::raster(x)
+      Shape_indexes <- landscapemetrics::lsm_p_shape(x_raster)
+      data$Shape_Index <- Shape_indexes$value[match(data$patch_id,
+                                                    Shape_indexes$id)]
+      #Fractal correlation :
+      Fractal_cor_indexes <- landscapemetrics::lsm_p_frac(x_raster)
+      data$Fractal_cor_index <- Fractal_cor_indexes$value[match(data$patch_id,
+                                                        Fractal_cor_indexes$id)]
+      #Ratio btw patch shape and circle :
+      Circle_ratio_indexes <- landscapemetrics::lsm_p_circle(x_raster)
+      data$Circle_ratio_index <- Circle_ratio_indexes$value[match(data$patch_id,
+                                                      Circle_ratio_indexes$id)]
+      #Contiguity :
+      Contiguity_indexes <- landscapemetrics::lsm_p_contig(x_raster)
+      data$Contiguity_index <- Contiguity_indexes$value[match(data$patch_id,
+                                                         Contiguity_indexes$id)]
+      #Distance to the nearest patch :
+      Nearest_patch_df <- landscapemetrics::lsm_p_enn(x_raster)
+      data$Nearest_patch <- Nearest_patch_df$value[match(data$patch_id,
+                                                      Nearest_patch_df$id)]
     }
     return(data)
-  }) # one dt per pixel
+  }) 
   
   names(dist_list) <- terra::time(rasters)
   
@@ -184,7 +257,7 @@ by = patch_id]
     pixels_nb <- seq(1, nrow(dist_list[[1]]))
     dist_tab <- dplyr::bind_rows(dist_list)
     data.table::setDT(dist_tab)
-    dist_tab <- dist_tab %>%
+    dist_tab <- dist_tab |>
       dplyr::mutate(valid_patch_ID = ifelse(!is.nan(patch_id), date, NA)) # keeps only
     # the patch that represents an EE
     patch_list <- terra::rast(patch_list)

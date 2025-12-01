@@ -118,16 +118,16 @@ mois_labels <- c("Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
                  "Juil", "Août", "Sept", "Oct", "Nov", "Déc")
 mois_jours <- c(1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336)
 library(ggplot2)
-ggplot(df_plot, aes(x = doy)) +
-  geom_line(aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
-  geom_line(aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
-  geom_line(aes(y = qt90), color = "red3", linetype = "dashed", size = 1) +  # Qt90 en rouge en tirets
+ggplot(df_plot, ggplot2::aes(x = doy)) +
+  geom_line(ggplot2::aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
+  geom_line(ggplot2::aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
+  geom_line(ggplot2::aes(y = qt90), color = "red3", linetype = "dashed", size = 1) +  # Qt90 en rouge en tirets
   scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  # Labels mensuels
   scale_y_continuous(breaks = seq(floor(min(df_plot)), ceiling(max(df_plot)), by = 1)) +  # Graduation par degré
-  labs(title = "Évolution des valeurs sur 366 jours",
+  ggplot2::labs(title = "Évolution des valeurs sur 366 jours",
        x = "Mois",
        y = "Température (°C)") +
-  theme_minimal()
+  ggplot2::theme_minimal()
 ```
 
 # 4. Binarize spatial data : This step test for each cell of the area whether the metric of the 'event' is above or 'bellow' the threshold.
@@ -191,42 +191,42 @@ The function bellow gives you basic metrics for a given GPS position, list of po
 ```{r}
 GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls, Monaco
                   y = c(43.4287, 43.183, 42.781))
-points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31", baseline_qt90 = baseline_qt90, baseline_mean = baseline_mean, group_by_event = TRUE)
+points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2022-01-01", end_date = "2024-12-31", baseline_qt = baseline_qt90, baseline_mean = baseline_mean, group_by_event = TRUE)
 # To sumarise by event :
-Frontignan <- points_metrics[[1]] %>% 
-  select(-value,-daily_rates) %>% 
-  distinct(ID, .keep_all=TRUE)
+Frontignan <- points_metrics[[1]] |> 
+  dplyr::select(-value,-daily_rates) |>  
+  dplyr::distinct(event_ID, .keep_all=TRUE)
 
-Frioul  <- points_metrics[[2]] %>% 
-  select(-value,-daily_rates) %>% 
-  distinct(ID, .keep_all=TRUE)
+Frioul  <- points_metrics[[2]] |>  
+  dplyr::select(-value,-daily_rates) |>  
+  dplyr::distinct(event_ID, .keep_all=TRUE)
 
-Banyuls <- points_metrics[[3]] %>% 
-  select(-value,-daily_rates) %>% 
-  distinct(ID, .keep_all=TRUE)
+Banyuls <- points_metrics[[3]] |>  
+  dplyr::select(-value,-daily_rates) |>  
+  dplyr::distinct(event_ID, .keep_all=TRUE)
 
 #Check that results are coherent
-temp_2022 <- t(terra::extract(ds[[which(2022==year(time(ds)))]], 507))
-temp_2023 <- t(terra::extract(ds[[which(2023==year(time(ds)))]], 507))
-df_plot$temp_2024 <- t(terra::extract(ds[[which(2024==year(time(ds)))]], 507))
+temp_2022 <- t(terra::extract(ds[[which(2022==lubridate::year(terra::time(ds)))]], 507))
+temp_2023 <- t(terra::extract(ds[[which(2023==lubridate::year(terra::time(ds)))]], 507))
+df_plot$temp_2024 <- t(terra::extract(ds[[which(2024==lubridate::year(terra::time(ds)))]], 507))
 #non leap year
 df_plot$temp_2022 <- c(temp_2022[1:59], NA, temp_2022[60:365])
 df_plot$temp_2023 <- c(temp_2023[1:59], NA, temp_2023[60:365])
-ggplot(df_plot, aes(x = doy)) +
+ggplot2::ggplot(df_plot, ggplot2::aes(x = doy)) +
   # Lignes pour la moyenne et les quartiles
-  geom_line(aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
-  geom_line(aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
-  geom_line(aes(y = qt90), color = "red3", linetype = "dashed", size = 1) +  # Qt90 en rouge en tirets
+  ggplot2::geom_line(ggplot2::aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
+  ggplot2::geom_line(ggplot2::aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
+  ggplot2::geom_line(ggplot2::aes(y = qt90), color = "red3", linetype = "dashed", size = 1) +  # Qt90 en rouge en tirets
   # Ajout des valeurs de ds entre le 1er janvier 2022 et le 31 décembre 2022
-  geom_line(aes(y = temp_2022), color = "black", size = 1) +  # Ligne noire pour ds
+  ggplot2::geom_line(ggplot2::aes(y = temp_2022), color = "black", size = 1) +  # Ligne noire pour ds
   # Configuration des axes
-  scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  # Labels mensuels
-  scale_y_continuous(breaks = seq(floor(min(df_plot$temp_2022, na.rm=TRUE)), ceiling(max(df_plot$temp_2022, na.rm=TRUE)), by = 1)) +  # Graduation par degré
+  ggplot2::scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  # Labels mensuels
+  ggplot2::scale_y_continuous(breaks = seq(floor(min(df_plot$temp_2022, na.rm=TRUE)), ceiling(max(df_plot$temp_2022, na.rm=TRUE)), by = 1)) +  # Graduation par degré
   # Titres et étiquettes
-  labs(title = "Évolution des valeurs sur 366 jours",
+  ggplot2::labs(title = "Évolution des valeurs sur 366 jours",
        x = "Mois",
        y = "Température (°C)") +
-  theme_minimal()
+  ggplot2::theme_minimal()
 
 
 # Represent the events :
@@ -234,29 +234,29 @@ ggplot(df_plot, aes(x = doy)) +
 Frontignan$site <- rep("Frontignan",length(Frontignan$Original_value))
 Frioul$site <- rep("Frioul",length(Frioul$Original_value))
 Banyuls$site <- rep("Banyuls",length(Banyuls$Original_value))
-All <- rbind(Frontignan,Frioul,Banyuls) %>% filter(mean_anomaly_qt90 > 0)
+All <- rbind(Frontignan,Frioul,Banyuls) |>  dplyr::filter(mean_anomaly_qt90 > 0)
 #plot
-ggplot(All, aes(x = format(date_max_value, "%m-%d"), y = mean_anomaly_qt90, size = Nb_days, color = site)) +
-  geom_point(alpha = 0.7) +  # Ajoute des points avec un peu de transparence
-  scale_size(range = c(2, 10)) +  # Ajuste la taille des bulles
-  labs(title = "Caractérisation des vagues de chaleurs",
+ggplot2::ggplot(All, ggplot2::aes(x = format(date_max_value, "%m-%d"), y = mean_anomaly_qt90, size = Nb_days, color = site)) +
+  ggplot2::geom_point(alpha = 0.7) +  # Ajoute des points avec un peu de transparence
+  ggplot2::scale_size(range = c(2, 10)) +  # Ajuste la taille des bulles
+  ggplot2::labs(title = "Caractérisation des vagues de chaleurs",
        x = "Dates",
        y = "Anomalie moyenne (par rapport au 90eme percentile)",
        size = "Day of the maximum value",
        color = "Site") +
-  theme_minimal() +  # Applique un style épuré
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  ggplot2::theme_minimal() +  # Applique un style épuré
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
 
 
 #ACP
-variables_acp <- All %>%
-  select(Nb_days, days_onset, mean_onset_rate,mean_anomaly_qt90, dates) %>%
-  mutate(dates = as.Date(dates, format = "%m-%d")) %>%  # Convertir en date (mais sans année)
-  mutate(dates = as.numeric(format(dates, "%j"))) 
-variables_acp <- variables_acp %>%
-  drop_na()
+variables_acp <- All |> 
+  dplyr::select(Nb_days, days_onset_abs, mean_onset_rate_abs,mean_anomaly_qt90, dates) |> 
+  dplyr::mutate(dates = as.Date(dates, format = "%m-%d")) |>   # Convertir en date (mais sans année)
+  dplyr::mutate(dates = as.numeric(format(dates, "%j"))) 
+variables_acp <- variables_acp |> 
+  tidyr::drop_na()
 variables_acp_scaled <- scale(variables_acp)
-acp_result <- prcomp(variables_acp_scaled, center = TRUE, scale. = TRUE)
+acp_result <- stats::prcomp(variables_acp_scaled, center = TRUE, scale. = TRUE)
 summary(acp_result)
 factoextra::fviz_eig(acp_result)
 # Graphique des individus
@@ -276,7 +276,7 @@ factoextra::fviz_pca_var(acp_result,
 #7. Get metrics related to space.
 
 ```{r}
-list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-01-01", end_date = "2024-12-31", per_pix=TRUE) # Give a summary of the metrics of each patch present in the provided area for each days.
+list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-06-01", end_date = "2024-09-31", per_pix=TRUE) # Give a summary of the metrics of each patch present in the provided area for each days.
 
 # sumarise for a given heatwave and a given pixel (ex: 507), MHW from 30th of april to 5th of may
 test_fronti <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-04-30", end_date = "2022-05-05", patch_per_pix=TRUE)[[1]]
@@ -285,7 +285,7 @@ test_fronti <- lapply(seq_along(test_fronti), function(i){
   dt[,pixel := seq(1:nrow(dt[,1])) ]
   return(dt)
 })
-test_fronti <- bind_rows(test_fronti) %>% filter(pixel==507)
+test_fronti <- bind_rows(test_fronti) |>  filter(pixel==507)
 
 # Calculate mean distance to escape from an extreme event
 dist_to_escape <- BEE.calc.escape(true_event_output=result,
@@ -313,7 +313,7 @@ get_season <- function(d) {
 dist_to_escape[, saison := get_season(date)]
 dist_to_escape[, saison := factor(saison, levels = c("Hiver", "Printemps", "Été", "Automne"))]
 # PLot by season :
-ggplot(dist_to_escape, aes(x = as.numeric(azimut), y = distance, color = saison)) +
+ggplot(dist_to_escape, ggplot2::aes(x = as.numeric(azimut), y = distance, color = saison)) +
   geom_point(size = 2) +
   scale_color_manual(values = c(
     "Hiver" = "#1f78b4",
@@ -334,13 +334,13 @@ ggplot(dist_to_escape, aes(x = as.numeric(azimut), y = distance, color = saison)
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank()
   ) +
-  geom_point(data = data.frame(x = 0, y = 0), aes(x = x, y = y), shape = 4, size = 4, stroke = 1.5, color = "black")+
-  labs(title = "Distance vs Azimut par saison", color = "Saison")
+  geom_point(data = data.frame(x = 0, y = 0), ggplot2::aes(x = x, y = y), shape = 4, size = 4, stroke = 1.5, color = "black")+
+  ggplot2::labs(title = "Distance vs Azimut par saison", color = "Saison")
 # Seasonnal density :
 # Supposons que ta variable 'cercle' contient les valeurs des cercles concentriques
 cercles <- seq(0, 300000, by = 100000)  # à adapter à ta propre échelle de distance
 
-ggplot(dist_to_escape, aes(x = as.numeric(azimut), y = distance)) +
+ggplot(dist_to_escape, ggplot2::aes(x = as.numeric(azimut), y = distance)) +
   # Densité de points par saison
   stat_density_2d_filled(
     geom = "polygon",
@@ -349,7 +349,7 @@ ggplot(dist_to_escape, aes(x = as.numeric(azimut), y = distance)) +
     alpha = 1
   ) +
   geom_point(data = data.frame(x = 0, y = 0),
-             aes(x = x, y = y),
+             ggplot2::aes(x = x, y = y),
              shape = 4, size = 1, stroke = 0.5, color = "black", inherit.aes = FALSE) +
   # Dessiner les cercles concentriques blancs
   geom_hline(yintercept = cercles, color = "lightpink", linetype = "solid", alpha = 0.2) +
@@ -368,7 +368,7 @@ ggplot(dist_to_escape, aes(x = as.numeric(azimut), y = distance)) +
     axis.title = element_blank(),
     panel.grid.minor = element_blank()
   ) +
-  labs(title = "Distance et direction vers le plus proche pixel hors NA depuis Frontignan, par saison", fill = "Densité")
+  ggplot2::labs(title = "Distance et direction vers le plus proche pixel hors NA depuis Frontignan, par saison", fill = "Densité")
 
 plot(dist_to_escape$date,as.numeric(dist_to_escape$distance))
 
