@@ -135,7 +135,7 @@ ggplot(df_plot, ggplot2::aes(x = doy)) +
 It provide a raw information for each day and each pixel without applying any definition of the Extreme Event. Of course, one may be interesting in applying a more restrictive definition of "Extreme Event". This will be done when BEE.calc.true_event will be used (later). This intermediate step is necessary to apply BEE.calc.true_event.
 
 ```{r chunk-5}
-binarized_EE <- BEE.calc.binarize(ds, baseline=baseline_qt90, direction = "above") #by default, direction == "above" #16:20
+binarized_EE <- BEE.calc.binarize(ds, baseline=20, direction = "above") #by default, direction == "above" #16:20
 
 # plot(baseline_qt90[[1]]) ; plot(binarized_EE$`01.01`$`1983-01-01`)
 # Save or load

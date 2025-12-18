@@ -27,7 +27,7 @@
 #' To do so, please refer to BEE.calc.4thD.
 #' #---------------------------------------------------------------------------
 #' 
-# baseline <- baseline_qt90 ; direction <- "above"
+# baseline <- baseline_qt90 ; direction <- "above"; YourSpatraster <- ds
 
 BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
   if (class(baseline)[1] == "SpatRaster") {

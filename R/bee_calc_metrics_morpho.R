@@ -306,7 +306,7 @@ BEE.calc.metrics_morpho <- function(
     dist_tab <- dplyr::bind_rows(dist_list)
     data.table::setDT(dist_tab)
     dist_tab <- dist_tab |>
-      dplyr::mutate(valid_patch_ID = ifelse(!is.nan(patch_id), date, NA)) # keeps only
+      dplyr::mutate(valid_patch_ID = ifelse(!is.nan(patch_id), as.Date(dist_tab$date), NA)) # keeps only
     # the patch that represents an EE
     patch_list <- terra::rast(patch_list)
     names(patch_list) <- terra::time(rasters)
