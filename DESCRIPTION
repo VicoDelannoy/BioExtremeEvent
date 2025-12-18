@@ -18,17 +18,30 @@ RoxygenNote: 7.3.2
 Imports: 
     circular,
     data.table,
-    dplyr,
+    factoextra,
     geosphere,
     here,
+    knitr,
+    landscapemetrics,
     lubridate,
     parallel,
+    pkgload,
+    raster,
+    remotes,
     reticulate,
+    rmarkdown,
     stats,
     terra,
+    tidyr,
+    utilis,
     utils
 Depends: 
-    scales
+    dplyr,
+    ggplot2,
+    rnaturalearth,
+    rnaturalearthdata,
+    scales,
+    sf
 Suggests: 
-    knitr,
-    rmarkdown
+    ggplot2,
+    scales

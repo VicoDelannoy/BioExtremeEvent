@@ -4,7 +4,9 @@ author: "Victoria Delannoy"
 format: html
 editor: visual
 ---
-baseline <- baseline_qt90 ; data_4D <- ds2 ; start_date <- "2022-06-01" ; end_date <- "2022-09-01" ; day <- "2022-01-26" ; GPS <- GPS[,c(1,2)]
+
+baseline \<- baseline_qt90 ; data_4D \<- ds2 ; start_date \<- "2022-06-01" ; end_date \<- "2022-09-01" ; day \<- "2022-01-26" ; GPS \<- GPS\[,c(1,2)\]
+
 ```{r}
 BEE.calc.4thD <- function(baseline, data_4D, start_date, end_date, day = NULL, GPS){
   # Check if analysis is required for a single day
@@ -39,4 +41,3 @@ BEE.calc.4thD <- function(baseline, data_4D, start_date, end_date, day = NULL, G
   }
 }
 ```
-

@@ -101,7 +101,7 @@ BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
 }
 
 
-#' title
+#' Generate dates that take in account lead year
 #'
 #' @noRd
 
@@ -116,7 +116,7 @@ generate_month_day <- function(year) {
 }
 
 
-#' title
+#' Compare pixel value and baseline value
 #'
 #' @noRd
 
@@ -162,7 +162,7 @@ binarize_spat <- function(obs, base, direction = "above") {
 }
 
 
-#' title
+#' Convert from raster to list
 #'
 #' @noRd
 
