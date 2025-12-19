@@ -7,13 +7,13 @@
 #'(but avoiding NA pixels, which are suppose to represent a place that cannot be
 #'crossed) through time for a given GPS position or for all pixels.
 #'
-#'@param true_event_output is Corrected_rasters, a binarized Spatraster 
-#' obtained using function 
+#'@param true_event_output is Corrected_rasters, a binarized Spatraster
+#' obtained using function
 #' BEE.calc.true_event()[["stacked_rasters_corrected"]]).
 #' (0 outside of event, 1 extreme event, NA land or missing data) OR
 #' Events_corrected, a list of df (obtained using
 #' BEE.calc.true_event()[["Event_corrected"]] ).
-#'@param start_date and @param end_date defines the timeframe in during which 
+#'@param start_date and @param end_date defines the timeframe in during which
 #' you want to analyse distance to escape. If no dates are provided, computation
 #' will be done on all days_provided
 #'@param only_days_EE = 'TRUE' if you want to perform calculations
@@ -22,32 +22,33 @@
 #' By default, account_all_days is set on FALSE
 #'@param group_by_event allows to specify if you want your result by extreme
 #'  event or for the whole time periode specified. "group_by_event" = TRUE : compute
-#'  one mean distance per event. "group_by_event" = FALSE : mean distance will be 
+#'  one mean distance per event. "group_by_event" = FALSE : mean distance will be
 #'  based on distances from all days in the time frame (belonging to an extreme
 #'  event or not),  including all days belonging to this event event if they
 #'  are a '0' day, TRUE : compute one mean distance accounting only for days
 #'  that belong to an EE.
 #'@param pixel is a vector with x,y coordinates or a df of x,y coordinates or
-#' "all" if you want to compute distance metrics for all pixels in the raster 
+#' "all" if you want to compute distance metrics for all pixels in the raster
 #' provided through true_event_output
 #'
-#'@note all distance metrics are limited by the size of the Spatraster your 
+#'@note all distance metrics are limited by the size of the Spatraster your
 #' are providing.
 
 #-------------------------------------------------------------------------------
 
 # BEE.calc.escape is not designed to work on 4D data (time + spatial 3D).
-# true_event_output <- result ; start_date = "2022-08-01"; 
-# end_date = "2022-08-12" ; pixel = GPS ; only_days_EE = FALSE ; 
+# true_event_output <- result ; start_date = "2022-08-01";
+# end_date = "2022-08-12" ; pixel = GPS ; only_days_EE = FALSE ;
 # group_by_event = FALSE
 
-BEE.calc.escape <- function(true_event_output,
-                            start_date = NULL,
-                            end_date = NULL,
-                            pixel,
-                            only_days_EE = TRUE,
-                            group_by_event = TRUE) {
-  
+BEE.calc.escape <- function(
+  true_event_output,
+  start_date = NULL,
+  end_date = NULL,
+  pixel,
+  only_days_EE = TRUE,
+  group_by_event = TRUE
+) {
   ### Recreate a Spatraster using Events_corrected. In this list, there are one
   # df per pixel and one raw per dates
   ## Get data and shell
@@ -64,18 +65,21 @@ BEE.calc.escape <- function(true_event_output,
   date_indices <- match(c(start_date, end_date), names(shell))
   dates <- names(shell)[date_indices[1]:date_indices[2]]
   data <- lapply(data, \(df) df[date_indices[1]:date_indices[2], ])
-  
+
   # Subset the layers in the timeframe of interest
   rasters <- true_event_output$stacked_rasters_corrected[[
     names(true_event_output$stacked_rasters_corrected) >= start_date &
-       names(true_event_output$stacked_rasters_corrected) <= end_date]]
-  
+      names(true_event_output$stacked_rasters_corrected) <= end_date
+  ]]
+
   # coordinates of every pixel in the dataset :
-  coords_all <- terra::crds(rasters[[1]],
-                     df = TRUE,
-                     na.rm = FALSE,
-                     na.all = TRUE)
-  
+  coords_all <- terra::crds(
+    rasters[[1]],
+    df = TRUE,
+    na.rm = FALSE,
+    na.all = TRUE
+  )
+
   # Compute by data/layer
   dist_dir <- lapply(rasters, function(x) {
     # x <- rasters[[10]] # 1 : no MHX , 700 : 1 MHW # <-> iterate through dates
@@ -87,25 +91,29 @@ BEE.calc.escape <- function(true_event_output,
       pixels_from <- which(!is.na(values_x))
     }
     pixels_to <- which(values_x == 0)
-    
+
     if (is.vector(pixel) | class(pixel) == "data.frame") {
       if (class(pixel) == "data.frame") {
         pixels_to_do <- terra::cellFromXY(
-          true_event_output$stacked_rasters_corrected, pixel)
-      }
-      else{
+          true_event_output$stacked_rasters_corrected,
+          pixel
+        )
+      } else {
         pixels_to_do <- terra::cellFromXY(
           true_event_output$stacked_rasters_corrected,
-                                          t(matrix(pixel)))
+          t(matrix(pixel))
+        )
       }
       pixels_from <- pixels_from[which(pixels_from %in% pixels_to_do)]
     }
-    
+
     # If there are some pixels to flee but no pixel where to escape :
-    if (length(pixels_from) != 0 &
-        length(pixels_to) == 0) {
+    if (
+      length(pixels_from) != 0 &
+        length(pixels_to) == 0
+    ) {
       # the whole area is an EE
-      coords_from <- coords_all[pixels_from, ]  # Coord to flee
+      coords_from <- coords_all[pixels_from, ] # Coord to flee
       if (as.character(pixel)[1] == "all") {
         points <- data.table::data.table(
           date = terra::time(x),
@@ -113,7 +121,7 @@ BEE.calc.escape <- function(true_event_output,
           from_y = coords_from[, 2],
           to_x = "unkown",
           to_y = "unkown",
-          pixel_from_id =  as.integer(pixels_from),
+          pixel_from_id = as.integer(pixels_from),
           pixel_to_id = "no escape",
           distance = "outside of the raster",
           azimut = "not possible to compute"
@@ -126,7 +134,7 @@ BEE.calc.escape <- function(true_event_output,
           from_y = pixel[, 2],
           to_x = "unkown",
           to_y = "unkown",
-          pixel_from_id =  as.integer(pixels_from),
+          pixel_from_id = as.integer(pixels_from),
           pixel_to_id = "no escape",
           distance = "outside of the raster",
           azimut = "not possible to compute"
@@ -134,14 +142,17 @@ BEE.calc.escape <- function(true_event_output,
       }
       if (is.vector(pixel)) {
         points <- data.table::data.table(
-          date = rep(terra::time(x), nrow(t(
-            matrix(pixel)
-          ))),
+          date = rep(
+            terra::time(x),
+            nrow(t(
+              matrix(pixel)
+            ))
+          ),
           from_x = t(matrix(pixel))[, 1],
           from_y = t(matrix(pixel))[, 2],
           to_x = "unkown",
           to_y = "unkown",
-          pixel_from_id =  as.integer(pixels_from),
+          pixel_from_id = as.integer(pixels_from),
           pixel_to_id = "no escape",
           distance = "outside of the raster",
           azimut = "not possible to compute"
@@ -149,7 +160,7 @@ BEE.calc.escape <- function(true_event_output,
       }
     }
     if (length(pixels_from) == 0) {
-      # nothing to escape from AND only_days_EE==TRUE (because when 
+      # nothing to escape from AND only_days_EE==TRUE (because when
       # only_days_EE==FALSE, all pixel are considered as pixel to escape
       # because we want to compute the distance to escape that are = 0.)
       if (as.character(pixel)[1] == "all") {
@@ -179,9 +190,12 @@ BEE.calc.escape <- function(true_event_output,
         )
         if (is.vector(pixel)) {
           points <- data.table::data.table(
-            date = rep(terra::time(x), nrow(t(
-              matrix(pixel)
-            ))),
+            date = rep(
+              terra::time(x),
+              nrow(t(
+                matrix(pixel)
+              ))
+            ),
             from_x = t(matrix(pixel))[, 1],
             from_y = t(matrix(pixel))[, 2],
             to_x = NA,
@@ -194,12 +208,14 @@ BEE.calc.escape <- function(true_event_output,
         }
       }
     }
-    if (length(pixels_from) != 0 &
-        length(pixels_to) != 0) {
+    if (
+      length(pixels_from) != 0 &
+        length(pixels_to) != 0
+    ) {
       #Basic situation
       # Get coordinates of pixel to flee and pixel where to escape
-      coords_from <- coords_all[pixels_from, ]  # Coord to flee
-      coords_to <- coords_all[pixels_to, ]  # Coord refuge
+      coords_from <- coords_all[pixels_from, ] # Coord to flee
+      coords_to <- coords_all[pixels_to, ] # Coord refuge
       # Create a data.table
       points <- data.table::data.table(
         date = rep(terra::time(x), nrow(coords_from) * nrow(coords_to)),
@@ -211,16 +227,22 @@ BEE.calc.escape <- function(true_event_output,
         pixel_to_id = rep(pixels_to, times = nrow(coords_from))
       )
       # Compute distances btw each points
-      points[, distance := geosphere::distHaversine(cbind(from_x, from_y),
-                                                    cbind(to_x, to_y))]
-      data.table::setorder(points, pixel_from_id, distance) # sort point by id (from_id) 
-      # and then by shortest distance, when ex aequo, it keeps the same order 
+      points$distance <- geosphere::distHaversine(
+        cbind(points$from_x, points$from_y),
+        cbind(points$to_x, points$to_y)
+      )
+      data.table::setorder(points, pixel_from_id, distance) # sort point by id (from_id)
+      # and then by shortest distance, when ex aequo, it keeps the same order
       # as in 'points'
-      points <- points[!duplicated(pixel_from_id), ] # keep only the first 
-      # occurrence of each 'from_id' <-> the occurence with the shortest 
+      points <- points[!duplicated(pixel_from_id), ] # keep only the first
+      # occurrence of each 'from_id' <-> the occurence with the shortest
       # distance
-      points[, azimut := (geosphere::bearing(cbind(from_x, from_y), 
-                                             cbind(to_x, to_y)) + 360) %% 360]
+      points$azimut <- (geosphere::bearing(
+        cbind(points$from_x, points$from_y),
+        cbind(points$to_x, points$to_y)
+      ) +
+        360) %%
+        360
     }
     if (length(pixels_from) == 0 & length(pixels_to) == 0) {
       warning(
@@ -231,7 +253,7 @@ BEE.calc.escape <- function(true_event_output,
     }
     # Make sure that when they are no reason to leave a pixel (distance = 0),
     # the azimut is NA
-    points[, azimut := ifelse(distance == 0, NA, azimut)]
+    points$azimut <- ifelse(points$distance == 0, NA, points$azimut)
     return(points)
   })
   warnings(
@@ -246,7 +268,7 @@ BEE.calc.escape <- function(true_event_output,
     300 km."
   )
   dist_dir <- data.table::rbindlist(dist_dir)
-  no_event <- dist_dir[which(pixel_to_id == "no escape"), ] # saving the lines 
+  no_event <- dist_dir[which(pixel_to_id == "no escape"), ] # saving the lines
   # where there are no distances to compute for the case only_days_EE == FALSE
   if (only_days_EE == TRUE) {
     dist_dir <- dist_dir[distance != 0, ]
@@ -262,13 +284,13 @@ BEE.calc.escape <- function(true_event_output,
       paste(dangerous_date, collapse = ", ")
     )
   }
-  
+
   if (group_by_event == FALSE) {
     # dist_dir <- points
     return(dist_dir)
   }
   if (group_by_event == TRUE) {
-    # Here we want to give 'summary' type value compute across all day of a 
+    # Here we want to give 'summary' type value compute across all day of a
     # same event for each pixel (and event)
     # First, we need to re-identify all the days that belong to a same event :
     ## Create a data.table from  true_event_output[[2]] (data) with a column to
@@ -276,23 +298,25 @@ BEE.calc.escape <- function(true_event_output,
     data <- data[unique(dist_dir$pixel_from_id)]
     names(data) <- unique(dist_dir$pixel_from_id)
     data <- data.table::rbindlist(data, idcol = "pixel_from_id")
-    ## Recreate a column for the time interval of the event using the 
+    ## Recreate a column for the time interval of the event using the
     # informaiton in the ID, this will be necessay to use foverlaps, the fastest
     # function to identify if a date belongs to a specific timeframe or not :) :
-    data[, c("start_date", "end_date") := data.table::tstrsplit(ID, "_", keep = 2:3)]
-    data[, `:=`(start_date = as.Date(start_date),
-                end_date = as.Date(end_date))]
-    dist_dir[, `:=`(date_start = date, date_end = date)]
+    data$start_date <- as.Date(sapply(strsplit(data$ID, "_"), `[`, 2))
+    data$end_date <- as.Date(sapply(strsplit(data$ID, "_"), `[`, 3))
+    data$start_date <- as.Date(data$start_date)
+    data$end_date <- as.Date(data$end_date)
+    dist_dir$date_start <- dist_dir$date
+    dist_dir$date_end <- dist_dir$date
     ## Convert the pixel_id to the same format in both data.table :
-    dist_dir[, pixel_from_id := as.integer(pixel_from_id)]
-    data[, pixel_from_id := as.integer(pixel_from_id)]
+    dist_dir$pixel_from_id <- as.integer(dist_dir$pixel_from_id)
+    data$pixel_from_id <- as.integer(data$pixel_from_id)
     ## We need to delete 'event' that are bellow threshold (<-> distance == 0)
-    
+
     ## Define the 'key' <-> the combination of colum used to create sub-group
     # in a data.table format :
     data.table::setkey(dist_dir, pixel_from_id, date_start, date_end) # PB
     data.table::setkey(data, pixel_from_id, start_date, end_date)
-    
+
     dist_dir <- data.table::foverlaps(
       # magic function that found if the line from dt x is inside the time frame
       # of a line from dt y and identify which one AND joint the 2 dt respecting
@@ -300,74 +324,146 @@ BEE.calc.escape <- function(true_event_output,
       dist_dir,
       data[, .(pixel_from_id, start_date, end_date, ID)],
       by.x = c("pixel_from_id", "date_start", "date_end"),
-      # dt for which we need to know if it is inside the time frames of the 
+      # dt for which we need to know if it is inside the time frames of the
       # other dt
       by.y = c("pixel_from_id", "start_date", "end_date"),
       # the other dt, that contains all the reference timeframe
       nomatch = NA
     )
     ## Clean the columns date_start and date_end that are redondant with date
-    dist_dir[, c("date_start", "date_end") := NULL]
-    
+    dist_dir$date_start <- NULL
+    dist_dir$date_end <- NULL
+
     # Now we can compute some metrics of the metrics distance and azimut !!
     old_warn <- options("warn") # Save curent warning settings
     options(warn = -1) # unactivate warnings
     ## Distance
-    dist_dir[, distance_mean := mean(as.numeric(distance), na.rm = T), by = ID]
-    dist_dir[, distance_sd := stats::sd(as.numeric(distance), na.rm = T), by = ID]
-    dist_dir[, distance_median := stats::median(as.numeric(distance), na.rm = T),
-             by = ID]
-    dist_dir[, distance_min := min(as.numeric(distance), na.rm = T), by = ID]
-    dist_dir[, distance_max := max(as.numeric(distance), na.rm = T), by = ID]
-    
-    ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a 
+    tmp_mean <- aggregate(
+      as.numeric(distance) ~ ID,
+      data = dist_dir,
+      FUN = mean,
+      na.rm = TRUE
+    )
+    dist_dir$distance_mean <- tmp_mean[match(dist_dir$ID, tmp_mean$ID), 2]
+
+    distance_sd <- tapply(
+      as.numeric(dist_dir$distance),
+      dist_dir$ID,
+      sd,
+      na.rm = TRUE
+    )
+    dist_dir$distance_sd <- distance_sd[dist_dir$ID]
+    distance_median <- tapply(
+      as.numeric(dist_dir$distance),
+      dist_dir$ID,
+      median,
+      na.rm = TRUE
+    )
+    dist_dir$distance_median <- distance_median[dist_dir$ID]
+    distance_min <- tapply(
+      as.numeric(dist_dir$distance),
+      dist_dir$ID,
+      min,
+      na.rm = TRUE
+    )
+    dist_dir$distance_min <- distance_min[dist_dir$ID]
+    distance_max <- tapply(
+      as.numeric(dist_dir$distance),
+      dist_dir$ID,
+      max,
+      na.rm = TRUE
+    )
+    dist_dir$distance_max <- distance_max[dist_dir$ID]
+
+    ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
     # special way to compute it :
     # Conversion to circular angle :
-    dist_dir[, azimut_num := as.numeric(azimut)]
-    dist_dir[, azimut_circ := ifelse(
-      !is.na(azimut_num),
-      circular::circular(azimut_num, units = "degrees",
-                         template = "geographics"),
+    dist_dir$azimut_num <- as.numeric(dist_dir$azimut)
+    dist_dir$azimut_circ <- ifelse(
+      !is.na(dist_dir$azimut_num),
+      circular::circular(
+        dist_dir$azimut_num,
+        units = "degrees",
+        template = "geographics"
+      ),
       NA
-    )]
-    dist_dir[, azimut_mean := as.numeric(mean(azimut_circ, na.rm = TRUE)),
-             by = ID]
-    dist_dir[, azimut_med := stats::median(azimut_circ, na.rm = TRUE), by = ID] 
-    # not possible to compute median on NA + if I just put NA, it is going to
-    # expect logical instead of numerical value, that's why NA-real and not NA
-    dist_dir[, azimut_sd := {
-      az_group <- azimut_circ[!is.na(azimut_circ)] #when there are to many 
-      # decimals in azimut_circ, sin and cos used inside circular::sd induce 
-      # little imprecisions that leads to NA value when azimut_circ is constant,
-      # to deal with this, when azimut-circ is constant, a value of 0 is forced
-      # into the dt.
-      if (length(az_group) <= 1 ||
-          max(az_group) - min(az_group) < 1e-6) {
-        0
-      } else {
-        val <- suppressWarnings(as.numeric(stats::sd(az_group)))
-        if (is.nan(val))
-          0
-        else
-          val
-      }
-    }, by = ID]
-    dist_dir[, azimut_min := min(azimut_num, na.rm = TRUE), by = ID]
-    dist_dir[, azimut_max := max(azimut_num, na.rm = TRUE), by = ID]
+    )
+
+    azimut_mean <- tapply(
+      as.numeric(dist_dir$distance),
+      dist_dir$ID,
+      mean,
+      na.rm = TRUE
+    )
+    dist_dir$azimut_mean <- azimut_mean[dist_dir$ID]
+    azimut_med <- tapply(
+      as.numeric(dist_dir$distance),
+      dist_dir$ID,
+      median,
+      na.rm = TRUE
+    )
+    dist_dir$azimut_med <- azimut_med[dist_dir$ID]
+
+    tmp_sd <- aggregate(
+      azimut_circ ~ ID,
+      data = dist_dir,
+      FUN = azimut_sd_fun
+    )
+    dist_dir$azimut_sd <- tmp_sd[match(dist_dir$ID, tmp_sd$ID), 2]
+
+    azimut_min <- tapply(
+      as.numeric(dist_dir$distance),
+      dist_dir$ID,
+      min,
+      na.rm = TRUE
+    )
+    dist_dir$azimut_min <- azimut_min[dist_dir$ID]
+
+    azimut_max <- tapply(
+      as.numeric(dist_dir$distance),
+      dist_dir$ID,
+      max,
+      na.rm = TRUE
+    )
+    dist_dir$azimut_max <- azimut_max[dist_dir$ID]
     options(warn = old_warn$warn) # reactivate warnings
-    # Delete column that refer to daily value and not to value compute on all 
+    # Delete column that refer to daily value and not to value compute on all
     # the event :
-    dist_dir[, 
-          c('date', 'distance', 'azimut', 'azimut_num', 'azimut_circ') := NULL]
+    dist_dir[,
+      c('date', 'distance', 'azimut', 'azimut_num', 'azimut_circ')
+    ] <- NULL
     # Keep only one row per EE (<-> per value of ID column) :
-    dist_dir <- dist_dir[, .SD[1], by = ID] #.SD keep the first line of every 
+    dist_dir <- dist_dir[, .SD[1], by = ID] #.SD keep the first line of every
     # group of same value of ID
-    # delete the column x_to and y_to as the represent the pixel where to 
+    # delete the column x_to and y_to as the represent the pixel where to
     # escape on first day and not a characteristic of the all event
-    dist_dir <- dist_dir %>% dplyr::select(-to_x, -to_y, -pixel_to_id)
+    dist_dir <- dist_dir |> dplyr::select(-to_x, -to_y, -pixel_to_id)
     dist_dir <- dist_dir[!is.na(pixel_from_id)] # withrdraw the line of NA
-    
+
     return(dist_dir)
   }
   message("this combination of argument is not endle by the function")
+}
+
+
+#' To compute azimut sd taking in account NA
+#' @noRd
+
+azimut_sd_fun <- function(x) {
+  az_group <- x[!is.na(x)]
+  # when there are to many
+  # decimals in azimut_circ, sin and cos used inside circular::sd induce
+  # little imprecisions that leads to NA value when azimut_circ is constant,
+  # to deal with this, when azimut-circ is constant, a value of 0 is forced
+  # into the dt.
+  if (
+    length(az_group) <= 1 ||
+      max(az_group) - min(az_group) < 1e-6
+  ) {
+    return(0)
+  }
+
+  val <- suppressWarnings(as.numeric(stats::sd(az_group)))
+
+  if (is.nan(val)) 0 else val
 }

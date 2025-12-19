@@ -276,7 +276,7 @@ factoextra::fviz_pca_var(acp_result,
 #7. Get metrics related to space.
 
 ```{r}
-list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-06-01", end_date = "2024-09-31", per_pix=FALSE, crs = "EPSG:2154") # Give a summary of the metrics of each patch present in the provided area for each days.
+list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-06-01", end_date = "2024-09-30", per_pix=FALSE, crs = "EPSG:2154") # Give a summary of the metrics of each patch present in the provided area for each days.
 
 # sumarise for a given heatwave and a given pixel (ex: 507), MHW from 30th of april to 5th of may
 test_fronti <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-04-30", end_date = "2022-05-05", patch_per_pix=TRUE)[[1]]
@@ -289,10 +289,10 @@ test_fronti <- bind_rows(test_fronti) |>  filter(pixel==507)
 
 # Calculate mean distance to escape from an extreme event
 dist_to_escape <- BEE.calc.escape(true_event_output=result,
-                start_date = "2000-01-01", end_date = "2024-12-31", 
+                start_date = "2024-01-01", end_date = "2024-12-31", 
                 pixel = GPS[1,], 
                 only_days_EE = TRUE,
-                each_event = FALSE)
+                group_by_event = FALSE)
 
 #Graph
 library(scales) 

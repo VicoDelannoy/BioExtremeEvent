@@ -111,7 +111,6 @@ BEE.calc.metrics_morpho <- function(
     boundary <- terra::boundaries(x, directions = 8)
     coordonates <- terra::xyFromCell(x, 1:terra::ncell(x)) #each pixel coordinates
     d <- terra::time(x)
-    print(d)
 
     data <- data.table::data.table(
       x = coordonates[, 1],
@@ -218,11 +217,13 @@ BEE.calc.metrics_morpho <- function(
       data$centroid_x <- rep(NA_real_, nrow(data))
       data$centroid_y <- rep(NA_real_, nrow(data))
       data$perim_pixel_ratio <- rep(NA_real_, nrow(data))
-      data$perim_area_ratios_m <- rep(NA_real_, nrow(data))
+      data$perim_area_ratio_m <- rep(NA_real_, nrow(data))
       data$shape_index <- rep(NA_real_, nrow(data))
       data$fractal_cor_index <- rep(NA_real_, nrow(data))
+      data$perim_area_ratio_m <- rep(NA_real_, nrow(data))
       data$circle_ratio_index <- rep(NA_real_, nrow(data))
       data$contiguity_index <- rep(NA_real_, nrow(data))
+      print(paste0(data$perim_area_ratio_m[1], "_NA"))
     } else {
       centro <- terra::centroids(polygon, TRUE)
       centro <- terra::extract(x, centro, xy = TRUE)
@@ -251,6 +252,7 @@ BEE.calc.metrics_morpho <- function(
         data$patch_id,
         Perim_area_ratios_m$id
       )]
+      print(paste0(d, data$perim_area_ratio_m[1]))
       #Shape Index :
       x <- raster::raster(x)
       Shape_indexes <- landscapemetrics::lsm_p_shape(x)
