@@ -268,7 +268,7 @@ BEE.calc.metrics_morpho <- function(
       #Ratio btw patch shape and circle
       circle_ratio <- data.frame(
         patch_id = as.numeric(names(sp)[names(sp) != "NaN"]),
-        circle_ratio_index = as.numeric(patch_circle_ratio(polygon))
+        circle_ratio_index = as.numeric(patch_circle_ratio(polygon, crs = crs))
       )
       data <- merge(
         data,
@@ -292,10 +292,9 @@ BEE.calc.metrics_morpho <- function(
 
   # Summarise by patch
   data_summarised <- lapply(dist_list, function(x) {
-    # x <- dist_list[[1]]
     x <- unique(x, by = "patch_id")
-    x[, ':='(x = NULL, y = NULL)]
-    return(x)
+    x[c("x", "y")] <- NULL
+    x
   })
 
   data_summarised$pixel_id <- NULL
@@ -306,7 +305,9 @@ BEE.calc.metrics_morpho <- function(
     dist_tab <- dplyr::bind_rows(dist_list)
     data.table::setDT(dist_tab)
     dist_tab <- dist_tab |>
-      dplyr::mutate(valid_patch_ID = ifelse(!is.nan(patch_id), as.Date(dist_tab$date), NA)) # keeps only
+      dplyr::mutate(
+        valid_patch_ID = ifelse(!is.nan(patch_id), as.Date(dist_tab$date), NA)
+      ) # keeps only
     # the patch that represents an EE
     patch_list <- terra::rast(patch_list)
     names(patch_list) <- terra::time(rasters)
@@ -325,9 +326,9 @@ BEE.calc.metrics_morpho <- function(
 #'
 #' @noRd
 #'
-patch_circle_ratio <- function(polygon) {
+patch_circle_ratio <- function(polygon, crs = crs) {
   # WORK one raster per one raster, not on spat raster
-  patch_sf <- st_as_sf(polygon)
+  patch_sf <- st_as_sf(polygon, crs = crs)
   patch_sf <- sf::st_transform(patch_sf, crs = crs)
   patch_area <- terra::expanse(polygon, unit = "m")
   circle <- sf::st_minimum_bounding_circle(patch_sf)

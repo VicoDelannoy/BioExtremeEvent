@@ -20,9 +20,9 @@
 #' using all the days. Use account = 'FALSE' when you want to calculate only
 #' for the days when your reference point is experiencing an extreme event.
 #' By default, account_all_days is set on FALSE
-#'@param each_event allows to specify if you want your result by extreme
-#'  event or for the whole time periode specified. "each_event" = TRUE : compute
-#'  one mean distance per event. "each_event" = FALSE : mean distance will be 
+#'@param group_by_event allows to specify if you want your result by extreme
+#'  event or for the whole time periode specified. "group_by_event" = TRUE : compute
+#'  one mean distance per event. "group_by_event" = FALSE : mean distance will be 
 #'  based on distances from all days in the time frame (belonging to an extreme
 #'  event or not),  including all days belonging to this event event if they
 #'  are a '0' day, TRUE : compute one mean distance accounting only for days
@@ -38,15 +38,15 @@
 
 # BEE.calc.escape is not designed to work on 4D data (time + spatial 3D).
 # true_event_output <- result ; start_date = "2022-08-01"; 
-# end_date = "2022-08-12" ; pixel = test ; only_days_EE = FALSE ; 
-# each_event = FALSE
+# end_date = "2022-08-12" ; pixel = GPS ; only_days_EE = FALSE ; 
+# group_by_event = FALSE
 
 BEE.calc.escape <- function(true_event_output,
                             start_date = NULL,
                             end_date = NULL,
                             pixel,
                             only_days_EE = TRUE,
-                            each_event = TRUE) {
+                            group_by_event = TRUE) {
   
   ### Recreate a Spatraster using Events_corrected. In this list, there are one
   # df per pixel and one raw per dates
@@ -66,13 +66,9 @@ BEE.calc.escape <- function(true_event_output,
   data <- lapply(data, \(df) df[date_indices[1]:date_indices[2], ])
   
   # Subset the layers in the timeframe of interest
-  rasters <- subset(
-    true_event_output$stacked_rasters_corrected,
-    which(
-      names(true_event_output$stacked_rasters_corrected) >= start_date &
-        names(true_event_output$stacked_rasters_corrected) <= end_date
-    )
-  )
+  rasters <- true_event_output$stacked_rasters_corrected[[
+    names(true_event_output$stacked_rasters_corrected) >= start_date &
+       names(true_event_output$stacked_rasters_corrected) <= end_date]]
   
   # coordinates of every pixel in the dataset :
   coords_all <- terra::crds(rasters[[1]],
@@ -82,7 +78,7 @@ BEE.calc.escape <- function(true_event_output,
   
   # Compute by data/layer
   dist_dir <- lapply(rasters, function(x) {
-    # x <- rasters[[70]] # 1 : no MHX , 700 : 1 MHW # <-> iterate through dates
+    # x <- rasters[[10]] # 1 : no MHX , 700 : 1 MHW # <-> iterate through dates
     values_x <- terra::values(x)
     if (only_days_EE == TRUE) {
       pixels_from <- which(values_x == 1)
@@ -267,11 +263,11 @@ BEE.calc.escape <- function(true_event_output,
     )
   }
   
-  if (each_event == FALSE) {
+  if (group_by_event == FALSE) {
     # dist_dir <- points
     return(dist_dir)
   }
-  if (each_event == TRUE) {
+  if (group_by_event == TRUE) {
     # Here we want to give 'summary' type value compute across all day of a 
     # same event for each pixel (and event)
     # First, we need to re-identify all the days that belong to a same event :
