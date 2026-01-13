@@ -290,7 +290,7 @@ test_fronti <- bind_rows(test_fronti) |>  filter(pixel==507)
 # Calculate mean distance to escape from an extreme event
 dist_to_escape <- BEE.calc.escape(true_event_output=result,
                 start_date = "2024-01-01", end_date = "2024-12-31", 
-                pixel = "all", 
+                pixel = GPS[1,], 
                 only_days_EE = TRUE,
                 group_by_event = FALSE)
 

@@ -83,6 +83,7 @@ BEE.calc.escape <- function(
   # Compute by data/layer
   dist_dir <- lapply(rasters, function(x) {
     # x <- rasters[[10]] # 1 : no MHX , 700 : 1 MHW # <-> iterate through dates
+    print(x)
     values_x <- terra::values(x)
     if (only_days_EE == TRUE) {
       pixels_from <- which(values_x == 1)
@@ -176,7 +177,7 @@ BEE.calc.escape <- function(
           azimut = NA
         )
       }
-      if (class(pixel) == "data.frame") {
+      if (class(pixel) == "data.frame") { # the pixel of intrest is not in an EE
         points <- data.table::data.table(
           date = rep(terra::time(x), nrow(pixel)),
           from_x = pixel[, 1],
