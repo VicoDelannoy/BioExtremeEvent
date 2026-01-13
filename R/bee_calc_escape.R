@@ -67,9 +67,9 @@ BEE.calc.escape <- function(
   data <- lapply(data, \(df) df[date_indices[1]:date_indices[2], ])
 
   # Subset the layers in the timeframe of interest
-  rasters <- true_event_output$stacked_rasters_corrected[[
-    names(true_event_output$stacked_rasters_corrected) >= start_date &
-      names(true_event_output$stacked_rasters_corrected) <= end_date
+  rasters <- true_event_output[[1]][[
+    names(true_event_output[[1]]) >= start_date &
+      names(true_event_output[[1]]) <= end_date
   ]]
 
   # coordinates of every pixel in the dataset :
