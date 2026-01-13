@@ -235,8 +235,10 @@ BEE.calc.escape <- function(
       data.table::setorder(points, pixel_from_id, distance) # sort point by id (from_id)
       # and then by shortest distance, when ex aequo, it keeps the same order
       # as in 'points'
-      points <- points[!duplicated(pixel_from_id), ] # keep only the first
+      print("avant modif")
+      points <- points[!data.table::duplicated(pixel_from_id), ] # keep only the first
       # occurrence of each 'from_id' <-> the occurence with the shortest
+      print("modif bien rennee")
       # distance
       points$azimut <- (geosphere::bearing(
         cbind(points$from_x, points$from_y),
