@@ -280,7 +280,7 @@ BEE.calc.escape <- function(
   # where there are no distances to compute for the case only_days_EE == FALSE
   print("no event identifie")
   if (only_days_EE == TRUE) {
-    dist_dir <- dist_dir[distance != 0, ]
+    dist_dir <- dist_dir[dist_dir$distance != 0, ]
     if (nrow(dist_dir) == 0) {
       message("There were no extreme event for the given pixels and timeframe.")
     }
