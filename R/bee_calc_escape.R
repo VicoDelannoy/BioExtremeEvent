@@ -457,7 +457,7 @@ print("azimut mean et median ok")
     # delete the column x_to and y_to as the represent the pixel where to
     # escape on first day and not a characteristic of the all event
     dist_dir <- dist_dir |> dplyr::select(-to_x, -to_y, -pixel_to_id)
-    dist_dir <- dist_dir[!is.na(pixel_from_id)] # withrdraw the line of NA
+    dist_dir <- dist_dir[!is.na(dist_dir$pixel_from_id)] # withrdraw the line of NA
     print("fin code")
     return(dist_dir)
   }
