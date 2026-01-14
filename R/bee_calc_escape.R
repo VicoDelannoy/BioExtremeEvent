@@ -451,7 +451,7 @@ print("azimut mean et median ok")
     ] <- NULL
     print("column with daily value delated")
     # Keep only one row per EE (<-> per value of ID column) :
-    dist_dir <- dist_dir[, .SD[1], by = ID] #.SD keep the first line of every
+    dist_dir <- dist_dir[!duplicated(dist_dir$ID), ] # keep the first line of every
     # group of same value of ID
     print("duplicated lines deleted")
     # delete the column x_to and y_to as the represent the pixel where to
