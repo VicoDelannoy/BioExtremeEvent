@@ -328,15 +328,17 @@ BEE.calc.escape <- function(
     print("pixel_id ok")
     ## Define the 'key' <-> the combination of colum used to create sub-group
     # in a data.table format :
-    data.table::setkey(dist_dir, pixel_from_id, date_start, date_end) 
+    data.table::setkey(dist_dir, pixel_from_id, date_start, date_end)
     data.table::setkey(data, pixel_from_id, start_date, end_date)
-print("sous groupes ok")
+    print("sous groupes ok")
     dist_dir <- data.table::foverlaps(
       # magic function that found if the line from dt x is inside the time frame
       # of a line from dt y and identify which one AND joint the 2 dt respecting
       # correspondanies btw several column.
       dist_dir,
-      data.table::as.data.table(data)[, list(pixel_from_id, start_date, end_date, ID)],
+      data.table::as.data.table(
+        data[, c("pixel_from_id", "start_date", "end_date", "ID")]
+      ),
       by.x = c("pixel_from_id", "date_start", "date_end"),
       # dt for which we need to know if it is inside the time frames of the
       # other dt
@@ -390,7 +392,7 @@ print("sous groupes ok")
       na.rm = TRUE
     )
     dist_dir$distance_max <- distance_max[dist_dir$ID]
-print("distance median min et max ok")
+    print("distance median min et max ok")
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
     # special way to compute it :
     # Conversion to circular angle :
@@ -404,7 +406,7 @@ print("distance median min et max ok")
       ),
       NA
     )
-print("azimut circ ok")
+    print("azimut circ ok")
     azimut_mean <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
@@ -419,7 +421,7 @@ print("azimut circ ok")
       na.rm = TRUE
     )
     dist_dir$azimut_med <- azimut_med[dist_dir$ID]
-print("azimut mean et median ok")
+    print("azimut mean et median ok")
     tmp_sd <- aggregate(
       azimut_circ ~ ID,
       data = dist_dir,
@@ -463,7 +465,6 @@ print("azimut mean et median ok")
   }
   message("this combination of argument is not endle by the function")
 }
-
 
 
 #' To compute azimut sd taking in account NA
