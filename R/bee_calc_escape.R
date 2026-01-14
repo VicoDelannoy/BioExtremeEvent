@@ -336,7 +336,7 @@ print("sous groupes ok")
       # of a line from dt y and identify which one AND joint the 2 dt respecting
       # correspondanies btw several column.
       dist_dir,
-      data[, list(pixel_from_id, start_date, end_date, ID)],
+      data.table::as.data.table(data)[, list(pixel_from_id, start_date, end_date, ID)],
       by.x = c("pixel_from_id", "date_start", "date_end"),
       # dt for which we need to know if it is inside the time frames of the
       # other dt
