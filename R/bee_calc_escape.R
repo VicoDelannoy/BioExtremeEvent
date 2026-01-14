@@ -275,7 +275,7 @@ BEE.calc.escape <- function(
   )
   print("warning passe")
   dist_dir <- data.table::rbindlist(dist_dir)
-  print(dist_dir cree)
+  print("dist_dir cree")
   no_event <- dist_dir[which(pixel_to_id == "no escape"), ] # saving the lines
   # where there are no distances to compute for the case only_days_EE == FALSE
   print("no event identifie")
