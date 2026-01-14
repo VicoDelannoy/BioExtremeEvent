@@ -79,6 +79,7 @@ BEE.calc.escape <- function(
     na.rm = FALSE,
     na.all = TRUE
   )
+  print("preparation data ok")
 
   # Compute by data/layer
   dist_dir <- lapply(rasters, function(x) {
@@ -177,7 +178,8 @@ BEE.calc.escape <- function(
           azimut = NA
         )
       }
-      if (class(pixel) == "data.frame") { # the pixel of intrest is not in an EE
+      if (class(pixel) == "data.frame") {
+        # the pixel of intrest is not in an EE
         points <- data.table::data.table(
           date = rep(terra::time(x), nrow(pixel)),
           from_x = pixel[, 1],
@@ -259,6 +261,7 @@ BEE.calc.escape <- function(
     points$azimut <- ifelse(points$distance == 0, NA, points$azimut)
     return(points)
   })
+  print("boucle points_data terminee")
   warnings(
     "When several pixels are the 'closest pixel', the one with the smallest 
     number/id is kept to compute shortest distance and azimut. Moreover, this 
@@ -270,15 +273,19 @@ BEE.calc.escape <- function(
     compare to distVincentyEllipsoid is between 1 km and 5 km for a distance of 
     300 km."
   )
+  print("warning passe")
   dist_dir <- data.table::rbindlist(dist_dir)
+  print(dist_dir cree)
   no_event <- dist_dir[which(pixel_to_id == "no escape"), ] # saving the lines
   # where there are no distances to compute for the case only_days_EE == FALSE
+  print("no event identifie")
   if (only_days_EE == TRUE) {
     dist_dir <- dist_dir[distance != 0, ]
     if (nrow(dist_dir) == 0) {
       message("There were no extreme event for the given pixels and timeframe.")
     }
   }
+  print("si only_days_EE=TRUE days 0 supprimes")
   if (any(dist_dir$pixel_to_id == "no escape", na.rm = TRUE)) {
     dangerous_date <- dist_dir$date[which(dist_dir$pixel_to_id == "no escape")]
     message(
@@ -293,6 +300,7 @@ BEE.calc.escape <- function(
     return(dist_dir)
   }
   if (group_by_event == TRUE) {
+    print("groupement par event commence")
     # Here we want to give 'summary' type value compute across all day of a
     # same event for each pixel (and event)
     # First, we need to re-identify all the days that belong to a same event :
