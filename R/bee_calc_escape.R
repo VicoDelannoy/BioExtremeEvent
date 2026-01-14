@@ -320,22 +320,23 @@ BEE.calc.escape <- function(
     data$end_date <- as.Date(data$end_date)
     dist_dir$date_start <- dist_dir$date
     dist_dir$date_end <- dist_dir$date
+    print("date correctement gerees")
     ## Convert the pixel_id to the same format in both data.table :
     dist_dir$pixel_from_id <- as.integer(dist_dir$pixel_from_id)
     data$pixel_from_id <- as.integer(data$pixel_from_id)
     ## We need to delete 'event' that are bellow threshold (<-> distance == 0)
-
+    print("pixel_id ok")
     ## Define the 'key' <-> the combination of colum used to create sub-group
     # in a data.table format :
-    data.table::setkey(dist_dir, pixel_from_id, date_start, date_end) # PB
+    data.table::setkey(dist_dir, pixel_from_id, date_start, date_end) 
     data.table::setkey(data, pixel_from_id, start_date, end_date)
-
+print("sous groupes ok")
     dist_dir <- data.table::foverlaps(
       # magic function that found if the line from dt x is inside the time frame
       # of a line from dt y and identify which one AND joint the 2 dt respecting
       # correspondanies btw several column.
       dist_dir,
-      data[, .(pixel_from_id, start_date, end_date, ID)],
+      data[, c("pixel_from_id", "start_date", "end_date", "ID")],
       by.x = c("pixel_from_id", "date_start", "date_end"),
       # dt for which we need to know if it is inside the time frames of the
       # other dt
@@ -343,6 +344,7 @@ BEE.calc.escape <- function(
       # the other dt, that contains all the reference timeframe
       nomatch = NA
     )
+    print("boucle foverlaps ok")
     ## Clean the columns date_start and date_end that are redondant with date
     dist_dir$date_start <- NULL
     dist_dir$date_end <- NULL
@@ -358,7 +360,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$distance_mean <- tmp_mean[match(dist_dir$ID, tmp_mean$ID), 2]
-
+    print("distance ok")
     distance_sd <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
@@ -372,6 +374,7 @@ BEE.calc.escape <- function(
       median,
       na.rm = TRUE
     )
+    print("distance sd ok")
     dist_dir$distance_median <- distance_median[dist_dir$ID]
     distance_min <- tapply(
       as.numeric(dist_dir$distance),
@@ -387,7 +390,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$distance_max <- distance_max[dist_dir$ID]
-
+print("distance median min et max ok")
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
     # special way to compute it :
     # Conversion to circular angle :
@@ -401,7 +404,7 @@ BEE.calc.escape <- function(
       ),
       NA
     )
-
+print("azimut circ ok")
     azimut_mean <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
@@ -416,7 +419,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$azimut_med <- azimut_med[dist_dir$ID]
-
+print("azimut mean et median ok")
     tmp_sd <- aggregate(
       azimut_circ ~ ID,
       data = dist_dir,
@@ -440,23 +443,27 @@ BEE.calc.escape <- function(
     )
     dist_dir$azimut_max <- azimut_max[dist_dir$ID]
     options(warn = old_warn$warn) # reactivate warnings
+    print("azimut sd min et max ok")
     # Delete column that refer to daily value and not to value compute on all
     # the event :
     dist_dir[,
       c('date', 'distance', 'azimut', 'azimut_num', 'azimut_circ')
     ] <- NULL
+    print("column with daily value delated")
     # Keep only one row per EE (<-> per value of ID column) :
     dist_dir <- dist_dir[, .SD[1], by = ID] #.SD keep the first line of every
     # group of same value of ID
+    print("duplicated lines deleted")
     # delete the column x_to and y_to as the represent the pixel where to
     # escape on first day and not a characteristic of the all event
     dist_dir <- dist_dir |> dplyr::select(-to_x, -to_y, -pixel_to_id)
     dist_dir <- dist_dir[!is.na(pixel_from_id)] # withrdraw the line of NA
-
+    print("fin code")
     return(dist_dir)
   }
   message("this combination of argument is not endle by the function")
 }
+
 
 
 #' To compute azimut sd taking in account NA
