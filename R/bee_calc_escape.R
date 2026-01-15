@@ -151,7 +151,7 @@ BEE.calc.escape <- function(
           azimut = "not possible to compute"
         )
       }
-      if (is.vector(pixel)) {
+      if (is.vector(pixel) & as.character(pixel)[1] != "all") {
         points <- data.table::data.table(
           date = rep(
             terra::time(x),
@@ -201,7 +201,7 @@ BEE.calc.escape <- function(
           azimut = NA
         )
       }
-      if (is.vector(pixel)) {
+      if (is.vector(pixel) & as.character(pixel)[1] != "all") {
         points <- data.table::data.table(
           date = rep(
             terra::time(x),
