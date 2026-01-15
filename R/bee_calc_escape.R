@@ -191,6 +191,7 @@ BEE.calc.escape <- function(
           distance = rep(0, length(pixels_to_do)),
           azimut = NA
         )
+      }
         if (is.vector(pixel)) {
           points <- data.table::data.table(
             date = rep(
