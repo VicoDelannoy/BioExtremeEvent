@@ -83,7 +83,7 @@ BEE.calc.escape <- function(
 
   # Compute by data/layer
   dist_dir <- lapply(rasters, function(x) {
-    # x <- rasters[[10]] # 1 : no MHX , 700 : 1 MHW # <-> iterate through dates
+    # x <- rasters[[70]] # 1 : no MHX , 700 : 1 MHW # <-> iterate through dates
     print(x)
     values_x <- terra::values(x)
     if (only_days_EE == TRUE) {
@@ -110,8 +110,7 @@ BEE.calc.escape <- function(
     }
 
     # If there are some pixels to flee but no pixel where to escape :
-    if (
-      length(pixels_from) != 0 &
+    if (length(pixels_from) != 0 &
         length(pixels_to) == 0
     ) {
       # the whole area is an EE
@@ -211,7 +210,7 @@ BEE.calc.escape <- function(
           )
         }
       }
-    }
+    
     if (
       length(pixels_from) != 0 &
         length(pixels_to) != 0
