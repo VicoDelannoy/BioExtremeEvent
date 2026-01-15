@@ -299,7 +299,7 @@ BEE.calc.escape <- function(
     message(
       "During the following dates, the raster was fully covered by an EE and it
       was no possible to compute a distance to escape or an azimut.",
-      paste(dangerous_date, collapse = ", ")
+      paste(unique(dangerous_date), collapse = ", ")
     )
   }
 

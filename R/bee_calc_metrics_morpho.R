@@ -223,7 +223,6 @@ BEE.calc.metrics_morpho <- function(
       data$perim_area_ratio_m <- rep(NA_real_, nrow(data))
       data$circle_ratio_index <- rep(NA_real_, nrow(data))
       data$contiguity_index <- rep(NA_real_, nrow(data))
-      print(paste0(data$perim_area_ratio_m[1], "_NA"))
     } else {
       centro <- terra::centroids(polygon, TRUE)
       centro <- terra::extract(x, centro, xy = TRUE)
@@ -252,7 +251,6 @@ BEE.calc.metrics_morpho <- function(
         data$patch_id,
         Perim_area_ratios_m$id
       )]
-      print(paste0(d, data$perim_area_ratio_m[1]))
       #Shape Index :
       x <- raster::raster(x)
       Shape_indexes <- landscapemetrics::lsm_p_shape(x)
