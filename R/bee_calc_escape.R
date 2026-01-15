@@ -79,12 +79,10 @@ BEE.calc.escape <- function(
     na.rm = FALSE,
     na.all = TRUE
   )
-  print("preparation data ok")
 
   # Compute by data/layer
   dist_dir <- lapply(rasters, function(x) {
     # x <- rasters[[70]] # 1 : no MHX , 700 : 1 MHW # <-> iterate through dates
-    print(x)
     values_x <- terra::values(x)
     if (only_days_EE == TRUE) {
       pixels_from <- which(values_x == 1)
@@ -247,10 +245,9 @@ BEE.calc.escape <- function(
       data.table::setorder(points, pixel_from_id, distance) # sort point by id (from_id)
       # and then by shortest distance, when ex aequo, it keeps the same order
       # as in 'points'
-      print("avant modif")
       points <- points[!base::duplicated(points$pixel_from_id), ] # keep only the first
       # occurrence of each 'from_id' <-> the occurence with the shortest
-      print("modif bien runnee")
+
       # distance
       points$azimut <- (geosphere::bearing(
         cbind(points$from_x, points$from_y),
@@ -271,7 +268,7 @@ BEE.calc.escape <- function(
     points$azimut <- ifelse(points$distance == 0, NA, points$azimut)
     return(points)
   })
-  print("boucle points_data terminee")
+
   warnings(
     "When several pixels are the 'closest pixel', the one with the smallest 
     number/id is kept to compute shortest distance and azimut. Moreover, this 
@@ -283,20 +280,20 @@ BEE.calc.escape <- function(
     compare to distVincentyEllipsoid is between 1 km and 5 km for a distance of 
     300 km."
   )
-  print("warning passe")
+
   dist_dir <- data.table::rbindlist(dist_dir)
-  print("dist_dir cree")
+
   no_event <- dist_dir[which(dist_dir$pixel_to_id == "no escape"), ] # saving the lines
   # where there are no distances to compute for the case only_days_EE == FALSE
-  print("no event identifie")
+
   if (only_days_EE == TRUE) {
-    print("only_days_EE = T ")
+
     dist_dir <- dist_dir[dist_dir$distance != 0, ]
     if (nrow(dist_dir) == 0) {
       message("There were no extreme event for the given pixels and timeframe.")
     }
   }
-  print("si only_days_EE=TRUE days 0 supprimes")
+
   if (any(dist_dir$pixel_to_id == "no escape", na.rm = TRUE)) {
     dangerous_date <- dist_dir$date[which(dist_dir$pixel_to_id == "no escape")]
     message(
@@ -307,12 +304,10 @@ BEE.calc.escape <- function(
   }
 
   if (group_by_event == FALSE) {
-    print("return en cours")
     # dist_dir <- points
     return(dist_dir)
   }
   if (group_by_event == TRUE) {
-    print("groupement par event commence")
     # Here we want to give 'summary' type value compute across all day of a
     # same event for each pixel (and event)
     # First, we need to re-identify all the days that belong to a same event :
@@ -330,17 +325,15 @@ BEE.calc.escape <- function(
     data$end_date <- as.Date(data$end_date)
     dist_dir$date_start <- dist_dir$date
     dist_dir$date_end <- dist_dir$date
-    print("date correctement gerees")
     ## Convert the pixel_id to the same format in both data.table :
     dist_dir$pixel_from_id <- as.integer(dist_dir$pixel_from_id)
     data$pixel_from_id <- as.integer(data$pixel_from_id)
     ## We need to delete 'event' that are bellow threshold (<-> distance == 0)
-    print("pixel_id ok")
     ## Define the 'key' <-> the combination of colum used to create sub-group
     # in a data.table format :
     data.table::setkey(dist_dir, pixel_from_id, date_start, date_end)
     data.table::setkey(data, pixel_from_id, start_date, end_date)
-    print("sous groupes ok")
+
     dist_dir <- data.table::foverlaps(
       # magic function that found if the line from dt x is inside the time frame
       # of a line from dt y and identify which one AND joint the 2 dt respecting
@@ -354,7 +347,7 @@ BEE.calc.escape <- function(
       # the other dt, that contains all the reference timeframe
       nomatch = NA
     )
-    print("boucle foverlaps ok")
+
     ## Clean the columns date_start and date_end that are redondant with date
     dist_dir$date_start <- NULL
     dist_dir$date_end <- NULL
@@ -370,7 +363,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$distance_mean <- tmp_mean[match(dist_dir$ID, tmp_mean$ID), 2]
-    print("distance ok")
+
     distance_sd <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
@@ -384,7 +377,7 @@ BEE.calc.escape <- function(
       median,
       na.rm = TRUE
     )
-    print("distance sd ok")
+ 
     dist_dir$distance_median <- distance_median[dist_dir$ID]
     distance_min <- tapply(
       as.numeric(dist_dir$distance),
@@ -400,7 +393,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$distance_max <- distance_max[dist_dir$ID]
-    print("distance median min et max ok")
+ 
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
     # special way to compute it :
     # Conversion to circular angle :
@@ -414,7 +407,6 @@ BEE.calc.escape <- function(
       ),
       NA
     )
-    print("azimut circ ok")
     azimut_mean <- tapply(
       as.numeric(dist_dir$azimut_circ),
       dist_dir$ID,
@@ -429,7 +421,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$azimut_med <- azimut_med[dist_dir$ID]
-    print("azimut mean et median ok")
+
     tmp_sd <- aggregate(
       azimut_circ ~ ID,
       data = dist_dir,
@@ -453,22 +445,22 @@ BEE.calc.escape <- function(
     )
     dist_dir$azimut_max <- azimut_max[dist_dir$ID]
     options(warn = old_warn$warn) # reactivate warnings
-    print("azimut sd min et max ok")
+
     # Delete column that refer to daily value and not to value compute on all
     # the event :
     dist_dir[,
       c('date', 'distance', 'azimut', 'azimut_num', 'azimut_circ')
     ] <- NULL
-    print("column with daily value delated")
+
     # Keep only one row per EE (<-> per value of ID column) :
     dist_dir <- dist_dir[!duplicated(dist_dir$ID), ] # keep the first line of every
     # group of same value of ID
-    print("duplicated lines deleted")
+
     # delete the column x_to and y_to as the represent the pixel where to
     # escape on first day and not a characteristic of the all event
     dist_dir <- dist_dir |> dplyr::select(-to_x, -to_y, -pixel_to_id)
     dist_dir <- dist_dir[!is.na(dist_dir$pixel_from_id),] # withrdraw the line of NA
-    print("fin code")
+
     return(dist_dir)
   }
   message("this combination of argument is not endle by the function")
