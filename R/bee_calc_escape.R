@@ -101,16 +101,26 @@ BEE.calc.escape <- function(
           pixel
         )
       } else {
-        pixels_to_do <- terra::cellFromXY(
-          true_event_output$stacked_rasters_corrected,
-          t(matrix(pixel))
-        )
+        if (!is.character(pixel)) {
+          pixels_to_do <- terra::cellFromXY(
+            true_event_output$stacked_rasters_corrected,
+            t(matrix(pixel))
+          )
+        }
+        if (pixel=="all") {
+          pixels_to_do <- which(!is.na(terra::values(x)))
+        }
+        else {
+          warnings("The current 'pixel' argument format is not accepted, 
+          please try with a dataframe with only an x and y colum or using 'pixel = all'.")
+        }
       }
       pixels_from <- pixels_from[which(pixels_from %in% pixels_to_do)]
     }
 
     # If there are some pixels to flee but no pixel where to escape :
-    if (length(pixels_from) != 0 &
+    if (
+      length(pixels_from) != 0 &
         length(pixels_to) == 0
     ) {
       # the whole area is an EE
@@ -191,26 +201,26 @@ BEE.calc.escape <- function(
           azimut = NA
         )
       }
-        if (is.vector(pixel)) {
-          points <- data.table::data.table(
-            date = rep(
-              terra::time(x),
-              nrow(t(
-                matrix(pixel)
-              ))
-            ),
-            from_x = t(matrix(pixel))[, 1],
-            from_y = t(matrix(pixel))[, 2],
-            to_x = NA,
-            to_y = NA,
-            pixel_from_id = pixels_to_do,
-            pixel_to_id = NA,
-            distance = rep(0, length(pixels_to_do)),
-            azimut = NA
-          )
-        }
+      if (is.vector(pixel)) {
+        points <- data.table::data.table(
+          date = rep(
+            terra::time(x),
+            nrow(t(
+              matrix(pixel)
+            ))
+          ),
+          from_x = t(matrix(pixel))[, 1],
+          from_y = t(matrix(pixel))[, 2],
+          to_x = NA,
+          to_y = NA,
+          pixel_from_id = pixels_to_do,
+          pixel_to_id = NA,
+          distance = rep(0, length(pixels_to_do)),
+          azimut = NA
+        )
       }
-    
+    }
+
     if (
       length(pixels_from) != 0 &
         length(pixels_to) != 0
@@ -328,9 +338,9 @@ BEE.calc.escape <- function(
     print("pixel_id ok")
     ## Define the 'key' <-> the combination of colum used to create sub-group
     # in a data.table format :
-    data.table::setkey(dist_dir, pixel_from_id, date_start, date_end) 
+    data.table::setkey(dist_dir, pixel_from_id, date_start, date_end)
     data.table::setkey(data, pixel_from_id, start_date, end_date)
-print("sous groupes ok")
+    print("sous groupes ok")
     dist_dir <- data.table::foverlaps(
       # magic function that found if the line from dt x is inside the time frame
       # of a line from dt y and identify which one AND joint the 2 dt respecting
@@ -390,7 +400,7 @@ print("sous groupes ok")
       na.rm = TRUE
     )
     dist_dir$distance_max <- distance_max[dist_dir$ID]
-print("distance median min et max ok")
+    print("distance median min et max ok")
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
     # special way to compute it :
     # Conversion to circular angle :
@@ -404,7 +414,7 @@ print("distance median min et max ok")
       ),
       NA
     )
-print("azimut circ ok")
+    print("azimut circ ok")
     azimut_mean <- tapply(
       as.numeric(dist_dir$azimut_circ),
       dist_dir$ID,
@@ -419,7 +429,7 @@ print("azimut circ ok")
       na.rm = TRUE
     )
     dist_dir$azimut_med <- azimut_med[dist_dir$ID]
-print("azimut mean et median ok")
+    print("azimut mean et median ok")
     tmp_sd <- aggregate(
       azimut_circ ~ ID,
       data = dist_dir,
@@ -463,7 +473,6 @@ print("azimut mean et median ok")
   }
   message("this combination of argument is not endle by the function")
 }
-
 
 
 #' To compute azimut sd taking in account NA
