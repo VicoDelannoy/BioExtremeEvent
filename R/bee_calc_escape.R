@@ -406,14 +406,14 @@ print("distance median min et max ok")
     )
 print("azimut circ ok")
     azimut_mean <- tapply(
-      as.numeric(dist_dir$distance),
+      as.numeric(dist_dir$azimut_circ),
       dist_dir$ID,
       mean,
       na.rm = TRUE
     )
     dist_dir$azimut_mean <- azimut_mean[dist_dir$ID]
     azimut_med <- tapply(
-      as.numeric(dist_dir$distance),
+      as.numeric(dist_dir$azimut_circ),
       dist_dir$ID,
       median,
       na.rm = TRUE
@@ -428,7 +428,7 @@ print("azimut mean et median ok")
     dist_dir$azimut_sd <- tmp_sd[match(dist_dir$ID, tmp_sd$ID), 2]
 
     azimut_min <- tapply(
-      as.numeric(dist_dir$distance),
+      as.numeric(dist_dir$azimut_circ),
       dist_dir$ID,
       min,
       na.rm = TRUE
@@ -436,7 +436,7 @@ print("azimut mean et median ok")
     dist_dir$azimut_min <- azimut_min[dist_dir$ID]
 
     azimut_max <- tapply(
-      as.numeric(dist_dir$distance),
+      as.numeric(dist_dir$azimut_circ),
       dist_dir$ID,
       max,
       na.rm = TRUE
