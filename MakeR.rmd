@@ -192,6 +192,10 @@ The function bellow gives you basic metrics for a given GPS position, list of po
 GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls, Monaco
                   y = c(43.4287, 43.183, 42.781))
 points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2024-06-01", end_date = "2024-10-31", baseline_qt = baseline_qt90, baseline_mean = baseline_mean, group_by_event = FALSE)
+
+saveRDS(points_metrics, file = "Data/points_metrics.rds")
+points_metrics <- readRDS("Data/points_metrics.rds")
+
 # To sumarise by event :
 Frontignan <- points_metrics[[1]] |> 
   dplyr::select(-value,-daily_rates) |>  
@@ -276,7 +280,13 @@ factoextra::fviz_pca_var(acp_result,
 #7. Get metrics related to space.
 
 ```{r}
-list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-06-01", end_date = "2024-10-31", per_pix=FALSE, crs = "EPSG:2154") # Give a summary of the metrics of each patch present in the provided area for each days.
+list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE, crs = "EPSG:2154") # Give a summary of the metrics of each patch present in the provided area for each days.
+
+saveRDS(list_morpho_metrics[[1]], file = "Data/list_morpho_metrics_dt.rds")
+list_morpho_metrics_dt <- readRDS("Data/list_morpho_metrics_dt.rds")
+saveRDS(list_morpho_metrics[[2]], file = "Data/list_morpho_metrics_rasters.rds")
+list_morpho_metrics_rasters <- readRDS("Data/list_morpho_metrics_rasters.rds")
+list_morpho_metrics <- list(list_morpho_metrics_dt, list_morpho_metrics_rasters)
 
 # sumarise for a given heatwave and a given pixel (ex: 507), MHW from 30th of april to 5th of may
 test_fronti <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-04-30", end_date = "2022-05-05", per_pix=TRUE, crs = "EPSG:2154")[[1]]
@@ -293,6 +303,9 @@ dist_to_escape <- BEE.calc.escape(true_event_output=result,
                 pixel = "all", 
                 only_days_EE = FALSE,
                 group_by_event = FALSE)
+
+saveRDS(dist_to_escape, file = "Data/dist_to_escape.rds")
+dist_to_escape <- readRDS("Data/dist_to_escape.rds")
 
 #Graph
 library(scales) 
