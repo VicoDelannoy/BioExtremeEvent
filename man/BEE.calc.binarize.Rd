@@ -36,5 +36,4 @@ For computational purposes in the next functions of the pipeline,
 the order of the layers differs from that of "YourSpatraster".
 BEE.calc.binarize is not design to work on 4D data (3D in space + time).
 To do so, please refer to BEE.calc.4thD.
-#---------------------------------------------------------------------------
 }

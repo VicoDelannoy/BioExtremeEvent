@@ -13,7 +13,12 @@ BEE.calc.metrics_morpho(
 )
 }
 \arguments{
-\item{start_date}{and @param end_date allows to perform the analysis on a
+\item{Corrected_rasters}{the SpatRaster you want to analyse}
+
+\item{start_date}{allows to perform the analysis on a
+specific  time_frame, this allows to save computation time.}
+
+\item{end_date}{allows to perform the analysis on a
 specific  time_frame, this allows to save computation time.}
 
 \item{per_pix}{use TRUE if you want a list with one dt per pixel as an output}
@@ -23,12 +28,10 @@ be converted into meters data that take in account earth sphericity, the
 conversion depend on studdied region, thus you must specify the one the most
 appropriated for your data. See help here to find a suitable EPSG you can
 check on https://epsg.io/}
-
-\item{Corrected_raster}{the SpatRaster you want to analyse}
 }
 \description{
 This function give the morphological metrics for an extreme
-event, Corrected_raster is the SpatRaster you want to analyze (it needs to be
+event, Corrected_rasters is the SpatRaster you want to analyze (it needs to be
 binarise with the mhw function)
 }
 \note{

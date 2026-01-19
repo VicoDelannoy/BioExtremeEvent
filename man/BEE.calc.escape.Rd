@@ -17,7 +17,11 @@ BEE.calc.escape(
 \arguments{
 \item{true_event_output}{is the ouput of function BEE.calc.true_event().}
 
-\item{start_date}{and @param end_date defines the timeframe in during which
+\item{start_date}{defines the beginning of the timeframe during which
+you want to analyse distance to escape. If no dates are provided, computation
+will be done on all days_provided.}
+
+\item{end_date}{defines the endding of the timeframe during which
 you want to analyse distance to escape. If no dates are provided, computation
 will be done on all days_provided}
 
