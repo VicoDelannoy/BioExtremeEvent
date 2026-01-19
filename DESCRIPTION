@@ -16,27 +16,34 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports: 
+    base,
     circular,
     data.table,
+    factoextra,
     geosphere,
     here,
+    knitr,
     landscapemetrics,
     lubridate,
     parallel,
+    pkgload,
     raster,
+    remotes,
     reticulate,
+    rmarkdown,
     stats,
     terra,
     tidyr,
-    utils,
+    utilis,
+    utils
+Depends: 
     dplyr,
     ggplot2,
     rnaturalearth,
     rnaturalearthdata,
     scales,
     sf
-Depends: 
-Suggests:
-    knitr,
-    rmarkdown
+Suggests: 
+    ggplot2,
+    scales
 VignetteBuilder: knitr
