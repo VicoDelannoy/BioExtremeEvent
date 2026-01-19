@@ -55,4 +55,5 @@ BEE.calc.metrics_point compute metrics through time for specific locations.
 }
 \examples{
 # To be added
+
 }

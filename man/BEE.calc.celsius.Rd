@@ -26,4 +26,5 @@ international unit 'Celsius' if necessary.
 #"former value - 273.15 = new value".
 #A pixel with a value of 295.15 K becomes a pixel with a value of 
 #22 <c2><b0>C.
+
 }

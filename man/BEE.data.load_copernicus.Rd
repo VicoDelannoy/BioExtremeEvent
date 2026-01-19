@@ -70,9 +70,10 @@ by default it is set on 'FALSE'.}
 \item{output_directory}{where you want the data to be save, by default it
 goes to the "Data" file next to your script if there is one.}
 
-\item{description}{This function is a wrapper of reticulate package, it able
-to download dataset from copernicus in R using a virtual python
-environnement.}
+\item{description}{This function is a wrapper from the CopernicusMarine
+function from pyhton. A pyhton setup must be present in your computer, thus
+this function is testing if some pyhton is present and if not it offer to
+download it from R.}
 }
 \value{
 A SpatRaster within the timeframe provided and the spatial frame

@@ -27,6 +27,4 @@ extreme events, according to the criteria set in BEE.calc.true_event.
 \examples{
 # to be added
 
-
-
 }

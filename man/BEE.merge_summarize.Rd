@@ -57,4 +57,5 @@ monthly periods and yearly periods.
 }
 \examples{
 # TO BE ADDED
+
 }
