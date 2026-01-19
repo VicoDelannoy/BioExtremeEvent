@@ -36,4 +36,7 @@ Depends:
     rnaturalearthdata,
     scales,
     sf
-Suggests: 
+Suggests:
+    knitr,
+    rmardown
+VignetteBuilder: knitr

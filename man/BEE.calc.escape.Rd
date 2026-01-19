@@ -43,7 +43,7 @@ are a '0' day, TRUE : compute one mean distance accounting only for days
 that belong to an EE.}
 }
 \description{
-This function calculate the mediane distance, mean distance and standard
+This function calculate the median distance, mean distance and standard
 deviation of distance to escape form an extreme event 'as the crow files'
 (but avoiding NA pixels, which are suppose to represent a place that cannot be
 crossed) through time for a given GPS position or for all pixels.

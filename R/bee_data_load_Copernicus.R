@@ -1,5 +1,10 @@
 #' Download spataraster from Copernicus to your local memory.
 #' 
+#' #' @description This function is a wrapper from the CopernicusMarine 
+#' function from pyhton. A pyhton setup must be present in your computer, thus 
+#' this function is testing if some pyhton is present and if not it offer to 
+#' download it from R.
+#' 
 #' @details
 #' You can select your downloading conditions in 
 #'  https://data.marine.copernicus.eu/products : Product : Data access : 
@@ -33,22 +38,17 @@
 #'  latitude and "W" (west) as the minimum longitude if working in the northwest 
 #'  hemisphere. 
 #' 
-#' @param maximum_longitude
+#' @param maximum_longitude maximum longitude at which data will be extracted.
 #' 
-#' @param minimum_latitude
+#' @param minimum_latitude minimum latitude at which data will be extracted.
 #' 
-#' @param maximum_latitude
+#' @param maximum_latitude maximum latitude at which data will be extracted.
 #' 
 #' @param start_datetime First day wanted in the downloaded spatraster. Please 
 #'  make sure that the date is available on copernicus. 
 #' 
 #' @param end_datetime Last day wanted in the downloaded spatraster. Please 
 #'  make sure that the date is available on copernicus.
-#' 
-#' @param description This function is a wrapper from the CopernicusMarine 
-#' function from pyhton. A pyhton setup must be present in your computer, thus 
-#' this function is testing if some pyhton is present and if not it offer to 
-#' download it from R.
 #' 
 #' @param coordinates_selection_method = stric-inside" by default, extraction 
 #'  method, to see more info, check the python API help to get moer detail 
