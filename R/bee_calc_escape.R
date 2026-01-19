@@ -331,9 +331,9 @@ BEE.calc.escape <- function(
     ## We need to delete 'event' that are bellow threshold (<-> distance == 0)
     ## Define the 'key' <-> the combination of colum used to create sub-group
     # in a data.table format :
-    data.table::setkey(dist_dir, dist_dir$pixel_from_id, dist_dir$date_start, 
-      dist_dir$date_end)
-    data.table::setkey(data, data$pixel_from_id, data$start_date, data$end_date)
+    data.table::setkey(dist_dir, pixel_from_id, date_start, 
+      date_end)
+    data.table::setkey(data, pixel_from_id, start_date, end_date)
 
     dist_dir <- data.table::foverlaps(
       # magic function that found if the line from dt x is inside the time frame
@@ -388,7 +388,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$distance_min <- distance_min[dist_dir$ID]
-
+    
     distance_max <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
