@@ -32,3 +32,10 @@ flowchart below, step by step.
 ```{r, echo = FALSE, out.width = "600px", fig.cap = "Framework of the BioExtremeEvent package", fig.align = 'center'}
 knitr::include_graphics("inst/extdata/pipeline_BEE.png")
 ```
+
+
+# Install the BioExtremeEvent package
+
+```{r}
+install.packages("BioExtremeEvent")
+```
