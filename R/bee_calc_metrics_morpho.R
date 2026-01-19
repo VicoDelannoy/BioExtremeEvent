@@ -19,6 +19,7 @@
 #' BEE.calc.metrics_morpho is not designed to work on 4D data (time+spatial 3D).
 #'
 #' @export
+#'
 #-------------------------------------------------------------------------------
 
 #start_date <- "2024-06-01" ; end_date <- "2024-09-31" ;per_pix=TRUE ;

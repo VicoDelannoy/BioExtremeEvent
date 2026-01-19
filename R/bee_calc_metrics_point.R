@@ -25,10 +25,12 @@
 #' informations on the date of the extrem events, mean, median, max and min
 #' values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
 #' etc. Categories are defined in Hobday et al. 2018.
-#' @export
 #'
 #' @examples
 #' # To be added
+#' 
+#' @export
+#' 
 
 #-------------------------------------------------------------------------------
 # start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; p <- 1

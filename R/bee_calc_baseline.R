@@ -31,7 +31,8 @@
 #'   the same extent, pixel resolution and crs than the provided SpatRaster.
 #'
 #' @export
-
+#'
+#-------------------------------------------------------------------------------
 # For tests : YourSpatraster = ds; start_date = "1982-01-01" 
 # end_date = "2010-12-31"; threshold = "qt"; quantile_value = 0.9
 # time_window = 5; smooth_window = 7

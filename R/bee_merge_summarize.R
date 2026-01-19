@@ -40,7 +40,9 @@
 #'
 #'@examples
 #' # TO BE ADDED
+#' 
 #'@export
+#' 
 #-------------------------------------------------------------------------------
 
 # data_metrics_point <- points_metrics ;

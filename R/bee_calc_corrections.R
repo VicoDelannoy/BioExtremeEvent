@@ -13,19 +13,15 @@
 #' applied to distinguish isolated extreme days from extreme events).
 #'
 #' @returns A text summarising the modifications induced.
-#' @export
+#'
 #'
 #' @examples 
 #' # to be added
 #' 
-#' 
+#' @export
 #'
+#-------------------------------------------------------------------------------
 
-# La fonction analyse change était au tout début du script mais je l'ai déplacée
-# après pour pas avoir de problème avec le Roxygen et l'aide.
-
-#Apply to the list of dataframe
-# results = c()
 
 
 BEE.calc.corrections <- function(Events_corrected) {

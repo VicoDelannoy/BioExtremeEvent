@@ -27,8 +27,9 @@
 #' To do so, please refer to BEE.calc.4thD.
 #' 
 #' @export
-#' #---------------------------------------------------------------------------
 #' 
+
+#---------------------------------------------------------------------------
 # baseline <- baseline_qt90 ; direction <- "above"; YourSpatraster <- ds
 
 BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {

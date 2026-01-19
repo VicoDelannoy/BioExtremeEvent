@@ -45,9 +45,10 @@
 #' @param end_datetime Last day wanted in the downloaded spatraster. Please 
 #'  make sure that the date is available on copernicus.
 #' 
-#' @param description This function is a wrapper of reticulate package, it able
-#' to download dataset from copernicus in R using a virtual python 
-#' environnement. 
+#' @param description This function is a wrapper from the CopernicusMarine 
+#' function from pyhton. A pyhton setup must be present in your computer, thus 
+#' this function is testing if some pyhton is present and if not it offer to 
+#' download it from R.
 #' 
 #' @param coordinates_selection_method = stric-inside" by default, extraction 
 #'  method, to see more info, check the python API help to get moer detail 
@@ -64,10 +65,9 @@
 #'  given. 
 #'
 #' @export
+#' 
+#-------------------------------------------------------------------------------
 
-#This function is a wrapper from the CopernicusMarine function from pyhton. 
-#A pyhton setup must be present in your computer, thus this function is testing 
-#if some pyhton is present and if not it offer to download it from R.
 
 BEE.data.load_copernicus <- function(username,
                                      password,

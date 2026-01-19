@@ -31,8 +31,9 @@
 #'
 #'@note all distance metrics are limited by the size of the Spatraster your
 #' are providing.
+#' 
 #' @export
-
+#' 
 #-------------------------------------------------------------------------------
 
 # BEE.calc.escape is not designed to work on 4D data (time + spatial 3D).
