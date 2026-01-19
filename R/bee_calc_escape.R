@@ -461,7 +461,7 @@ BEE.calc.escape <- function(
 
     # delete the column x_to and y_to as the represent the pixel where to
     # escape on first day and not a characteristic of the all event
-    dist_dir <- dist_dir |> dplyr::select(-dist_dir$to_x, -dist_dir$to_y, -dist_dir$pixel_to_id)
+    dist_dir <- dist_dir |> dplyr::select(-to_x, -to_y, -pixel_to_id)
     dist_dir <- dist_dir[!is.na(dist_dir$pixel_from_id),] # withrdraw the line of NA
 
     return(dist_dir)
