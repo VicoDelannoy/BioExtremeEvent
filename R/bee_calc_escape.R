@@ -7,12 +7,7 @@
 #'(but avoiding NA pixels, which are suppose to represent a place that cannot be
 #'crossed) through time for a given GPS position or for all pixels.
 #'
-#'@param true_event_output is Corrected_rasters, a binarized Spatraster
-#' obtained using function
-#' BEE.calc.true_event()[["stacked_rasters_corrected"]]).
-#' (0 outside of event, 1 extreme event, NA land or missing data) OR
-#' Events_corrected, a list of df (obtained using
-#' BEE.calc.true_event()[["Event_corrected"]] ).
+#'@param true_event_output is the ouput of function BEE.calc.true_event().
 #'@param start_date and @param end_date defines the timeframe in during which
 #' you want to analyse distance to escape. If no dates are provided, computation
 #' will be done on all days_provided
