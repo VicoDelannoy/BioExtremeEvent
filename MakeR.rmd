@@ -45,7 +45,7 @@ Detecting an 'extreme' event implies to know what are the normal conditions, thu
 ```{r}
 # username <- "vdela"
 # password <- "Marbec_2WAVE"
-ds <- BEE.data.load_Copernicus( username=username, password=password,
+ds <- BEE.data.load_copernicus( username=username, password=password,
   dataset_id="cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021",
   dataset_version="202411",
   variables="analysed_sst",

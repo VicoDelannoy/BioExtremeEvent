@@ -69,7 +69,7 @@
 #A pyhton setup must be present in your computer, thus this function is testing 
 #if some pyhton is present and if not it offer to download it from R.
 
-BEE.data.load_Copernicus <- function(username,
+BEE.data.load_copernicus <- function(username,
                                      password,
                                      dataset_id,
                                      dataset_version,

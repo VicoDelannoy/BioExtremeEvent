@@ -42,5 +42,3 @@ Depends:
     scales,
     sf
 Suggests: 
-    ggplot2,
-    scales
