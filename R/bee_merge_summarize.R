@@ -13,7 +13,7 @@
 #'@param summarize_by takes the followings options, into "" :
 #' - "extreme_event" for each metrics, a mean, median, variance, min and max will
 #' be computed for each extrem event
-#' - "day" metrics are not summarized through time, the function keeps a daily 
+#' - "day" metrics are not summarized through time, the function keeps a daily
 #' resolution and just merge the datasets.
 #' - "week" for each metrics, a mean, median, variance, min and max will
 #' be computed weekly. Note that this imply to provide daily output
@@ -27,9 +27,9 @@
 #' - "year" for each metrics, a mean, median, variance, min and max will
 #' be computed yearly. Note that this imply to provide daily output
 #' (BEE.calc.escape(only_days_EE = FALSE))
-#' 
+#'
 #'@param crs a METRICS crs that suits the studdied area
-#' 
+#'
 #'@return
 #'
 #'@examples
@@ -49,11 +49,14 @@ BEE.merge_summarize <- function(
   crs
 ) {
   ################## FORMAT TESTS AND WARNINGS ###################################
-  # Check that the summarize_by is a valid option 
+  # Check that the summarize_by is a valid option
   # ("extreme_event"/"weak"/"month"/"year") :
-  if(summarize_by !%in% c("extreme_event","day","weak","month","year"))
-    {warnings("The summarize_by argument is not a suitable option, please 
-    provide one from the following list : extreme_event, day, weak, month, year")}
+  if (!(summarize_by %in% c("extreme_event", "day", "weak", "month", "year"))) {
+    warnings(
+      "The summarize_by argument is not a suitable option, please 
+    provide one from the following list : extreme_event, day, weak, month, year"
+    )
+  }
   # Identify which datasets have been provided :
   ## Is there at least two datasets provided ?
   check_1 <- paste0(
@@ -234,37 +237,48 @@ BEE.merge_summarize <- function(
   data_metrics_point_xy <- data.table::rbindlist(data_metrics_point)
   data_metrics_point_xy <- data.frame(
     lon = data_metrics_point_xy$x,
-    lat = data_metrics_point_xy$y)
+    lat = data_metrics_point_xy$y
+  )
   data_metrics_point_xy <- na.omit(unique(data_metrics_point_xy))
-  
+
   ### data_metrics_morpho coordinates
   data_metrics_morpho_xy <- data_metrics_morpho[[1]]
   data_metrics_morpho_xy <- data.frame(
     lon = data_metrics_morpho_xy$centroid_x,
-    lat = data_metrics_morpho_xy$centroid_y)
+    lat = data_metrics_morpho_xy$centroid_y
+  )
   data_metrics_morpho_xy <- na.omit(unique(data_metrics_morpho_xy))
-  
+
   ### data_escape coordinates
   data_escape_xy <- data.frame(
     lon = data_escape$from_x,
-    lat = data_escape$from_y)
+    lat = data_escape$from_y
+  )
   data_escape_xy <- na.omit(unique(data_escape_xy))
 
   ### Create polygones for each datasets :
   #### Convert df to sf (using a metric crs)
-  sf_data_metrics_point_xy <- sf::st_as_sf(data_metrics_point_xy,
-  coords = c("lon","lat"),
-  crs=crs)
-  sf_data_metrics_morpho_xy <- sf::st_as_sf(data_metrics_morpho_xy,
-  coords = c("lon","lat"),
-  crs=crs)
-  sf_data_escape_xy <- sf::st_as_sf(data_escape_xy,
-  coords = c("lon","lat"),
-  crs=crs)
+  sf_data_metrics_point_xy <- sf::st_as_sf(
+    data_metrics_point_xy,
+    coords = c("lon", "lat"),
+    crs = crs
+  )
+  sf_data_metrics_morpho_xy <- sf::st_as_sf(
+    data_metrics_morpho_xy,
+    coords = c("lon", "lat"),
+    crs = crs
+  )
+  sf_data_escape_xy <- sf::st_as_sf(
+    data_escape_xy,
+    coords = c("lon", "lat"),
+    crs = crs
+  )
   #### COmpute polygones
-  pol_data_metrics_point <- sf::st_concave_hull(sf_data_metrics_point_xy,
-  ratio = 0.8,
-  allow_holes = FALSE)
+  pol_data_metrics_point <- sf::st_concave_hull(
+    sf_data_metrics_point_xy,
+    ratio = 0.8,
+    allow_holes = FALSE
+  )
   #### Test overlapping :
 
   ########################## CODE ################################################
