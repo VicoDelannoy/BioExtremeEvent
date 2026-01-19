@@ -9,37 +9,26 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-
 # About this tutorial
 
 <br />
 
-This tutorial describes the basic workflow showing how to characterized step by step
-extrem event (Marine Heat Wave, water stress...)  using `BioExtremeEvent`
-package. Other functions are available and their uses are illustrated in others
-tutorials.
+This tutorial describes the basic workflow showing how to characterized step 
+by step extrem event (Marine Heat Wave, water stress...) using `BioExtremeEvent`
+package. 
 
-**DATA** The dataset used to illustrate this tutorial is a **METTRE ICI LE DATASET** based on
-X sites (*i.e.* coordinates) and a (rasters of temperature) (*i.e.*  characterization of extrem event). 
-
-
+**DATA:** The dataset used to illustrate this tutorial is a spatraster of the 
+sea surface temperature in Gulf of Lion extract from [Copernicus](https://data.marine.copernicus.eu/products), product: cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021.
 
 <br />
 
-The use of the `BioExtremeEvent` package is based on two datasets:
-
-* a **data frame** of coordinates of sites call `sites_coordinates` in this tutorial
-
-* a **stack raster** of temperature of mediterranean Sea call `sites_coordinates` 
-
-
-<br />
-
-This tutorial will guide you through the main framework, illustrated in the
+The use of the `BioExtremeEvent` package is based on a pipeline.
+This tutorial will guide you through the main framework, illustrated in the 
 flowchart below, step by step.
 
 <br />
 
-```{r, echo = FALSE, out.width = "600px", fig.cap = "Basic framework of the BioExtremeEvent package", fig.align = 'center'}
-#knitr::include_graphics("BioExtremeEvent_framework.PNG")
+**FRAMEWORK:**
+```{r, echo = FALSE, out.width = "600px", fig.cap = "Framework of the BioExtremeEvent package", fig.align = 'center'}
+knitr::include_graphics("inst/extdata/pipeline_BEE.png")
 ```
