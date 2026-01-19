@@ -31,6 +31,7 @@
 #'
 #'@note all distance metrics are limited by the size of the Spatraster your
 #' are providing.
+#' @export
 
 #-------------------------------------------------------------------------------
 

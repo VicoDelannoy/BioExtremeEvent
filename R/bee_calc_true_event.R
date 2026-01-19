@@ -43,6 +43,7 @@
 #'      "date" indicates the date corresponding to the row.
 #' @details w and p settings are not available yet. BEE.calc.true_event is not
 #'  designed to work on 4D data (time + spatial 3D).
+#' @export
 #' @examples
 #' # This function apply a filter to withdraw isolated events. For instance,
 #' # is you consider that an event that last only 2 days should not be accounted
