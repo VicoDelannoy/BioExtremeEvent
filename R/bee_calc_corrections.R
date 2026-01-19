@@ -45,14 +45,14 @@ BEE.calc.corrections <- function(Events_corrected) {
   total_nb_info = sum(results_df$total_not_NA)
   abs_one_to_zero_Ymean <- abs_one_to_zero * 100 / total_nb_info 
   abs_1_Ymean <- abs_1 / total_nb_info
-  # sd_1_Ymean <- as.numeric(sd(results_df$total_ones, na.rm=TRUE)) / 
+  # sd_1_Ymean <- as.numeric(stats::sd(results_df$total_ones, na.rm=TRUE)) / 
   # total_nb_info # variability of being 1 among the pixel
   # corrections among the pixel :
-  sd_1to0_Ymean <- as.numeric(sd(results_df$one_to_zero, na.rm = TRUE))  
+  sd_1to0_Ymean <- as.numeric(stats::sd(results_df$one_to_zero, na.rm = TRUE))  
   abs_zero_to_one_Ymean <- abs_zero_to_one / total_nb_info
   abs_0_Ymean <- abs_0 / total_nb_info
   # corrections among the pixel :
-  sd_1to0_Ymean <- as.numeric(sd(results_df$zero_to_one, na.rm = TRUE))  
+  sd_1to0_Ymean <- as.numeric(stats::sd(results_df$zero_to_one, na.rm = TRUE))  
   cat(
     "Absolut values for the whole area and whole time period :",
     "\n",

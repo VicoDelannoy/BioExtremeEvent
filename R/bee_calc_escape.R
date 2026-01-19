@@ -356,7 +356,7 @@ BEE.calc.escape <- function(
     old_warn <- options("warn") # Save curent warning settings
     options(warn = -1) # unactivate warnings
     ## Distance
-    tmp_mean <- aggregate(
+    tmp_mean <- stats::aggregate(
       as.numeric(distance) ~ ID,
       data = dist_dir,
       FUN = mean,
@@ -422,7 +422,7 @@ BEE.calc.escape <- function(
     )
     dist_dir$azimut_med <- azimut_med[dist_dir$ID]
 
-    tmp_sd <- aggregate(
+    tmp_sd <- stats::aggregate(
       azimut_circ ~ ID,
       data = dist_dir,
       FUN = azimut_sd_fun
@@ -458,7 +458,8 @@ BEE.calc.escape <- function(
 
     # delete the column x_to and y_to as the represent the pixel where to
     # escape on first day and not a characteristic of the all event
-    dist_dir <- dist_dir |> dplyr::select(-to_x, -to_y, -pixel_to_id)
+    dist_dir <- dist_dir |> dplyr::select(-dist_dir$to_x, -dist_dir$to_y, 
+      -dist_dir$pixel_to_id)
     dist_dir <- dist_dir[!is.na(dist_dir$pixel_from_id),] # withrdraw the line of NA
 
     return(dist_dir)
