@@ -231,7 +231,7 @@ BEE.calc.metrics_morpho <- function(
       centro <- terra::centroids(polygon, TRUE)
       centro <- terra::extract(x, centro, xy = TRUE)
       centro <- centro |>
-        dplyr::select(patches, x, y) |>
+        dplyr::select(centro$patches, centro$x, centro$y) |>
         dplyr::rename(
           centroid_x = x,
           centroid_y = y,
@@ -310,7 +310,7 @@ BEE.calc.metrics_morpho <- function(
     data.table::setDT(dist_tab)
     dist_tab <- dist_tab |>
       dplyr::mutate(
-        valid_patch_ID = ifelse(!is.nan(patch_id), as.Date(dist_tab$date), NA)
+        valid_patch_ID = ifelse(!is.nan(dist_tab$patch_id), as.Date(dist_tab$date), NA)
       ) # keeps only
     # the patch that represents an EE
     patch_list <- terra::rast(patch_list)

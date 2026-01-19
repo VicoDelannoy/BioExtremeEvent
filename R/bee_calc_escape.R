@@ -2,7 +2,7 @@
 #' (in surface, 2D)
 #'
 #'@description
-#'This function calculate the mediane distance, mean distance and standard
+#'This function calculate the median distance, mean distance and standard
 #'deviation of distance to escape form an extreme event 'as the crow files'
 #'(but avoiding NA pixels, which are suppose to represent a place that cannot be
 #'crossed) through time for a given GPS position or for all pixels.
@@ -331,8 +331,9 @@ BEE.calc.escape <- function(
     ## We need to delete 'event' that are bellow threshold (<-> distance == 0)
     ## Define the 'key' <-> the combination of colum used to create sub-group
     # in a data.table format :
-    data.table::setkey(dist_dir, pixel_from_id, date_start, date_end)
-    data.table::setkey(data, pixel_from_id, start_date, end_date)
+    data.table::setkey(dist_dir, dist_dir$pixel_from_id, dist_dir$date_start, 
+      dist_dir$date_end)
+    data.table::setkey(data, data$pixel_from_id, data$start_date, data$end_date)
 
     dist_dir <- data.table::foverlaps(
       # magic function that found if the line from dt x is inside the time frame
@@ -357,7 +358,7 @@ BEE.calc.escape <- function(
     options(warn = -1) # unactivate warnings
     ## Distance
     tmp_mean <- stats::aggregate(
-      as.numeric(distance) ~ ID,
+      as.numeric(dist_dir$distance) ~ ID,
       data = dist_dir,
       FUN = mean,
       na.rm = TRUE
@@ -367,18 +368,19 @@ BEE.calc.escape <- function(
     distance_sd <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
-      sd,
+      stats::sd,
       na.rm = TRUE
     )
     dist_dir$distance_sd <- distance_sd[dist_dir$ID]
+
     distance_median <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
-      median,
+      stats::median,
       na.rm = TRUE
     )
- 
     dist_dir$distance_median <- distance_median[dist_dir$ID]
+
     distance_min <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
@@ -386,6 +388,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$distance_min <- distance_min[dist_dir$ID]
+
     distance_max <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
@@ -417,7 +420,7 @@ BEE.calc.escape <- function(
     azimut_med <- tapply(
       as.numeric(dist_dir$azimut_circ),
       dist_dir$ID,
-      median,
+      stats::median,
       na.rm = TRUE
     )
     dist_dir$azimut_med <- azimut_med[dist_dir$ID]
@@ -458,8 +461,7 @@ BEE.calc.escape <- function(
 
     # delete the column x_to and y_to as the represent the pixel where to
     # escape on first day and not a characteristic of the all event
-    dist_dir <- dist_dir |> dplyr::select(-dist_dir$to_x, -dist_dir$to_y, 
-      -dist_dir$pixel_to_id)
+    dist_dir <- dist_dir |> dplyr::select(-dist_dir$to_x, -dist_dir$to_y, -dist_dir$pixel_to_id)
     dist_dir <- dist_dir[!is.na(dist_dir$pixel_from_id),] # withrdraw the line of NA
 
     return(dist_dir)
@@ -485,7 +487,7 @@ azimut_sd_fun <- function(x) {
     return(0)
   }
 
-  val <- suppressWarnings(as.numeric(stats::sd(az_group)))
+  val <- suppressWarnings(as.numeric(circular::sd(az_group)))
 
   if (is.nan(val)) 0 else val
 }
