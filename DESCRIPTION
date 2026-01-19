@@ -38,5 +38,5 @@ Imports:
 Depends: 
 Suggests:
     knitr,
-    rmardown
+    rmarkdown
 VignetteBuilder: knitr
