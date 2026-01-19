@@ -11,7 +11,7 @@ BEE.calc.escape(
   end_date = NULL,
   pixel,
   only_days_EE = TRUE,
-  each_event = TRUE
+  group_by_event = TRUE
 )
 }
 \arguments{
@@ -35,9 +35,9 @@ using all the days. Use account = 'FALSE' when you want to calculate only
 for the days when your reference point is experiencing an extreme event.
 By default, account_all_days is set on FALSE}
 
-\item{each_event}{allows to specify if you want your result by extreme
-event or for the whole time periode specified. "each_event" = TRUE : compute
-one mean distance per event. "each_event" = FALSE : mean distance will be
+\item{group_by_event}{allows to specify if you want your result by extreme
+event or for the whole time periode specified. "group_by_event" = TRUE : compute
+one mean distance per event. "group_by_event" = FALSE : mean distance will be
 based on distances from all days in the time frame (belonging to an extreme
 event or not),  including all days belonging to this event event if they
 are a '0' day, TRUE : compute one mean distance accounting only for days

@@ -1,6 +1,10 @@
 #' Merge the outputs of the metrics functions and summarize them trought time.
 #'
-#'@description
+#'@description To merge the daily outputs of at least two datasets of the 
+#' following fonctions from BEE package : bee.calc.metrics_point() ; 
+#' bee.calc.metrics_morpho() ; bee.calc.escape(). This function can also 
+#' summarise metrics over different time periods: extreme events, weak periods,
+#' monthly periods and yearly periods.
 #'
 #'@param data_metrics_point the output of the BEE.calc.metrics_point computed
 #' using the argument group_by_event = FALSE.
@@ -30,10 +34,12 @@
 #'
 #'@param crs a METRICS crs that suits the studdied area
 #'
-#'@return
+#'@return A dataframe with the metrics of all the datasets provided in column,
+#' if you haven't choose a daily resolution, a mean, median, variance, minimum
+#' and maximum will be computed for each variables over the choosen time step.
 #'
 #'@examples
-#'
+#' # TO BE ADDED
 #'@export
 #-------------------------------------------------------------------------------
 

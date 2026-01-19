@@ -10,7 +10,8 @@ BEE.calc.metrics_point(
   GPS,
   start_date = NULL,
   end_date = NULL,
-  baseline_qt90 = baseline_qt90,
+  time_lapse_vector = NULL,
+  baseline_qt = baseline_qt90,
   baseline_mean = baseline_mean,
   group_by_event = TRUE
 )
@@ -32,7 +33,11 @@ contain longitudes and latitudes, respectively.}
 
 \item{end_date}{Last day on which you want to start computing metrics.}
 
-\item{baseline_qt90}{Spatraster of the 90th percentil baseline.}
+\item{time_lapse_vector}{a vector of time laps on which to compute mean
+evolution rate and variance of the studdied parameter.}
+
+\item{baseline_qt}{Spatraster of the 90th percentile baseline (or the 10th
+percentile baseline)}
 
 \item{baseline_mean}{Spatraster of the 90mean value baseline.}
 
