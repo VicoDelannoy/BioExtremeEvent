@@ -231,7 +231,7 @@ BEE.calc.metrics_morpho <- function(
       centro <- terra::centroids(polygon, TRUE)
       centro <- terra::extract(x, centro, xy = TRUE)
       centro <- centro |>
-        dplyr::select(centro$patches, centro$x, centro$y) |>
+        dplyr::select(patches, x, y) |>
         dplyr::rename(
           centroid_x = x,
           centroid_y = y,

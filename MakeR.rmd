@@ -280,7 +280,7 @@ factoextra::fviz_pca_var(acp_result,
 #7. Get metrics related to space.
 
 ```{r}
-list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE, crs = "EPSG:2154") # Give a summary of the metrics of each patch present in the provided area for each days.
+list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE, crs = "EPSG:2154") # Give the spatial metrics of each patch present in the provided area for each days.
 
 saveRDS(list_morpho_metrics[[1]], file = "Data/list_morpho_metrics_dt.rds")
 list_morpho_metrics_dt <- readRDS("Data/list_morpho_metrics_dt.rds")
