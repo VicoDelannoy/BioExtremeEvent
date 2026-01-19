@@ -45,14 +45,17 @@
 #' @param end_datetime Last day wanted in the downloaded spatraster. Please 
 #'  make sure that the date is available on copernicus.
 #' 
-#' @param description disable_progress_bar=FALSE, to get an idea of the downloding progress.
-#' 
-#' @param name description
+#' @param description This function is a wrapper of reticulate package, it able
+#' to download dataset from copernicus in R using a virtual python 
+#' environnement. 
 #' 
 #' @param coordinates_selection_method = stric-inside" by default, extraction 
 #'  method, to see more info, check the python API help to get moer detail 
 #'  https://help.marine.copernicus.eu/en/articles/7949409-copernicus-marine-
 #'  toolbox-introduction
+#' 
+#' @param disable_progress_bar allows to pot a progress bar of the downloading,
+#' by default it is set on 'FALSE'.
 #' 
 #' @param output_directory where you want the data to be save, by default it 
 #'   goes to the "Data" file next to your script if there is one.

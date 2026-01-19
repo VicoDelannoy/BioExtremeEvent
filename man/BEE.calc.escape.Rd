@@ -15,12 +15,7 @@ BEE.calc.escape(
 )
 }
 \arguments{
-\item{true_event_output}{is Corrected_rasters, a binarized Spatraster
-obtained using function
-BEE.calc.true_event()[\link{"stacked_rasters_corrected"}]).
-(0 outside of event, 1 extreme event, NA land or missing data) OR
-Events_corrected, a list of df (obtained using
-BEE.calc.true_event()[\link{"Event_corrected"}] ).}
+\item{true_event_output}{is the ouput of function BEE.calc.true_event().}
 
 \item{start_date}{and @param end_date defines the timeframe in during which
 you want to analyse distance to escape. If no dates are provided, computation

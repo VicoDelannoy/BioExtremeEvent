@@ -8,7 +8,10 @@
 #'crossed) through time for a given GPS position or for all pixels.
 #'
 #'@param true_event_output is the ouput of function BEE.calc.true_event().
-#'@param start_date and @param end_date defines the timeframe in during which
+#'@param start_date defines the beginning of the timeframe during which
+#' you want to analyse distance to escape. If no dates are provided, computation
+#' will be done on all days_provided.
+#' @param end_date defines the endding of the timeframe during which
 #' you want to analyse distance to escape. If no dates are provided, computation
 #' will be done on all days_provided
 #'@param only_days_EE = 'TRUE' if you want to perform calculations

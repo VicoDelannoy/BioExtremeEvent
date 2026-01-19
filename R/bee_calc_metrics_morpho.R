@@ -1,10 +1,12 @@
 #'Compute metrics spatial features of the extreme event (only in surface, 2D)
 #'
 #'@description This function give the morphological metrics for an extreme
-#' event, Corrected_raster is the SpatRaster you want to analyze (it needs to be
+#' event, Corrected_rasters is the SpatRaster you want to analyze (it needs to be
 #' binarise with the mhw function)
-#'@param Corrected_raster the SpatRaster you want to analyse
-#'@param start_date and @param end_date allows to perform the analysis on a
+#' @param Corrected_rasters the SpatRaster you want to analyse
+#' @param start_date allows to perform the analysis on a
+#' specific  time_frame, this allows to save computation time.
+#' @param end_date allows to perform the analysis on a
 #' specific  time_frame, this allows to save computation time.
 #' @param per_pix use TRUE if you want a list with one dt per pixel as an output
 #' @param crs to get accurate length and area, data in longitude latitude must
