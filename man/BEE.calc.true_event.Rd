@@ -30,12 +30,11 @@ Default: NULL}
 \item{w}{NOT AVAILBALE YET Window w between to event in which you
 allow a certain proportion p of days (within the window) to be bellow the
 threshold, windows is bordered by series of consecutive days above
-threshold. w and p replace d. If w is an odd number,
-the minimum number of days above threshold within w will be the value
-rounded to the superior round number. For instance if w = 7 and p = 0.3
-a window of 7 days between to event of n consecutive days will not
-create two distinct event if at least 4 days are above threshold.
-( w\emph{p = 7}0.5 = 3.5 rounded to 4).
+threshold. w and p replace d. If w is an odd number, the minimum number of
+days above threshold within w will be the value rounded to the superior
+round number. For instance if w = 7 and p = 0.3 a window of 7 days between
+to event of n consecutive days will not create two distinct event if at
+least 4 days are above threshold.( wp = 7*0.5 = 3.5 rounded to 4).
 Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL}
 
 \item{p}{NOT AVAILBALE YET, see "w" explanations. Default: NULL}
@@ -63,41 +62,41 @@ designed to work on 4D data (time + spatial 3D).
 \examples{
 # This function apply a filter to withdraw isolated events. For instance,
 # is you consider that an event that last only 2 days should not be accounted
-# for in future analysis, you can correct those value by 0. Here are the 
+# for in future analysis, you can correct those value by 0. Here are the
 # different filter you can apply:
 #
-# Low complexity: 
-# - Minimum number of consecutive day above threshold to 
+# Low complexity:
+# - Minimum number of consecutive day above threshold to
 #  consider that there is an extreme event: n  (>=)
-#  
-# -   Maximum number of days bellow thershold to consider two series of 
-# value above threshold as a single extreme event (distance max in days btw 
+#
+# -   Maximum number of days bellow thershold to consider two series of
+# value above threshold as a single extreme event (distance max in days btw
 # 2 events to merge them): d (<=)
-#   
+#
 # Examples: n >= 5  d>= 2
-#       0 0 0 1 1 1 1 ** 1 ** 0 0 0 = 1 event, 
+#       0 0 0 1 1 1 1 ** 1 ** 0 0 0 = 1 event,
 #   but 0 0 0 1 1 1 1 0 0 0 = no event
-#       0 0 0 1 1 1 1 1 0 0 1 1 1 0 0 0 = 1 event of 5 days, 
+#       0 0 0 1 1 1 1 1 0 0 1 1 1 0 0 0 = 1 event of 5 days,
 #   but 0 0 0 1 1 1 1 1 0 0 1 1 1 **1 1 ** 0 0 0 = 1 event of 12 days,
-#   but 0 0 0 1 1 1 1 1 0 0 ** 0 ** 1 1 1 1 1 0 0 0 = 2 instincts 
+#   but 0 0 0 1 1 1 1 1 0 0 ** 0 ** 1 1 1 1 1 0 0 0 = 2 instincts
 # event of 5 days each.
 #
 # Medium complexity (Hobday et al. 2016, 2018):
 #- Minimum number of days distant from d days or less to an event
 #  of n days : nbis .
-#  
+#
 # Example: n = 5, d = 2, nbis = 3
-# This is for the case you want to consider 
-#     0 0 0 1 1 1 1 1 0 0 1 1 ** 1 ** 0 0 0 as one event of 10 days 
-# but 0 0 0 1 1 1 1 1 0 0 1 1 0 0 0 as one event of 5 days. 
+# This is for the case you want to consider
+#     0 0 0 1 1 1 1 1 0 0 1 1 ** 1 ** 0 0 0 as one event of 10 days
+# but 0 0 0 1 1 1 1 1 0 0 1 1 0 0 0 as one event of 5 days.
 # In the first case, if there are not five consecutive days above threshold
 # right before or after (d = n still fixed to 5).
-# 
+#
 #  High complexity : NOT AVAILABLE YET
-# - Unstable window * w * between to event in which you allow a certain 
-#  proportion p of days of w to be bellow threshold if this windows is 
-# bordered by series of consecutive days above threshold on each size. 
-# w  and  p  replace d. If w is an odd number, the minimum number of days 
+# - Unstable window * w * between to event in which you allow a certain
+#  proportion p of days of w to be bellow threshold if this windows is
+# bordered by series of consecutive days above threshold on each size.
+# w  and  p  replace d. If w is an odd number, the minimum number of days
 # above threshold within w will be the value rounded to the superior round
 #  number. For instance if w = 7 and p = 0.3 a window of 7 days between to
 #  event of * n * consecutive days will not create two distinct event if at
@@ -105,10 +104,10 @@ designed to work on 4D data (time + spatial 3D).
 #
 # Examples : n = 5
 # w = 10
-# p = 0.5  ->  w*p = 5 
+# p = 0.5  ->  w*p = 5
 # case that lead to a single big event of 15 days:
 # 0 0 0 0 0 1 1 1 1 1 0 1 1 1 0 0 0 1 1 0 1 1 1 1 1 0 0 0 0 0
-# 0 0 0 0 0 1 1 1 1 1 0 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 
+# 0 0 0 0 0 1 1 1 1 1 0 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0
 # (you can also use low complexity n = 5 and d = 3)
 # 0 0 0 0 0 1 1 1 1 1 0 1 0 1 0 1 0 1 0 1 1 1 1 1 1 0 0 0 0 0
 # case that lead to 2 distinct events:
@@ -116,7 +115,7 @@ designed to work on 4D data (time + spatial 3D).
 # 0 0 0 0 0 1 1 1 1 1 0 0 0 1 1 1 1 0 0 0 1 1 1 1 1 0 0 0 0 0
 # 0 0 0 0 0 1 1 1 1 1 0 1 1 1 1 0 0 0 0 0 1 1 1 1 1 0 0 0 0 0 (
 # if you want to detect 1 event of 10 days then a distinct event of 5 days
-# instead of 2 events of 5 days only you can use : 
+# instead of 2 events of 5 days only you can use :
 # low complexity with n = 4 and d = 1)
 
 }

@@ -47,11 +47,11 @@ select an area of interest in Marine Data Store : Product : Data access
 latitude and "W" (west) as the minimum longitude if working in the northwest
 hemisphere.}
 
-\item{maximum_longitude}{}
+\item{maximum_longitude}{maximum longitude at which data will be extracted.}
 
-\item{minimum_latitude}{}
+\item{minimum_latitude}{minimum latitude at which data will be extracted.}
 
-\item{maximum_latitude}{}
+\item{maximum_latitude}{maximum latitude at which data will be extracted.}
 
 \item{start_datetime}{First day wanted in the downloaded spatraster. Please
 make sure that the date is available on copernicus.}
@@ -69,18 +69,16 @@ by default it is set on 'FALSE'.}
 
 \item{output_directory}{where you want the data to be save, by default it
 goes to the "Data" file next to your script if there is one.}
-
-\item{description}{This function is a wrapper from the CopernicusMarine
-function from pyhton. A pyhton setup must be present in your computer, thus
-this function is testing if some pyhton is present and if not it offer to
-download it from R.}
 }
 \value{
 A SpatRaster within the timeframe provided and the spatial frame
 given.
 }
 \description{
-Download spataraster from Copernicus to your local memory.
+#' @description This function is a wrapper from the CopernicusMarine
+function from pyhton. A pyhton setup must be present in your computer, thus
+this function is testing if some pyhton is present and if not it offer to
+download it from R.
 }
 \details{
 You can select your downloading conditions in
