@@ -28,14 +28,14 @@ Imports:
     stats,
     terra,
     tidyr,
-    utils
-Depends: 
+    utils,
     dplyr,
     ggplot2,
     rnaturalearth,
     rnaturalearthdata,
     scales,
     sf
+Depends: 
 Suggests:
     knitr,
     rmardown
