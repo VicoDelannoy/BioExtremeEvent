@@ -30,7 +30,7 @@ flowchart below, step by step.
 
 **FRAMEWORK:**
 ```{r, echo = FALSE, out.width = "600px", fig.cap = "Framework of the BioExtremeEvent package", fig.align = 'center'}
-knitr::include_graphics("/vignettes/pipeline_BEE.png")
+knitr::include_graphics("pipeline_BEE.png")
 ```
 
 
