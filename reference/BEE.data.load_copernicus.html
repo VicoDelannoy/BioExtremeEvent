@@ -169,8 +169,11 @@ goes to the "Data" file next to your script if there is one.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A SpatRaster within the timeframe provided and the spatial frame
-given.</p>
+    <p>A SpatRaster subset from the
+Copernicus Marine Data Store](https://data.marine.copernicus.eu/products)
+according to the provided timeframe and spatial frame. The dataset will also
+be saved to your computer (see the 'output_directory' argument) into an .nc
+file.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -182,6 +185,33 @@ Data access : Form : Automate : Pyhton API and use them as this function
 arguments.</p>
     </div>
 
+    <div id="ref-examples">
+    <h2>Examples</h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># Non interactive exemple because this function requieres personnal </span></span></span>
+<span class="r-in"><span><span class="co"># Copernicus logging informations. To test this function you can create the</span></span></span>
+<span class="r-in"><span><span class="co"># variables my_username and my_password in your environment and copy/paste</span></span></span>
+<span class="r-in"><span><span class="co"># the code bellow.</span></span></span>
+<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">BEE.data.load_copernicus</span><span class="op">(</span></span></span>
+<span class="r-in"><span>username<span class="op">=</span><span class="va">my_username</span>, </span></span>
+<span class="r-in"><span>password<span class="op">=</span><span class="va">my_password</span>,</span></span>
+<span class="r-in"><span>dataset_id<span class="op">=</span><span class="st">"cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021"</span>,</span></span>
+<span class="r-in"><span>dataset_version<span class="op">=</span><span class="st">"202411"</span>,</span></span>
+<span class="r-in"><span>variables<span class="op">=</span><span class="st">"analysed_sst"</span>,</span></span>
+<span class="r-in"><span>minimum_longitude<span class="op">=</span><span class="fl">2.9</span>,</span></span>
+<span class="r-in"><span>maximum_longitude<span class="op">=</span><span class="fl">7.8</span>,</span></span>
+<span class="r-in"><span>minimum_latitude<span class="op">=</span><span class="fl">42</span>,</span></span>
+<span class="r-in"><span>maximum_latitude<span class="op">=</span><span class="fl">43.7</span>,</span></span>
+<span class="r-in"><span>start_datetime<span class="op">=</span><span class="st">"1982-01-01T00:00:00"</span>,</span></span>
+<span class="r-in"><span>end_datetime<span class="op">=</span><span class="st">"2024-12-31T00:00:00"</span>,</span></span>
+<span class="r-in"><span>coordinates_selection_method<span class="op">=</span><span class="st">"strict-inside"</span>,</span></span>
+<span class="r-in"><span>disable_progress_bar<span class="op">=</span><span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>output_directory <span class="op">=</span> <span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"Data"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>

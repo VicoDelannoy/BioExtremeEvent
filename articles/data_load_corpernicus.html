@@ -92,25 +92,38 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
     
     
 <div class="section level2">
-<h2 id="aims-of-the-function-bee-data-load_copernicus">Aims of the function BEE.data.load_copernicus()<a class="anchor" aria-label="anchor" href="#aims-of-the-function-bee-data-load_copernicus"></a>
+<h2 id="aims-of-the-function-bee-data-load_copernicus">Aims of the function <em>BEE.data.load_copernicus()</em><a class="anchor" aria-label="anchor" href="#aims-of-the-function-bee-data-load_copernicus"></a>
 </h2>
-<p>This is an <strong>optional function</strong> to import data from <a href="https://data.marine.copernicus.eu/products" class="external-link">Copernicus Marine Data
-Store</a> some dataset. This function uses the CopernicusMarine function
-in Python. To be able to run it in R a virtual Python environment is
-automaticlay created. If Python is not already on your computer, the
-BEE.data.load_copernicus will download it for you. This allows you to
-copy and paste the Python API generated in the copernicus website (Data
-access&gt;select your data and ONLY one variable&gt; Automate&gt; Python
-API) almost directly as argument of the
-BioExtremeEvent::BEE.data.load_copernicus() function.
-copernicus-sst-example.nc # Usage To fullfill the argument of the
-BioExtremeEvent::BEE.data.load_copernicus() you just need to copy and
-paste what is inside the copernicusmarine.subset funciton brakets from
-the Pyhton API in the BioExtremeEvent and add three arguments : -
-<em>username</em>: wich is your username from the Copernicus Marine Data
-Store. - <em>password</em>: your Copernicus Marine Data Store passeword.
-- <em>output_directory</em>: The path where you want to store your
-dataset.</p>
+<p>This is an <strong>optional function</strong> to import data from the
+<a href="https://data.marine.copernicus.eu/products" class="external-link">Copernicus Marine
+Data Store</a> some dataset. This<br>
+function uses the CopernicusMarine Python library. A virtual Python
+environment is automatically created to enable it to run in R. If Python
+is not already installed on your computer,
+<em>BEE.data.load_copernicus</em> will download it for you.<br>
+This allows you to copy and paste the Python API generated in the
+copernicus website (Data access&gt;select your data and ONLY one
+variable&gt; Automate&gt; Python API) almost directly as argument of the
+BioExtremeEvent::BEE.data.load_copernicus() function.</p>
+</div>
+<div class="section level2">
+<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
+</h2>
+<p>To fulfil the argument of the
+BioExtremeEvent::BEE.data.load_copernicus() function, you just need to
+copy and paste the contents of the copernicusmarine.subset function,
+which is visible in the Python API, into the BioExtremeEvent function.
+1. To access the API code, go on the Copernicus Marine Data Store page
+of the selected products &gt; Data access &gt; in the colonne ‘Subset’
+clic on ‘Form’ &gt; select only one variable &gt; select your area of
+interest and your date range &gt; on the top of the webpage clic on
+Automate &gt; copy/paste whats inside the brakets of the
+copernicusmarine.subset() function. 2. Then, add three arguments in
+<em>BEE.data.load_copernicus()</em> : - <em>username</em>: wich is your
+username from the Copernicus Marine Data Store. - <em>password</em>:
+your Copernicus Marine Data Store passeword. -
+<em>output_directory</em>: The path where you want to store your
+dataset. You can now run the function.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">BioExtremeEvent</span><span class="fu">::</span><span class="fu"><a href="../reference/BEE.data.load_copernicus.html">BEE.data.load_copernicus</a></span><span class="op">(</span></span>
 <span>    username <span class="op">=</span> <span class="va">my_user_name</span>, <span class="co"># In addition of the API copy&amp;paste</span></span>
@@ -129,19 +142,28 @@ dataset.</p>
 <span>    disable_progress_bar <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    output_directory <span class="op">=</span> <span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"Data"</span><span class="op">)</span> <span class="co"># In addition of the API copy&amp;paste</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>You obtained a spatraster with one layer per time step.</p>
+<p>You obtained a spatraster with one layer per time step in your R
+environment, the same dataset is saved in your computer at the location
+indicated by <em>output_directory</em>.</p>
 </div>
 <div class="section level2">
 <h2 id="exemple-of-the-dataset-obtained">Exemple of the dataset obtained<a class="anchor" aria-label="anchor" href="#exemple-of-the-dataset-obtained"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">file_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_example_data.nc"</span><span class="op">)</span>, package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># Load the exemple dataset in R environement :</span></span>
+<span><span class="va">file_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_example_data.nc"</span><span class="op">)</span>, package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
 <span><span class="va">copernicus_data</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="co"># Sea surface temperature the fisrt day of the</span></span></code></pre></div>
+<span><span class="co"># Plot first layer (Sea surface temperature the first day of the dataset) :</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>  main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Temperature (Kelvin) in the Gulf of Lion on the"</span>, <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">)</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"Longitude (E)"</span>,  </span>
+<span>  ylab <span class="op">=</span> <span class="st">"Latitude (N)"</span>,  </span>
+<span>  col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">terrain.colors</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>,  </span>
+<span>  legend <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="data_load_corpernicus_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="" width="700"></p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># dataset</span></span></code></pre></div>
 </div>
   </div>
 
