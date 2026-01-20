@@ -49,11 +49,6 @@ BEE.calc.escape <- function(
   only_days_EE = TRUE,
   group_by_event = TRUE
 ) {
-  # Hack because of data.table
-  # Try to fix this note in R CMD CHECK
-  # no visible binding for global variable 'pixel_from_id'
-  pixel_from_id <- NULL
-
   ### Recreate a Spatraster using Events_corrected. In this list, there are one
   # df per pixel and one raw per dates
   ## Get data and shell
@@ -97,8 +92,8 @@ BEE.calc.escape <- function(
     }
     pixels_to <- which(values_x == 0)
 
-    if (is.vector(pixel) | class(pixel) == "data.frame") {
-      if (class(pixel) == "data.frame") {
+    if (is.vector(pixel) | is.data.frame(pixel)) {
+      if (is.data.frame(pixel)) {
         pixels_to_do <- terra::cellFromXY(
           true_event_output$stacked_rasters_corrected,
           pixel
@@ -142,7 +137,7 @@ BEE.calc.escape <- function(
           azimut = "not possible to compute"
         )
       }
-      if (class(pixel) == "data.frame") {
+      if (is.data.frame(pixel)) {
         points <- data.table::data.table(
           date = rep(terra::time(x), nrow(pixel)),
           from_x = pixel[, 1],
@@ -191,7 +186,7 @@ BEE.calc.escape <- function(
           azimut = NA
         )
       }
-      if (class(pixel) == "data.frame") {
+      if (is.data.frame(pixel)) {
         # the pixel of intrest is not in an EE
         points <- data.table::data.table(
           date = rep(terra::time(x), nrow(pixel)),
