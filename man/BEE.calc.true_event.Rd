@@ -34,8 +34,8 @@ threshold. w and p replace d. If w is an odd number, the minimum number of
 days above threshold within w will be the value rounded to the superior
 round number. For instance if w = 7 and p = 0.3 a window of 7 days between
 to event of n consecutive days will not create two distinct event if at
-least 4 days are above threshold.( wp = 7*0.5 = 3.5 rounded to 4).
-Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL}
+least 4 days are above threshold (wp = 7*0.5 = 3.5 rounded to 4).
+Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL.}
 
 \item{p}{NOT AVAILBALE YET, see "w" explanations. Default: NULL}
 }
@@ -100,7 +100,8 @@ designed to work on 4D data (time + spatial 3D).
 # above threshold within w will be the value rounded to the superior round
 #  number. For instance if w = 7 and p = 0.3 a window of 7 days between to
 #  event of * n * consecutive days will not create two distinct event if at
-#  least 4 days are above threshold.                                                                                                                             w * \ * * p * = 7 \ * 0.5 = 3.5 rounded to 4)
+#  least 4 days are above threshold.
+#(w * \ * * p * = 7 \ * 0.5 = 3.5 rounded to 4)
 #
 # Examples : n = 5
 # w = 10

@@ -9,3 +9,6 @@
 ^temp$
 ^README\.Rmd$
 ^README\.html$
+^\.rdepsignore$
+^\.github$
+^_pkgdown\.yaml$

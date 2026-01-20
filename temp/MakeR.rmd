@@ -1,0 +1,388 @@
+---
+title: "MakeR"
+author: "Victoria"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+# 
+#   ____   _          ______        _                                 ______                   _   
+#  |  _ \ (_)        |  ____|      | |                               |  ____|                 | |  
+#  | |_) | _   ___   | |__   __  __| |_  _ __  ___  _ __ ___    ___  | |__ __   __ ___  _ __  | |_ 
+#  |  _ < | | / _ \  |  __|  \ \/ /| __|| '__|/ _ \| '_ ` _ \  / _ \ |  __|\ \ / // _ \| '_ \ | __|
+#  | |_) || || (_) | | |____  >  < | |_ | |  |  __/| | | | | ||  __/ | |____\ V /|  __/| | | || |_ 
+#  |____/ |_| \___/  |______|/_/\_\ \__||_|   \___||_| |_| |_| \___| |______|\_/  \___||_| |_| \__|
+#                                                                                                  
+#                                                                                                  
+```
+
+This file is the main skeleton of the package BioExtremEvent (BEE) and guide you through the different steps of analysis.
+
+# 1. Load dependencies and associated functions
+
+```{r}
+## R Parameters ----
+rm(list=ls())
+set.seed(666) #to get the same randomization across users
+
+## Install Dependencies (listed in DESCRIPTION) ----
+remotes::install_deps(dependencies = TRUE, upgrade = "never", force = TRUE) #list of all the packages required for this package to run)
+
+## Load Project Addins (R Functions and Packages) ----
+pkgload::load_all(here::here()) #here::here find files were the skeleton file is located
+
+```
+
+# 2. Get your data ready
+
+Detecting an 'extreme' event implies to know what are the normal conditions, thus, it is recommended to provide a 30 years times series. This can be painful to download manually from Copernicus Marine Data center or NOAA website as they often limit the amount of rasters that can be download. Therefore, here bellow are two functions to download data from R. They allows data to be downloaded much faster ;) - BEE.data.Load_Copernicus is a wrapper from the python function "CopernicusMarine". - BEE.data.Load_NOAA is wrapper of some code coming from the heatwaveR package. - You can also download your raster manually on any website, make sure to use a NetCDF format and to stack your rasters without gaps in the time serie.
+
+## From Copernicus
+
+```{r}
+# username <- "vdela"
+# password <- "Marbec_2WAVE"
+ds <- BEE.data.load_copernicus( username=username, password=password,
+  dataset_id="cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021",
+  dataset_version="202411",
+  variables="analysed_sst",
+  minimum_longitude=2.9,
+  maximum_longitude=7.8,
+  minimum_latitude=42,
+  maximum_latitude=43.7,
+  start_datetime="1982-01-01T00:00:00",
+  end_datetime="2024-12-31T00:00:00",
+  coordinates_selection_method="strict-inside",
+  disable_progress_bar=TRUE,
+  output_directory = here::here("Data"))
+
+```
+
+## From NOAA
+
+HERE I MUST ADD A WRAPPED VERSION OF HEATWAVE3
+
+## Get your dataset in the environnement
+
+You can start from here is your data are already in your computer.
+
+```{r}
+# SST
+ds <- terra::rast("Data/cnmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_1982_2024.nc.nc")
+terra::time(ds) <- as.Date(terra::time(ds))
+names(ds) <- terra::time(ds)
+
+# ML
+ds2 <- rast("Data/med-cmcc-tem-rean-d_1741965343789.nc")
+time(ds2) <- as.Date(time(ds2))
+names(ds2) <- time(ds2)
+
+# Each layer name must be the corresponding date under YYYY-MM-DD format
+
+```
+
+## Convert to Celsius with *"BEE.calc.celsius"*
+
+If your using the package to work on temperature raster, you can check that the unit is Celsius (and make conversion if necessary) using the function bellow.
+
+```{r}
+ds <- BEE.calc.celsius(ds)
+terra::writeRaster(ds, "Data/ds_Golfe_du_lion.tiff", overwrite=TRUE)
+ds <- terra::rast("Data/ds_Golfe_du_lion.tiff")
+```
+
+# 3. Calculate a baseline value for each cell in your dataset using one of two methods with *"BEE.calc.baseline"* :
+
+```{r}
+baseline_qt90 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 
+baseline_qt10 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
+baseline_mean <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
+
+# Save and load baselines 
+terra::writeRaster(baseline_qt90, "Data/baseline_qt90_Golfe_du_lion.tiff", overwrite = TRUE)
+baseline_qt90 <- terra::rast("Data/baseline_qt90_Golfe_du_lion.tiff")
+terra::writeRaster(baseline_qt10, "Data/baseline_qt10_Golfe_du_lion.tiff", overwrite = TRUE)
+baseline_qt10 <- terra::rast("Data/baseline_qt10_Golfe_du_lion.tiff")
+terra::writeRaster(baseline_mean, "Data/baseline_mean_Golfe_du_lion.tiff", overwrite = TRUE)
+baseline_mean <- terra::rast("Data/baseline_mean_Golfe_du_lion.tiff")
+
+# PLot climatology in Frontignan
+df_plot <- data.frame(doy=seq(1:366),
+                      qt10=t(terra::extract(baseline_qt10,507)), #507 is frontignant pixel
+                      mean=t(terra::extract(baseline_mean,507)),
+                      qt90=t(terra::extract(baseline_qt90,507)))
+mois_labels <- c("Jan", "Fév", "Mar", "Avr", "Mai", "Juin", 
+                 "Juil", "Août", "Sept", "Oct", "Nov", "Déc")
+mois_jours <- c(1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336)
+library(ggplot2)
+ggplot(df_plot, ggplot2::aes(x = doy)) +
+  geom_line(ggplot2::aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
+  geom_line(ggplot2::aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
+  geom_line(ggplot2::aes(y = qt90), color = "red3", linetype = "dashed", size = 1) +  # Qt90 en rouge en tirets
+  scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  # Labels mensuels
+  scale_y_continuous(breaks = seq(floor(min(df_plot)), ceiling(max(df_plot)), by = 1)) +  # Graduation par degré
+  ggplot2::labs(title = "Évolution des valeurs sur 366 jours",
+       x = "Mois",
+       y = "Température (°C)") +
+  ggplot2::theme_minimal()
+```
+
+# 4. Binarize spatial data : This step test for each cell of the area whether the metric of the 'event' is above or 'bellow' the threshold.
+
+It provide a raw information for each day and each pixel without applying any definition of the Extreme Event. Of course, one may be interesting in applying a more restrictive definition of "Extreme Event". This will be done when BEE.calc.true_event will be used (later). This intermediate step is necessary to apply BEE.calc.true_event.
+
+```{r chunk-5}
+binarized_EE <- BEE.calc.binarize(ds, baseline=20, direction = "above") #by default, direction == "above" #16:20
+
+# plot(baseline_qt90[[1]]) ; plot(binarized_EE$`01.01`$`1983-01-01`)
+# Save or load
+```
+
+You can use the output to check which are the pixel more subject to peaks of your studdied parameter :
+
+```{r}
+# # exemple : sst on the 23th of august
+# plot(sum(binarize_EE$`08.23`))
+# # exemple : sst on the 23th of august in %
+# plot(sum(binarize_EE$`08.23`)*100/terra::nlyr(binarize_EE$`08.23`),
+#      main = "Percentage of years above threshold on the 23th of August between 1983 and 2024")
+# #More recently
+# layer_dates <- as.Date(names(example))
+#     selected_layers <- which(layer_dates >= "2011-01-01" & layer_dates <= "2024-12-31")
+#     example_2010_2024 <- example[[selected_layers]]
+# plot(sum(example_2010_2024)*100/terra::nlyr(example_2010_2024),
+#      main = "Percentage of years above threshold on the 23th of August between 2010 and 2024")
+# # % of MHW have roughly doubled
+```
+
+# 5. Identify Extreme Event
+
+Delete short period above threshold from the list of extreme event and merge close periods above threshold. Provide information on the amount of modifications.
+
+```{r}
+# 7 minutes 40 s to run on 3 332 pixels and 15 706 days
+gc()
+result <- BEE.calc.true_event(binarized_EE, n = 5, d = 3) 
+Corrected_rasters <- result$stacked_rasters_corrected
+Events_corrected <- result$Event_corrected
+gc()
+#testL <- as.Date.character(c("2022-11-25", "2022-11-26", "2022-11-27", "2022-11-28", "2022-11-29", "2022-11-30", "2022-12-01", "2022-12-02", "2022-12-03", "2022-12-04", "2022-12-05")) ; test <- Corrected_rasters[[names(Corrected_rasters) %in% as.character(testL)]] ;library(viridis) ; plot(sum(test),  col = viridis::viridis(4))  ; plot(Corrected_rasters["2022-11-30"])
+# saveRDS(result, file= here::here("Outputs/result.rds")) ; test_result <- readRDS(here::here("Outputs/result.rds"))
+#Check settings
+BEE.calc.corrections(Events_corrected)
+
+
+# Save and load : 
+saveRDS(Events_corrected, file = "Data/Events_corrected.rds")
+Events_corrected <- readRDS("Data/Events_corrected.rds")
+terra::writeRaster(Corrected_rasters, "Data/Corrected_rasters_Golfe_du_lion.tiff", overwrite = TRUE)
+Corrected_rasters <- terra::rast("Data/Corrected_rasters_Golfe_du_lion.tiff")
+result <- list(Corrected_rasters, Events_corrected)
+names(result) <- c("stacked_rasters_corrected", "Event_corrected")
+```
+
+# 6. Get metrics related to time.
+
+The function bellow gives you basic metrics for a given GPS position, list of position, polygones or list of polygones.
+
+```{r}
+GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls, Monaco
+                  y = c(43.4287, 43.183, 42.781))
+points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2024-06-01", end_date = "2024-10-31", baseline_qt = baseline_qt90, baseline_mean = baseline_mean, group_by_event = FALSE)
+
+saveRDS(points_metrics, file = "Data/points_metrics.rds")
+points_metrics <- readRDS("Data/points_metrics.rds")
+
+# To sumarise by event :
+Frontignan <- points_metrics[[1]] |> 
+  dplyr::select(-value,-daily_rates) |>  
+  dplyr::distinct(event_ID, .keep_all=TRUE)
+
+Frioul  <- points_metrics[[2]] |>  
+  dplyr::select(-value,-daily_rates) |>  
+  dplyr::distinct(event_ID, .keep_all=TRUE)
+
+Banyuls <- points_metrics[[3]] |>  
+  dplyr::select(-value,-daily_rates) |>  
+  dplyr::distinct(event_ID, .keep_all=TRUE)
+
+#Check that results are coherent
+temp_2022 <- t(terra::extract(ds[[which(2022==lubridate::year(terra::time(ds)))]], 507))
+temp_2023 <- t(terra::extract(ds[[which(2023==lubridate::year(terra::time(ds)))]], 507))
+df_plot$temp_2024 <- t(terra::extract(ds[[which(2024==lubridate::year(terra::time(ds)))]], 507))
+#non leap year
+df_plot$temp_2022 <- c(temp_2022[1:59], NA, temp_2022[60:365])
+df_plot$temp_2023 <- c(temp_2023[1:59], NA, temp_2023[60:365])
+ggplot2::ggplot(df_plot, ggplot2::aes(x = doy)) +
+  # Lignes pour la moyenne et les quartiles
+  ggplot2::geom_line(ggplot2::aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
+  ggplot2::geom_line(ggplot2::aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
+  ggplot2::geom_line(ggplot2::aes(y = qt90), color = "red3", linetype = "dashed", size = 1) +  # Qt90 en rouge en tirets
+  # Ajout des valeurs de ds entre le 1er janvier 2022 et le 31 décembre 2022
+  ggplot2::geom_line(ggplot2::aes(y = temp_2022), color = "black", size = 1) +  # Ligne noire pour ds
+  # Configuration des axes
+  ggplot2::scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  # Labels mensuels
+  ggplot2::scale_y_continuous(breaks = seq(floor(min(df_plot$temp_2022, na.rm=TRUE)), ceiling(max(df_plot$temp_2022, na.rm=TRUE)), by = 1)) +  # Graduation par degré
+  # Titres et étiquettes
+  ggplot2::labs(title = "Évolution des valeurs sur 366 jours",
+       x = "Mois",
+       y = "Température (°C)") +
+  ggplot2::theme_minimal()
+
+
+# Represent the events :
+## rbind dataset
+Frontignan$site <- rep("Frontignan",length(Frontignan$Original_value))
+Frioul$site <- rep("Frioul",length(Frioul$Original_value))
+Banyuls$site <- rep("Banyuls",length(Banyuls$Original_value))
+All <- rbind(Frontignan,Frioul,Banyuls) |>  dplyr::filter(mean_anomaly_qt90 > 0)
+#plot
+ggplot2::ggplot(All, ggplot2::aes(x = format(date_max_value, "%m-%d"), y = mean_anomaly_qt90, size = Nb_days, color = site)) +
+  ggplot2::geom_point(alpha = 0.7) +  # Ajoute des points avec un peu de transparence
+  ggplot2::scale_size(range = c(2, 10)) +  # Ajuste la taille des bulles
+  ggplot2::labs(title = "Caractérisation des vagues de chaleurs",
+       x = "Dates",
+       y = "Anomalie moyenne (par rapport au 90eme percentile)",
+       size = "Day of the maximum value",
+       color = "Site") +
+  ggplot2::theme_minimal() +  # Applique un style épuré
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+
+
+#ACP
+variables_acp <- All |> 
+  dplyr::select(Nb_days, days_onset_abs, mean_onset_rate_abs,mean_anomaly_qt90, dates) |> 
+  dplyr::mutate(dates = as.Date(dates, format = "%m-%d")) |>   # Convertir en date (mais sans année)
+  dplyr::mutate(dates = as.numeric(format(dates, "%j"))) 
+variables_acp <- variables_acp |> 
+  tidyr::drop_na()
+variables_acp_scaled <- scale(variables_acp)
+acp_result <- stats::prcomp(variables_acp_scaled, center = TRUE, scale. = TRUE)
+summary(acp_result)
+factoextra::fviz_eig(acp_result)
+# Graphique des individus
+factoextra::fviz_pca_ind(acp_result, 
+             label = "none", # Pas de labels pour les points
+             habillage = All$site, # Colorer selon le site si pertinent
+             addEllipses = TRUE, # Ajouter des ellipses par groupe
+             repel = TRUE) 
+
+# Graphique des variables
+factoextra::fviz_pca_var(acp_result, 
+             col.var = "cos2", # Coloration selon la qualité de représentation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE) 
+```
+
+#7. Get metrics related to space.
+
+```{r}
+list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE, crs = "EPSG:2154") # Give the spatial metrics of each patch present in the provided area for each days.
+
+saveRDS(list_morpho_metrics[[1]], file = "Data/list_morpho_metrics_dt.rds")
+list_morpho_metrics_dt <- readRDS("Data/list_morpho_metrics_dt.rds")
+saveRDS(list_morpho_metrics[[2]], file = "Data/list_morpho_metrics_rasters.rds")
+list_morpho_metrics_rasters <- readRDS("Data/list_morpho_metrics_rasters.rds")
+list_morpho_metrics <- list(list_morpho_metrics_dt, list_morpho_metrics_rasters)
+
+# sumarise for a given heatwave and a given pixel (ex: 507), MHW from 30th of april to 5th of may
+test_fronti <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2022-04-30", end_date = "2022-05-05", per_pix=TRUE, crs = "EPSG:2154")[[1]]
+test_fronti <- lapply(seq_along(test_fronti), function(i){
+  dt <- test_fronti[[i]]
+  dt[,pixel := seq(1:nrow(dt[,1])) ]
+  return(dt)
+})
+test_fronti <- bind_rows(test_fronti) |>  filter(pixel==507)
+
+# Calculate mean distance to escape from an extreme event
+dist_to_escape <- BEE.calc.escape(true_event_output=result,
+                start_date = "2024-06-01", end_date = "2024-10-31", 
+                pixel = GPS[1,], 
+                only_days_EE = FALSE,
+                group_by_event = FALSE)
+
+saveRDS(dist_to_escape, file = "Data/dist_to_escape.rds")
+dist_to_escape <- readRDS("Data/dist_to_escape.rds")
+
+#Graph
+library(scales) 
+dist_to_escape[, distance := as.numeric(distance)]
+dist_to_escape[, date := as.Date(date, origin = "1970-01-01")]
+dist_to_escape[, year := format(as.Date(date), "%Y")]
+dist_to_escape[, month := format(date, "%B")] 
+mois_fr <- c("janvier", "février", "mars", "avril", "mai", "juin",
+             "juillet", "août", "septembre", "octobre", "novembre", "décembre")
+dist_to_escape[, month := factor(month, levels = mois_fr)]
+get_season <- function(d) {
+  m <- as.integer(format(d, "%m"))
+  ifelse(m %in% c(12, 1, 2), "Hiver",
+         ifelse(m %in% c(3, 4, 5), "Printemps",
+                ifelse(m %in% c(6, 7, 8), "Été", "Automne")))
+}
+
+dist_to_escape[, saison := get_season(date)]
+dist_to_escape[, saison := factor(saison, levels = c("Hiver", "Printemps", "Été", "Automne"))]
+# PLot by season :
+ggplot(dist_to_escape, ggplot2::aes(x = as.numeric(azimut), y = distance, color = saison)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = c(
+    "Hiver" = "#1f78b4",
+    "Printemps" = "#33a02c",
+    "Été" = "#fb9a99",
+    "Automne" = "#e31a1c"
+  )) +
+  scale_x_continuous(
+    limits = c(0, 360),
+    breaks = seq(0, 360, by = 30),
+    expand = c(0, 0)
+  ) +
+  coord_polar(theta = "x", start = 0) +
+  theme_classic() +
+  theme(
+    panel.grid.minor = element_blank(),
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  ) +
+  geom_point(data = data.frame(x = 0, y = 0), ggplot2::aes(x = x, y = y), shape = 4, size = 4, stroke = 1.5, color = "black")+
+  ggplot2::labs(title = "Distance vs Azimut par saison", color = "Saison")
+# Seasonnal density :
+# Supposons que ta variable 'cercle' contient les valeurs des cercles concentriques
+cercles <- seq(0, 300000, by = 100000)  # à adapter à ta propre échelle de distance
+
+ggplot(dist_to_escape, ggplot2::aes(x = as.numeric(azimut), y = distance)) +
+  # Densité de points par saison
+  stat_density_2d_filled(
+    geom = "polygon",
+    contour_var = "ndensity",
+    show.legend = TRUE,
+    alpha = 1
+  ) +
+  geom_point(data = data.frame(x = 0, y = 0),
+             ggplot2::aes(x = x, y = y),
+             shape = 4, size = 1, stroke = 0.5, color = "black", inherit.aes = FALSE) +
+  # Dessiner les cercles concentriques blancs
+  geom_hline(yintercept = cercles, color = "lightpink", linetype = "solid", alpha = 0.2) +
+  coord_polar(theta = "x", start = 0) +
+  scale_x_continuous(
+    limits = c(0, 360),
+    breaks = seq(0, 360, by = 30),
+    expand = c(0, 0)
+  ) +
+  facet_wrap(~ saison) +  # Séparer par saison
+  theme_classic() +
+  theme(
+    strip.background = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  ggplot2::labs(title = "Distance et direction vers le plus proche pixel hors NA depuis Frontignan, par saison", fill = "Densité")
+
+plot(dist_to_escape$date,as.numeric(dist_to_escape$distance))
+
+```

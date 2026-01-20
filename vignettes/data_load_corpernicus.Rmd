@@ -1,10 +1,10 @@
 ---
-title: "BioExtremeEvent: Dowload data from Copernicus "
+title: "BioExtremeEvent: Dowload data from Copernicus"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{BioExtremeEvent: General Workflow}
+  %\VignetteIndexEntry{BioExtremeEvent: Dowload data from Copernicus}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -19,14 +19,14 @@ This allows you to copy and paste the Python API generated in the copernicus
 website (Data access>select your data and ONLY one variable> Automate> Python 
 API) almost directly as argument of the BioExtremeEvent::BEE.data.load_copernicus()
 function.
-
+copernicus-sst-example.nc
 # Usage 
 To fullfill the argument of the BioExtremeEvent::BEE.data.load_copernicus() you
 just need to copy and paste what is inside the copernicusmarine.subset funciton brakets from the Pyhton API in the BioExtremeEvent and add three arguments :
 - *username*: wich is your username from the Copernicus Marine Data Store.
 - *password*: your Copernicus Marine Data Store passeword.
 - *output_directory*: The path where you want to store your dataset. 
-```{r}
+```{r, eval=FALSE}
 BioExtremeEvent::BEE.data.load_copernicus(
     username = my_user_name, # In addition of the API copy&paste
     password = my_password, # In addition of the API copy&paste
@@ -52,7 +52,10 @@ You obtained a spatraster with one layer per time step.
 
 
 ```{r}
-copernicus_data <- terra::rast("inst/extdata/cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_2.94E-7.80E_42.01N-43.67N_1982-01-01-2024-12-31.nc")
+file_name <- system.file(file.path("extdata", "copernicus-sst-example.nc"), package = "BioExtremeEvent")
+
+copernicus_data <- terra::rast(file_name)
+
 terra::plot(copernicus_data[[1]]) # Sea surface temperature the fisrt day of the
 # dataset
 ```

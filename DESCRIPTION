@@ -15,9 +15,12 @@ License: GPL (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.1)
 Imports: 
     circular,
     data.table,
+    dplyr,
     geosphere,
     here,
     landscapemetrics,
@@ -25,17 +28,11 @@ Imports:
     parallel,
     raster,
     reticulate,
+    sf,
     stats,
     terra,
     tidyr,
     utils
-Depends: 
-    dplyr,
-    ggplot2,
-    rnaturalearth,
-    rnaturalearthdata,
-    scales,
-    sf
 Suggests: 
     knitr,
     rmarkdown

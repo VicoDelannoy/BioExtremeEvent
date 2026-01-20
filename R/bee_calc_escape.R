@@ -31,9 +31,9 @@
 #'
 #'@note all distance metrics are limited by the size of the Spatraster your
 #' are providing.
-#' 
+#'
 #' @export
-#' 
+#'
 #-------------------------------------------------------------------------------
 
 # BEE.calc.escape is not designed to work on 4D data (time + spatial 3D).
@@ -49,6 +49,11 @@ BEE.calc.escape <- function(
   only_days_EE = TRUE,
   group_by_event = TRUE
 ) {
+  # Hack because of data.table
+  # Try to fix this note in R CMD CHECK
+  # no visible binding for global variable 'pixel_from_id'
+  pixel_from_id <- NULL
+
   ### Recreate a Spatraster using Events_corrected. In this list, there are one
   # df per pixel and one raw per dates
   ## Get data and shell
@@ -105,12 +110,13 @@ BEE.calc.escape <- function(
             t(matrix(pixel))
           )
         }
-        if (pixel=="all") {
+        if (pixel == "all") {
           pixels_to_do <- which(!is.na(terra::values(x)))
-        }
-        else {
-          warnings("The current 'pixel' argument format is not accepted, 
-          please try with a dataframe with only an x and y colum or using 'pixel = all'.")
+        } else {
+          warnings(
+            "The current 'pixel' argument format is not accepted, 
+          please try with a dataframe with only an x and y colum or using 'pixel = all'."
+          )
         }
       }
       pixels_from <- pixels_from[which(pixels_from %in% pixels_to_do)]
@@ -245,7 +251,7 @@ BEE.calc.escape <- function(
       data.table::setorder(points, pixel_from_id, distance) # sort point by id (from_id)
       # and then by shortest distance, when ex aequo, it keeps the same order
       # as in 'points'
-      points <- points[!base::duplicated(points$pixel_from_id), ] # keep only the first
+      points <- points[!duplicated(points$pixel_from_id), ] # keep only the first
       # occurrence of each 'from_id' <-> the occurence with the shortest
 
       # distance
@@ -287,7 +293,6 @@ BEE.calc.escape <- function(
   # where there are no distances to compute for the case only_days_EE == FALSE
 
   if (only_days_EE == TRUE) {
-
     dist_dir <- dist_dir[dist_dir$distance != 0, ]
     if (nrow(dist_dir) == 0) {
       message("There were no extreme event for the given pixels and timeframe.")
@@ -331,8 +336,7 @@ BEE.calc.escape <- function(
     ## We need to delete 'event' that are bellow threshold (<-> distance == 0)
     ## Define the 'key' <-> the combination of colum used to create sub-group
     # in a data.table format :
-    data.table::setkey(dist_dir, pixel_from_id, date_start, 
-      date_end)
+    data.table::setkey(dist_dir, pixel_from_id, date_start, date_end)
     data.table::setkey(data, pixel_from_id, start_date, end_date)
 
     dist_dir <- data.table::foverlaps(
@@ -388,7 +392,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$distance_min <- distance_min[dist_dir$ID]
-    
+
     distance_max <- tapply(
       as.numeric(dist_dir$distance),
       dist_dir$ID,
@@ -396,7 +400,7 @@ BEE.calc.escape <- function(
       na.rm = TRUE
     )
     dist_dir$distance_max <- distance_max[dist_dir$ID]
- 
+
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
     # special way to compute it :
     # Conversion to circular angle :
@@ -462,7 +466,7 @@ BEE.calc.escape <- function(
     # delete the column x_to and y_to as the represent the pixel where to
     # escape on first day and not a characteristic of the all event
     dist_dir <- dist_dir |> dplyr::select(-to_x, -to_y, -pixel_to_id)
-    dist_dir <- dist_dir[!is.na(dist_dir$pixel_from_id),] # withrdraw the line of NA
+    dist_dir <- dist_dir[!is.na(dist_dir$pixel_from_id), ] # withrdraw the line of NA
 
     return(dist_dir)
   }

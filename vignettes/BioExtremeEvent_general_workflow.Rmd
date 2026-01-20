@@ -30,12 +30,13 @@ flowchart below, step by step.
 
 **FRAMEWORK:**
 ```{r, echo = FALSE, out.width = "600px", fig.cap = "Framework of the BioExtremeEvent package", fig.align = 'center'}
-knitr::include_graphics("inst/extdata/pipeline_BEE.png")
+file_name <- system.file(file.path("extdata", "pipeline_BEE.png"), package = "BioExtremeEvent")
+knitr::include_graphics(file_name)
 ```
 
 
 # Install the BioExtremeEvent package
 
-```{r}
+```{r, eval = FALSE}
 install.packages("BioExtremeEvent")
 ```

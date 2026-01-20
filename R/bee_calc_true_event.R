@@ -20,13 +20,14 @@
 #'   Default: NULL
 #' @param w NOT AVAILBALE YET Window w between to event in which you
 #'  allow a certain proportion p of days (within the window) to be bellow the
-#'  threshold, windows is bordered by series of consecutive days above 
+#'  threshold, windows is bordered by series of consecutive days above
 #'  threshold. w and p replace d. If w is an odd number, the minimum number of
 #'  days above threshold within w will be the value rounded to the superior
 #'  round number. For instance if w = 7 and p = 0.3 a window of 7 days between
 #'  to event of n consecutive days will not create two distinct event if at
-#'  least 4 days are above threshold.( wp = 7*0.5 = 3.5 rounded to 4).
-#'  Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL
+#'  least 4 days are above threshold (wp = 7*0.5 = 3.5 rounded to 4).
+#'  Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL.
+#'
 #' @param p NOT AVAILBALE YET, see "w" explanations. Default: NULL
 #'
 #' @return Returns a list with 2 elements, first one is called
@@ -83,7 +84,8 @@
 #' # above threshold within w will be the value rounded to the superior round
 #' #  number. For instance if w = 7 and p = 0.3 a window of 7 days between to
 #' #  event of * n * consecutive days will not create two distinct event if at
-#' #  least 4 days are above threshold.                                                                                                                             w * \ * * p * = 7 \ * 0.5 = 3.5 rounded to 4)
+#' #  least 4 days are above threshold.
+#' #(w * \ * * p * = 7 \ * 0.5 = 3.5 rounded to 4)
 #' #
 #' # Examples : n = 5
 #' # w = 10
