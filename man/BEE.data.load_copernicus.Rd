@@ -71,8 +71,11 @@ by default it is set on 'FALSE'.}
 goes to the "Data" file next to your script if there is one.}
 }
 \value{
-A SpatRaster within the timeframe provided and the spatial frame
-given.
+A SpatRaster subset from the
+Copernicus Marine Data Store](https://data.marine.copernicus.eu/products)
+according to the provided timeframe and spatial frame. The dataset will also
+be saved to your computer (see the 'output_directory' argument) into an .nc
+file.
 }
 \description{
 #' @description This function is a wrapper from the CopernicusMarine
@@ -87,4 +90,29 @@ Form and then copy and past the argument of the copernicusmarine.subset
 function in https://data.marine.copernicus.eu/products > Product >
 Data access : Form : Automate : Pyhton API and use them as this function
 arguments.
+}
+\examples{
+\dontrun{
+# Non interactive exemple because this function requieres personnal 
+# Copernicus logging informations. To test this function you can create the
+# variables my_username and my_password in your environment and copy/paste
+# the code bellow.
+data <- BEE.data.load_copernicus(
+username=my_username, 
+password=my_password,
+dataset_id="cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021",
+dataset_version="202411",
+variables="analysed_sst",
+minimum_longitude=2.9,
+maximum_longitude=7.8,
+minimum_latitude=42,
+maximum_latitude=43.7,
+start_datetime="1982-01-01T00:00:00",
+end_datetime="2024-12-31T00:00:00",
+coordinates_selection_method="strict-inside",
+disable_progress_bar=TRUE,
+output_directory = here::here("Data")
+)
+}
+
 }

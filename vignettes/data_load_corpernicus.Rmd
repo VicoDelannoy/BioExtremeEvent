@@ -68,10 +68,10 @@ copernicus_data <- terra::rast(file_name)
 # Plot first layer (Sea surface temperature the first day of the dataset) :
 terra::plot(
   copernicus_data[[1]],
-  main = paste("Temperature in the Gulf of Lion on the", terra::time(copernicus_data[[1]]) ),
+  main = paste("Temperature (Kelvin) in the Gulf of Lion on the", terra::time(copernicus_data[[1]]) ),
   xlab = "Longitude (E)",  
   ylab = "Latitude (N)",  
-  col = terra::terrain.colors(100),  
-  legend.args = list(text = "Kelvin", side = 4, line = 2.5) 
+  col = terrain.colors(100),  
+  legend = TRUE
 )
 ```
