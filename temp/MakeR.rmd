@@ -71,7 +71,7 @@ You can start from here is your data are already in your computer.
 
 ```{r}
 # SST
-ds <- terra::rast("Data/cnmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_1982_2024.nc.nc")
+ds <- terra::rast("Data/cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_2.94E-7.80E_42.01N-43.67N_1982-01-01-2024-12-31.nc")
 terra::time(ds) <- as.Date(terra::time(ds))
 names(ds) <- terra::time(ds)
 
