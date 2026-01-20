@@ -247,7 +247,7 @@ BEE.merge_summarize <- function(
     lon = data_metrics_point_xy$x,
     lat = data_metrics_point_xy$y
   )
-  data_metrics_point_xy <- na.omit(unique(data_metrics_point_xy))
+  data_metrics_point_xy <- stats::na.omit(unique(data_metrics_point_xy))
 
   ### data_metrics_morpho coordinates
   data_metrics_morpho_xy <- data_metrics_morpho[[1]]
@@ -255,14 +255,14 @@ BEE.merge_summarize <- function(
     lon = data_metrics_morpho_xy$centroid_x,
     lat = data_metrics_morpho_xy$centroid_y
   )
-  data_metrics_morpho_xy <- na.omit(unique(data_metrics_morpho_xy))
+  data_metrics_morpho_xy <- stats::na.omit(unique(data_metrics_morpho_xy))
 
   ### data_escape coordinates
   data_escape_xy <- data.frame(
     lon = data_escape$from_x,
     lat = data_escape$from_y
   )
-  data_escape_xy <- na.omit(unique(data_escape_xy))
+  data_escape_xy <- stats::na.omit(unique(data_escape_xy))
 
   ### Create polygones for each datasets :
   #### Convert df to sf (using a metric crs)

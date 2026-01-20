@@ -52,8 +52,7 @@ You obtained a spatraster with one layer per time step.
 
 
 ```{r}
-file_name <- system.file(file.path("extdata", "copernicus-sst-example.nc"), package = "BioExtremeEvent")
-
+file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"), package = "BioExtremeEvent")
 copernicus_data <- terra::rast(file_name)
 
 terra::plot(copernicus_data[[1]]) # Sea surface temperature the fisrt day of the

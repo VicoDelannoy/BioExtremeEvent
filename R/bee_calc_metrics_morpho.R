@@ -332,7 +332,7 @@ BEE.calc.metrics_morpho <- function(
 #'
 patch_circle_ratio <- function(polygon, crs = crs) {
   # WORK one raster per one raster, not on spat raster
-  patch_sf <- st_as_sf(polygon, crs = crs)
+  patch_sf <- sf::st_as_sf(polygon, crs = crs)
   patch_sf <- sf::st_transform(patch_sf, crs = crs)
   patch_area <- terra::expanse(polygon, unit = "m")
   circle <- sf::st_minimum_bounding_circle(patch_sf)
