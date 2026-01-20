@@ -49,3 +49,4 @@ profiling.out
 et --soft HEAD~5
 
 R/*.html
+README.html
