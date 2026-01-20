@@ -39,6 +39,9 @@
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
+  <a href="../articles/BioExtremeEvent.html">Get started</a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
@@ -49,9 +52,6 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/BioExtremeEvent_general_workflow.html">BioExtremeEvent: General Workflow</a>
-    </li>
-    <li>
       <a href="../articles/data_load_corpernicus.html">BioExtremeEvent: Dowload data from Copernicus</a>
     </li>
   </ul>
@@ -135,14 +135,12 @@ dataset.</p>
 <h2 id="exemple-of-the-dataset-obtained">Exemple of the dataset obtained<a class="anchor" aria-label="anchor" href="#exemple-of-the-dataset-obtained"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">file_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus-sst-example.nc"</span><span class="op">)</span>, package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">file_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_example_data.nc"</span><span class="op">)</span>, package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
+<span><span class="va">copernicus_data</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">copernicus_data</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: [rast] unknown calendar (assuming standard): Gregorian</span></span></code></pre>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="co"># Sea surface temperature the fisrt day of the</span></span></code></pre></div>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="co"># Sea surface temperature the fisrt day of the</span></span></code></pre></div>
 <p><img src="data_load_corpernicus_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="" width="700"></p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># dataset</span></span></code></pre></div>
 </div>
   </div>

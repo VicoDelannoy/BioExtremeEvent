@@ -2,6 +2,6 @@ pandoc: 3.1.11
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
-  BioExtremeEvent_general_workflow: BioExtremeEvent_general_workflow.html
+  BioExtremeEvent: BioExtremeEvent.html
   data_load_corpernicus: data_load_corpernicus.html
-last_built: 2026-01-20T10:16Z
+last_built: 2026-01-20T13:32Z
