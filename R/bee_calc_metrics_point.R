@@ -28,12 +28,12 @@
 #'
 #' @examples
 #' # To be added
-#' 
+#'
 #' @export
-#' 
+#'
 
 #-------------------------------------------------------------------------------
-# start_date <- "2022-01-01" ; end_date <- "2023-12-31" ; Values <- ds ; p <- 1
+# start_date <- "2024-06-01" ; end_date <- "2024-10-31" ; Values <- ds ; p <- 1
 # GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
 # group_by_event = TRUE, time_lapse_vector = c(3,5,7,14,21)
 BEE.calc.metrics_point <- function(
@@ -47,6 +47,7 @@ BEE.calc.metrics_point <- function(
   baseline_mean = baseline_mean,
   group_by_event = TRUE
 ) {
+  terra::set.names(Values, as.Date(terra::time(Values)))
   # WARNINGS
   if (is.null(start_date) | is.null(end_date)) {
     warning(

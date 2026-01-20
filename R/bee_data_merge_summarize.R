@@ -49,7 +49,7 @@
 # data_metrics_morpho <- list_morpho_metrics ;
 # data_escape <- dist_to_escape ; crs = "EPSG:3035"
 
-BEE.merge_summarize <- function(
+BEE.data.merge_summarize <- function(
   data_metrics_point = NULL,
   data_metrics_morpho = NULL,
   data_escape = NULL,

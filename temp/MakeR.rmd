@@ -163,7 +163,7 @@ You can use the output to check which are the pixel more subject to peaks of you
 Delete short period above threshold from the list of extreme event and merge close periods above threshold. Provide information on the amount of modifications.
 
 ```{r}
-# 7 minutes 40 s to run on 3 332 pixels and 15 706 days
+# 9 minutes s to run on 3 332 pixels and 15 706 days
 gc()
 result <- BEE.calc.true_event(binarized_EE, n = 5, d = 3) 
 Corrected_rasters <- result$stacked_rasters_corrected
