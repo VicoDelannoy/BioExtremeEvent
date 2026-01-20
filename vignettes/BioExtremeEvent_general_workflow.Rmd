@@ -1,10 +1,10 @@
 ---
-title: "BioExtremeEvent: General Workflow"
+title: "BioExtremeEvent"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{BioExtremeEvent: General Workflow}
+  %\VignetteIndexEntry{BioExtremeEvent}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
