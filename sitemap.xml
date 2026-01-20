@@ -1,0 +1,22 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/articles/BioExtremeEvent_general_workflow.html</loc></url>
+<url><loc>/articles/data_load_corpernicus.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/BEE.calc.baseline.html</loc></url>
+<url><loc>/reference/BEE.calc.binarize.html</loc></url>
+<url><loc>/reference/BEE.calc.celsius.html</loc></url>
+<url><loc>/reference/BEE.calc.corrections.html</loc></url>
+<url><loc>/reference/BEE.calc.escape.html</loc></url>
+<url><loc>/reference/BEE.calc.metrics_morpho.html</loc></url>
+<url><loc>/reference/BEE.calc.metrics_point.html</loc></url>
+<url><loc>/reference/BEE.calc.true_event.html</loc></url>
+<url><loc>/reference/BEE.data.load_copernicus.html</loc></url>
+<url><loc>/reference/BEE.merge_summarize.html</loc></url>
+<url><loc>/reference/BioExtremeEvent-package.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+</urlset>
+
