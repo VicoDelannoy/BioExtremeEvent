@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Aim of the function
+# Aim of the function *BEE.calc.celsius()*
 
 Identifies the unit of a temperature spatraster and convert the pixels values
 into celsius degrees. If the pixel values are modified, the units metadata of

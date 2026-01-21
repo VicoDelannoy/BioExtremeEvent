@@ -7,6 +7,16 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+# Aims of the function *BEE.calc.baseline()*
+
+# Data for this tutorial
+
+# Usage
+## Arguments:
+## Warnings:
+## Messages:
+
+# Example
 ```{r, include = FALSE}
 #' #### Compare the two smothings:
 #' df_plot <- data.frame(doy=seq(1:366),
