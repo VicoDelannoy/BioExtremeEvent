@@ -1,0 +1,32 @@
+---
+title: "Compute a threshold value.Rmd"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Compute a threshold value.Rmd}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+#' #### Compare the two smothings:
+#' df_plot <- data.frame(doy=seq(1:366),
+#'                      smth_0=t(terra::extract(baseline_qt90_smth_0,80)), #80 is a random pixel
+#'                      smth_15=t(terra::extract(baseline_qt90_smth_15,80)))
+#' months_labels <- c("Jan", "Fév", "Mar", "Avr", "Mai", "Juin", 
+#'                 "Juil", "Août", "Sept", "Oct", "Nov", "Déc")
+#' months_days <- c(1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336)
+#'library(ggplot2)
+#'ggplot(df_plot, ggplot2::aes(x = doy)) +
+#'  geom_line(ggplot2::aes(y = smth_0), color = "blue4",) + # BLUE: no smoothing
+#'  geom_line(ggplot2::aes(y = smth_15), color = "darkgreen",) + # GREEN: 15 days smoothing
+#'  scale_x_continuous(breaks = months_days, labels = months_labels) + 
+#'  scale_y_continuous(breaks = seq(floor(min(df_plot)), ceiling(max(df_plot)), by = 1)) +  
+#'  ggplot2::labs(title = "Threshold/Baseline values according 2 smoothing intensities",
+#'       x = "Months",
+#'       y = "Temperature (K)") +
+#'  ggplot2::theme_minimal()
+```
+
+```{r setup}
+library(BioExtremeEvent)
+```

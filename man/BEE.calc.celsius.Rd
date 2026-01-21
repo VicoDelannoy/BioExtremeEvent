@@ -21,10 +21,27 @@ SpatRaster (Celsius, Kelvin or Fahrenheit) and converts it to the
 international unit 'Celsius' if necessary.
 }
 \examples{
-#If your data are in kelvins (K), BEE.calc.celscius(YourSpatRaster) returns 
-#the spatraster with cell values converted in celsius (<c2><b0>C) using :
-#"former value - 273.15 = new value".
-#A pixel with a value of 295.15 K becomes a pixel with a value of 
-#22 <c2><b0>C.
+
+### Load the example dataset in R environement :
+file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"),
+                                  package = "BioExtremeEvent")
+copernicus_data <- terra::rast(file_name)
+
+### Values before applying functions :
+head(na.omit(terra::values(x = copernicus_data[[1]],
+                   dataframe=TRUE))) # first pixels are on land so their value is NA
+
+### Apply function :
+copernicus_data_celsius <- BioExtremeEvent::BEE.calc.celsius(copernicus_data)
+
+### Values after applying functions :
+head(na.omit(terra::values(x = copernicus_data_celsius[[1]],
+                  dataframe=TRUE))) # first pixels are on land so their value is NA
+
+### Checking the unit of the spatraster :
+# Before using BEE.calc.celsius :
+terra::units(copernicus_data[[1]])
+# After using BEE.calc.celsius :
+terra::units(copernicus_data_celsius[[1]])
 
 }

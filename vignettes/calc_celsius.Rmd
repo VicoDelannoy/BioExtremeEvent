@@ -42,6 +42,7 @@ The function takes only one argument, your dataset.
 
 ## Warnings:
 You will receive a warning if :
+
  - various units are detected for a same layer.
  - different layers have different units.
  - some layers have no unit declared, you will have to declare a unit.

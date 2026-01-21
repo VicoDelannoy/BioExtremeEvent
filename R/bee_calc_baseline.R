@@ -1,34 +1,71 @@
 #' Calculate baseline value for each date and pixel.
 #'
-#' @param YourSpatraster the SpatRaster that contains the values to be used for
-#'   calculating the baseline (your time serie of reference). It must have a
-#'   date for each layer and no duplicated date.
+#' @param YourSpatraster the SpatRaster that contains the values to be used to
+#'   calculate the baseline (your time serie of reference). It must have a
+#'   date for each layer and **no duplicated date**.
 #' @param start_date the date to use as the first day of your reference period.
-#'   It must be in the format YYYY-MM-DD.
+#'   It must be in the format **YYYY-MM-DD**. (The dataset provided can cover a
+#'   longer time period than theone you want to use as reference.)
 #' @param end_date the date to use as the last day of your reference period.
-#'   It must be in the format YYYY-MM-DD.
+#'   It must be in the format **YYYY-MM-DD**.
 #' @param threshold tells whether you want to use a percentile or the mean of
-#'   the observed value as threshold. Accepted arguments are "qt" to specify you
-#'   want to compute a percentile of the observed values in the reference
-#'   timeframe, or "mean" if you want to use the mean of the observed values in
-#'   the timeframe provided as threshold.
-#'   If you want to use a fixed value as a threshold, you can skip this step and
-#'   directly use BEE.calc.binarize().
+#'   the observed value as threshold. 
+#'   Accepted arguments are *"qt"*, to specify you want to compute a percentile
+#'   of the observed values in the reference timeframe, or *"mean"*, if you want
+#'   to use the mean of the observed values as threshold.
+#'   If you want to use a fixed value as a threshold (e.g. biological optimum),
+#'   you can skip this step and directly use BEE.calc.binarize().
 #' @param quantile_value indicates the desired percentile value. This must be
 #'   between 0 and 1.
 #' @param time_window number of days on either side of day 'd' that are used to
-#'   calculate the threshold value on 'd' day. For instance if time_window = 5,
-#'   the value will be calculated using data from five days before day d, day d
-#'   itself, and five days after day d, from all years between start_date and
-#'   end_date. (The example assume that you have one layer per day.)
+#'   calculate the threshold value associated to 'd' day. 
+#'   For instance, if time_window = 5, the thershold value associated to 'd' day
+#'   will be calculated using data from five days before day d, day d itself,
+#'   and five days after day d, from all years between start_date and end_date. 
 #' @param smooth_window number of days on either side of day 'd' that are used
-#'   to compute a mean value assigned to the 'd' day. For example, if
-#'   smooth_window is set to 10 days, the final value on day d will be the mean
-#'   of the baseline values calculated for days d - 10 to d + 10 
-#'   (eleven values).
+#'   to compute a mean value of the threshold assigned to the 'd' day. 
+#'   This allow to smooth your thershold value accross days.
+#'   For example, if smooth_window is set to 10 days, the final value on day 'd'
+#'   will be the mean of the baseline/thershold values calculated for days: 
+#'   d - 10 to d + 10 (eleven values).
 #'
 #' @return A SpatRaster with one day of the year per layer (366 layers), having
-#'   the same extent, pixel resolution and crs than the provided SpatRaster.
+#'   the same extent, pixel resolution and crs than the provided SpatRaster 
+#'   each pixel contains the threshold value at which an extreme event is
+#'   identified (the baseline value).
+#' 
+#' @examples
+#' ### Load the example dataset in R environement :
+#' file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"),
+#'                                   package = "BioExtremeEvent")
+#' copernicus_data <- terra::rast(file_name)
+#' 
+#' ### **90th percentile threshold:** 90 % of the values observed at a given day 
+#' # accross all years of the reference time period are bellow that value.
+#' #### No smoothing: # 16s to run
+#' baseline_qt90_smth_0 <- BEE.calc.baseline(YourSpatraster = copernicus_data,
+#'                                    start_date = "2023-01-01",
+#'                                    end_date = "2025-12-31",
+#'                                    threshold = "qt",
+#'                                    quantile_value = 0.9,
+#'                                    time_window = 5,
+#'                                    smooth_window = 0) 
+#' #### Smoothing over 15 days: # 18s to run
+#' baseline_qt90_smth_15 <- BEE.calc.baseline(YourSpatraster = copernicus_data,
+#'                                    start_date = "2023-01-01",
+#'                                    end_date = "2025-12-31",
+#'                                    threshold = "qt",
+#'                                    quantile_value = 0.9,
+#'                                    time_window = 5,
+#'                                    smooth_window = 7) #7+1+7=15 
+#' ###**Mean value threshold:**
+#' baseline_mean <- BEE.calc.baseline(YourSpatraster = copernicus_data,
+#'                                    start_date = "2023-01-01",
+#'                                    end_date = "2025-12-31",
+#'                                    threshold = "mean",
+#'                                    time_window = 5,
+#'                                    smooth_window = 7) 
+#' #if threshold = "mean", any quantile_value provided will be ignored.
 #'
 #' @export
 #'
