@@ -11,29 +11,29 @@
 #' Your SpatRaster with values corrected to celsius and 'unit' metadata updated
 #' to 'Celsisus'.
 #'@examples
-#' 
+#'
 #'### Load the example dataset in R environement :
 #' file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"),
 #'                                   package = "BioExtremeEvent")
 #' copernicus_data <- terra::rast(file_name)
-#' 
-#'### Values before applying functions : 
+#'
+#'### Values before applying functions :
 #' head(na.omit(terra::values(x = copernicus_data[[1]],
 #'                    dataframe=TRUE))) # first pixels are on land so their value is NA
-#' 
+#'
 #'### Apply function :
 #' copernicus_data_celsius <- BioExtremeEvent::BEE.calc.celsius(copernicus_data)
-#' 
-#'### Values after applying functions : 
+#'
+#'### Values after applying functions :
 #' head(na.omit(terra::values(x = copernicus_data_celsius[[1]],
 #'                   dataframe=TRUE))) # first pixels are on land so their value is NA
-#' 
+#'
 #'### Checking the unit of the spatraster :
 #' # Before using BEE.calc.celsius :
 #' terra::units(copernicus_data[[1]])
-#' # After using BEE.calc.celsius : 
+#' # After using BEE.calc.celsius :
 #' terra::units(copernicus_data_celsius[[1]])
-#' 
+#'
 #'@export
 #'
 #-------------------------------------------------------------------------------
@@ -104,8 +104,7 @@ BEE.calc.celsius <- function(YourSpatRaster) {
     #buble symboles have been replaced
     #by ASCII code to avoid bugs.
     print(
-      "Your dataset is already in celsius, there is no need to use this
-          function."
+      "Your dataset is already in celsius, there is no need to use this function."
     )
     return(YourSpatRaster)
   }

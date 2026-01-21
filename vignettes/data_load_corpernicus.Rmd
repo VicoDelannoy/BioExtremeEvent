@@ -1,10 +1,10 @@
 ---
-title: "BioExtremeEvent: Dowload data from Copernicus"
+title: "Dowload data from Copernicus"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{BioExtremeEvent: Dowload data from Copernicus}
+  %\VignetteIndexEntry{Dowload data from Copernicus}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
