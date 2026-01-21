@@ -35,6 +35,9 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/calc_baseline.html">Compute a threshold value.Rmd</a>
+    </li>
+    <li>
       <a href="../articles/calc_celsius.html">Convert temperature data to Celsius</a>
     </li>
     <li>
@@ -82,29 +85,30 @@
 
 
 <dl><dt id="arg-yourspatraster">YourSpatraster<a class="anchor" aria-label="anchor" href="#arg-yourspatraster"></a></dt>
-<dd><p>the SpatRaster that contains the values to be used for
-calculating the baseline (your time serie of reference). It must have a
-date for each layer and no duplicated date.</p></dd>
+<dd><p>the SpatRaster that contains the values to be used to
+calculate the baseline (your time serie of reference). It must have a
+date for each layer and <strong>no duplicated date</strong>.</p></dd>
 
 
 <dt id="arg-start-date">start_date<a class="anchor" aria-label="anchor" href="#arg-start-date"></a></dt>
 <dd><p>the date to use as the first day of your reference period.
-It must be in the format YYYY-MM-DD.</p></dd>
+It must be in the format <strong>YYYY-MM-DD</strong>. (The dataset provided can cover a
+longer time period than theone you want to use as reference.)</p></dd>
 
 
 <dt id="arg-end-date">end_date<a class="anchor" aria-label="anchor" href="#arg-end-date"></a></dt>
 <dd><p>the date to use as the last day of your reference period.
-It must be in the format YYYY-MM-DD.</p></dd>
+It must be in the format <strong>YYYY-MM-DD</strong>.</p></dd>
 
 
 <dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
 <dd><p>tells whether you want to use a percentile or the mean of
-the observed value as threshold. Accepted arguments are "qt" to specify you
-want to compute a percentile of the observed values in the reference
-timeframe, or "mean" if you want to use the mean of the observed values in
-the timeframe provided as threshold.
-If you want to use a fixed value as a threshold, you can skip this step and
-directly use BEE.calc.binarize().</p></dd>
+the observed value as threshold.
+Accepted arguments are <em>"qt"</em>, to specify you want to compute a percentile
+of the observed values in the reference timeframe, or <em>"mean"</em>, if you want
+to use the mean of the observed values as threshold.
+If you want to use a fixed value as a threshold (e.g. biological optimum),
+you can skip this step and directly use BEE.calc.binarize().</p></dd>
 
 
 <dt id="arg-quantile-value">quantile_value<a class="anchor" aria-label="anchor" href="#arg-quantile-value"></a></dt>
@@ -114,26 +118,65 @@ between 0 and 1.</p></dd>
 
 <dt id="arg-time-window">time_window<a class="anchor" aria-label="anchor" href="#arg-time-window"></a></dt>
 <dd><p>number of days on either side of day 'd' that are used to
-calculate the threshold value on 'd' day. For instance if time_window = 5,
-the value will be calculated using data from five days before day d, day d
-itself, and five days after day d, from all years between start_date and
-end_date. (The example assume that you have one layer per day.)</p></dd>
+calculate the threshold value associated to 'd' day.
+For instance, if time_window = 5, the thershold value associated to 'd' day
+will be calculated using data from five days before day d, day d itself,
+and five days after day d, from all years between start_date and end_date.</p></dd>
 
 
 <dt id="arg-smooth-window">smooth_window<a class="anchor" aria-label="anchor" href="#arg-smooth-window"></a></dt>
 <dd><p>number of days on either side of day 'd' that are used
-to compute a mean value assigned to the 'd' day. For example, if
-smooth_window is set to 10 days, the final value on day d will be the mean
-of the baseline values calculated for days d - 10 to d + 10
-(eleven values).</p></dd>
+to compute a mean value of the threshold assigned to the 'd' day.
+This allow to smooth your thershold value accross days.
+For example, if smooth_window is set to 10 days, the final value on day 'd'
+will be the mean of the baseline/thershold values calculated for days:
+d - 10 to d + 10 (eleven values).</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
     <p>A SpatRaster with one day of the year per layer (366 layers), having
-the same extent, pixel resolution and crs than the provided SpatRaster.</p>
+the same extent, pixel resolution and crs than the provided SpatRaster
+each pixel contains the threshold value at which an extreme event is
+identified (the baseline value).</p>
     </div>
 
+    <div id="ref-examples">
+    <h2>Examples</h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">### Load the example dataset in R environement :</span></span></span>
+<span class="r-in"><span><span class="va">file_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_example_data.nc"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                  package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">copernicus_data</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">### **90th percentile threshold:** 90 % of the values observed at a given day </span></span></span>
+<span class="r-in"><span><span class="co"># accross all years of the reference time period are bellow that value.</span></span></span>
+<span class="r-in"><span><span class="co">#### No smoothing: # 16s to run</span></span></span>
+<span class="r-in"><span><span class="va">baseline_qt90_smth_0</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.baseline</span><span class="op">(</span>YourSpatraster <span class="op">=</span> <span class="va">copernicus_data</span>,</span></span>
+<span class="r-in"><span>                                   start_date <span class="op">=</span> <span class="st">"2023-01-01"</span>,</span></span>
+<span class="r-in"><span>                                   end_date <span class="op">=</span> <span class="st">"2025-12-31"</span>,</span></span>
+<span class="r-in"><span>                                   threshold <span class="op">=</span> <span class="st">"qt"</span>,</span></span>
+<span class="r-in"><span>                                   quantile_value <span class="op">=</span> <span class="fl">0.9</span>,</span></span>
+<span class="r-in"><span>                                   time_window <span class="op">=</span> <span class="fl">5</span>,</span></span>
+<span class="r-in"><span>                                   smooth_window <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> </span></span>
+<span class="r-in"><span><span class="co">#### Smoothing over 15 days: # 18s to run</span></span></span>
+<span class="r-in"><span><span class="va">baseline_qt90_smth_15</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.baseline</span><span class="op">(</span>YourSpatraster <span class="op">=</span> <span class="va">copernicus_data</span>,</span></span>
+<span class="r-in"><span>                                   start_date <span class="op">=</span> <span class="st">"2023-01-01"</span>,</span></span>
+<span class="r-in"><span>                                   end_date <span class="op">=</span> <span class="st">"2025-12-31"</span>,</span></span>
+<span class="r-in"><span>                                   threshold <span class="op">=</span> <span class="st">"qt"</span>,</span></span>
+<span class="r-in"><span>                                   quantile_value <span class="op">=</span> <span class="fl">0.9</span>,</span></span>
+<span class="r-in"><span>                                   time_window <span class="op">=</span> <span class="fl">5</span>,</span></span>
+<span class="r-in"><span>                                   smooth_window <span class="op">=</span> <span class="fl">7</span><span class="op">)</span> <span class="co">#7+1+7=15 </span></span></span>
+<span class="r-in"><span><span class="co">###**Mean value threshold:**</span></span></span>
+<span class="r-in"><span><span class="va">baseline_mean</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.baseline</span><span class="op">(</span>YourSpatraster <span class="op">=</span> <span class="va">copernicus_data</span>,</span></span>
+<span class="r-in"><span>                                   start_date <span class="op">=</span> <span class="st">"2023-01-01"</span>,</span></span>
+<span class="r-in"><span>                                   end_date <span class="op">=</span> <span class="st">"2025-12-31"</span>,</span></span>
+<span class="r-in"><span>                                   threshold <span class="op">=</span> <span class="st">"mean"</span>,</span></span>
+<span class="r-in"><span>                                   time_window <span class="op">=</span> <span class="fl">5</span>,</span></span>
+<span class="r-in"><span>                                   smooth_window <span class="op">=</span> <span class="fl">7</span><span class="op">)</span> </span></span>
+<span class="r-in"><span><span class="co">#if threshold = "mean", any quantile_value provided will be ignored.</span></span></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>

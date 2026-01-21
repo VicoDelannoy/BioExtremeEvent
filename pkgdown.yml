@@ -3,6 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   BioExtremeEvent: BioExtremeEvent.html
+  calc_baseline: calc_baseline.html
   calc_celsius: calc_celsius.html
   data_load_corpernicus: data_load_corpernicus.html
-last_built: 2026-01-21T13:38Z
+last_built: 2026-01-21T14:40Z

@@ -37,6 +37,9 @@ international unit 'Celsius' if necessary."><!-- mathjax --><script src="https:/
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/calc_baseline.html">Compute a threshold value.Rmd</a>
+    </li>
+    <li>
       <a href="../articles/calc_celsius.html">Convert temperature data to Celsius</a>
     </li>
     <li>
@@ -91,11 +94,46 @@ to 'Celsisus'.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">#If your data are in kelvins (K), BEE.calc.celscius(YourSpatRaster) returns </span></span></span>
-<span class="r-in"><span><span class="co">#the spatraster with cell values converted in celsius (&lt;c2&gt;&lt;b0&gt;C) using :</span></span></span>
-<span class="r-in"><span><span class="co">#"former value - 273.15 = new value".</span></span></span>
-<span class="r-in"><span><span class="co">#A pixel with a value of 295.15 K becomes a pixel with a value of </span></span></span>
-<span class="r-in"><span><span class="co">#22 &lt;c2&gt;&lt;b0&gt;C.</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">### Load the example dataset in R environement :</span></span></span>
+<span class="r-in"><span><span class="va">file_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_example_data.nc"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                  package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">copernicus_data</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">### Values before applying functions :</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>                   dataframe<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co"># first pixels are on land so their value is NA</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    analysed_sst_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17         286.99</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18         286.91</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19         286.91</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20         286.95</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21         287.08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22         287.21</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">### Apply function :</span></span></span>
+<span class="r-in"><span><span class="va">copernicus_data_celsius</span> <span class="op">&lt;-</span> <span class="fu">BioExtremeEvent</span><span class="fu">::</span><span class="fu">BEE.calc.celsius</span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your data were in Kelvin and have been converted to Celsius using:</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span>             former value - 273.15 = new value.</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">### Values after applying functions :</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">copernicus_data_celsius</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>                  dataframe<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co"># first pixels are on land so their value is NA</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    analysed_sst_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17       13.83999</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18       13.76000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19       13.76000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20       13.79998</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21       13.92999</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22       14.05999</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">### Checking the unit of the spatraster :</span></span></span>
+<span class="r-in"><span><span class="co"># Before using BEE.calc.celsius :</span></span></span>
+<span class="r-in"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/units.html" class="external-link">units</a></span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "kelvin"</span>
+<span class="r-in"><span><span class="co"># After using BEE.calc.celsius :</span></span></span>
+<span class="r-in"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/units.html" class="external-link">units</a></span><span class="op">(</span><span class="va">copernicus_data_celsius</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Celsius"</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
