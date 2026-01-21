@@ -61,7 +61,7 @@ the same dataset is saved in your computer at the location indicated by
 # Exemple of the dataset obtained
 
 ```{r}
-# Load the exemple dataset in R environement :
+# Load the example dataset in R environement :
 file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"), package = "BioExtremeEvent")
 copernicus_data <- terra::rast(file_name)
 

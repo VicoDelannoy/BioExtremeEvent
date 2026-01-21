@@ -6,25 +6,42 @@
 #' international unit 'Celsius' if necessary.
 #'@param YourSpatRaster
 #' "YourSpatRaster" is the SpatRaster containing temperature data, for which you
-#' want to check the units and convert the values to Celsius.
+#'  want to check the units and convert the values to Celsius.
 #'@return YourSpatRaster
 #' Your SpatRaster with values corrected to celsius and 'unit' metadata updated
 #' to 'Celsisus'.
 #'@examples
-#'#If your data are in kelvins (K), BEE.calc.celscius(YourSpatRaster) returns 
-#'#the spatraster with cell values converted in celsius (<c2><b0>C) using :
-#'#"former value - 273.15 = new value".
-#'#A pixel with a value of 295.15 K becomes a pixel with a value of 
-#'#22 <c2><b0>C.
+#' 
+#'### Load the example dataset in R environement :
+#' file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"),
+#'                                   package = "BioExtremeEvent")
+#' copernicus_data <- terra::rast(file_name)
+#' 
+#'### Values before applying functions : 
+#' head(na.omit(terra::values(x = copernicus_data[[1]],
+#'                    dataframe=TRUE))) # first pixels are on land so their value is NA
+#' 
+#'### Apply function :
+#' copernicus_data_celsius <- BioExtremeEvent::BEE.calc.celsius(copernicus_data)
+#' 
+#'### Values after applying functions : 
+#' head(na.omit(terra::values(x = copernicus_data_celsius[[1]],
+#'                   dataframe=TRUE))) # first pixels are on land so their value is NA
+#' 
+#'### Checking the unit of the spatraster :
+#' # Before using BEE.calc.celsius :
+#' terra::units(copernicus_data[[1]])
+#' # After using BEE.calc.celsius : 
+#' terra::units(copernicus_data_celsius[[1]])
 #' 
 #'@export
-#' 
+#'
 #-------------------------------------------------------------------------------
 
 BEE.calc.celsius <- function(YourSpatRaster) {
   # Get the unit of each layer.
   units_count <- terra::units(YourSpatRaster)
-  
+
   # Check that no layer contains several unit.
   if (any(sapply(units_count, length) != 1)) {
     if (any(sapply(units_count, length) > 1)) {
@@ -57,7 +74,7 @@ BEE.calc.celsius <- function(YourSpatRaster) {
       return(NULL)
     }
   }
-  
+
   # Check that all layers have the same unit.
   unit <- terra::unique(units_count)
   if (length(unit) > 1) {
@@ -69,20 +86,27 @@ BEE.calc.celsius <- function(YourSpatRaster) {
     )
     return(NULL)
   }
-  
+
   # Check that the unit is not already Celsius
-  if (unit %in% c("Celsius",
-                  "celsius",
-                  "<c2><b0>C",
-                  "<c2><b0>c",
-                  "c",
-                  "C",
-                  "degrees_C",
-                  "degrees_c")) {
+  if (
+    unit %in%
+      c(
+        "Celsius",
+        "celsius",
+        "<c2><b0>C",
+        "<c2><b0>c",
+        "c",
+        "C",
+        "degrees_C",
+        "degrees_c"
+      )
+  ) {
     #buble symboles have been replaced
     #by ASCII code to avoid bugs.
-    print("Your dataset is already in celsius, there is no need to use this
-          function.")
+    print(
+      "Your dataset is already in celsius, there is no need to use this
+          function."
+    )
     return(YourSpatRaster)
   }
   # Store original metadata for later
@@ -91,12 +115,13 @@ BEE.calc.celsius <- function(YourSpatRaster) {
     crs = terra::crs(YourSpatRaster),
     extent = terra::ext(YourSpatRaster)
   )
-  
+
   # Convert from kelvin to celsius
   if (tolower(unit) %in% c("kelvin", "k", "degrees_K", "degrees_k")) {
     # conversion en Celsius :
-    YourSpatRaster <- terra::app(YourSpatRaster, function(x)
-      x - 273.15)
+    YourSpatRaster <- terra::app(YourSpatRaster, function(x) {
+      x - 273.15
+    })
     terra::units(YourSpatRaster) <- "Celsius" # unfortunately this deletes other
     # metadata
     # restore other metadata
@@ -109,11 +134,12 @@ BEE.calc.celsius <- function(YourSpatRaster) {
     )
     return(YourSpatRaster)
   }
-  
+
   # Convert from Fahrenheit to celsius
   if (tolower(unit) %in% c("fahrenheit", "f", "degrees_F", "degrees_f")) {
-    YourSpatRaster <- terra::app(YourSpatRaster, function(x)
-      terra::round((x - 32) * (5 / 9), digits = 3))  # conversion en celsius
+    YourSpatRaster <- terra::app(YourSpatRaster, function(x) {
+      terra::round((x - 32) * (5 / 9), digits = 3)
+    }) # conversion en celsius
     terra::units(YourSpatRaster) <- "Celsius"
     # unfortunately this deletes other metadata
     # restore other metadata
@@ -126,7 +152,7 @@ BEE.calc.celsius <- function(YourSpatRaster) {
     )
     return(YourSpatRaster)
   }
-  
+
   warning("The unit of your dataset is not recognized.")
   return(NULL)
 }

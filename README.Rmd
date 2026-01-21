@@ -26,11 +26,11 @@ knitr::opts_chunk$set(collapse  = TRUE,
 
 ## Overview
 
-The R package `BioExtremeEvent`... **{{ DESCRIBE YOUR PACKAGE }}**
+The R package `BioExtremeEvent` identifies and characterises an extreme event in  
+time and space for a given GPS point (e.g. a sampling site) or for every pixel 
+in an area.
 
-## Features
 
-The main purpose of `BioExtremeEvent` is to... **{{ DESCRIBE THE MAIN FEATURES }}**
 
 ## Installation
 
@@ -67,7 +67,8 @@ For an overview of the main features of `BioExtremeEvent`, please read the [Get 
 
 Please cite `BioExtremeEvent` as:
 
-> Delannoy Victoria (`r format(Sys.Date(), "%Y")`) BioExtremeEvent: An R package to **{{ TITLE }}**. R package version 0.0.900. <https://github.com/VicoMarbec/BioExtremeEvent/>
+> Delannoy Victoria (`r format(Sys.Date(), "%Y")`) BioExtremeEvent: An R package
+to characterise extreme event**. R package version 0.0.900. <https://github.com/VicoMarbec/BioExtremeEvent/>
 
 ## Contributing
 
