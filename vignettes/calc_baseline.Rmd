@@ -1,5 +1,6 @@
 ---
 title: "Compute a threshold value.Rmd"
+author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Compute a threshold value.Rmd}

@@ -1,8 +1,8 @@
 #' Merge the outputs of the metrics functions and summarize them trought time.
 #'
-#'@description To merge the daily outputs of at least two datasets of the 
-#' following fonctions from BEE package : bee.calc.metrics_point() ; 
-#' bee.calc.metrics_morpho() ; bee.calc.escape(). This function can also 
+#'@description To merge the daily outputs of at least two datasets of the
+#' following fonctions from BEE package : bee.calc.metrics_point() ;
+#' bee.calc.metrics_morpho() ; bee.calc.escape(). This function can also
 #' summarise metrics over different time periods: extreme events, weak periods,
 #' monthly periods and yearly periods.
 #'
@@ -40,14 +40,14 @@
 #'
 #'@examples
 #' # TO BE ADDED
-#' 
+#'
 #'@export
-#' 
+#'
 #-------------------------------------------------------------------------------
 
 # data_metrics_point <- points_metrics ;
 # data_metrics_morpho <- list_morpho_metrics ;
-# data_escape <- dist_to_escape ; crs = "EPSG:3035"
+# data_escape <- dist_to_escape ; crs = "EPSG:3035" ; summarize_by = "day"
 
 BEE.data.merge_summarize <- function(
   data_metrics_point = NULL,
@@ -65,6 +65,24 @@ BEE.data.merge_summarize <- function(
     provide one from the following list : extreme_event, day, weak, month, year"
     )
   }
+
+  # Check that the provided crs is valid:
+  crs_valid <- tryCatch(
+    {
+      terra::crs(crs, describe = TRUE)
+      TRUE # if the crs is recognize -> T
+    },
+    error = function(e) {
+      FALSE # if error from terra::crs -> F
+    }
+  )
+  if (crs_valid == FALSE) {
+    warnings(
+      "The crs you have provided is not valid. Check this webpage to 
+    select a suitable crs code : https://crs-explorer.proj.org/?ignoreWorld=false&allowDeprecated=false&authorities=EPSG&activeTypes=PROJECTED_CRS&map=osm"
+    )
+  }
+
   # Identify which datasets have been provided :
   ## Is there at least two datasets provided ?
   check_1 <- paste0(
@@ -250,7 +268,7 @@ BEE.data.merge_summarize <- function(
   data_metrics_point_xy <- stats::na.omit(unique(data_metrics_point_xy))
 
   ### data_metrics_morpho coordinates
-  data_metrics_morpho_xy <- data_metrics_morpho[[1]]
+  data_metrics_morpho_xy <- as.data.frame(data_metrics_morpho)
   data_metrics_morpho_xy <- data.frame(
     lon = data_metrics_morpho_xy$centroid_x,
     lat = data_metrics_morpho_xy$centroid_y
