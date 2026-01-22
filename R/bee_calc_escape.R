@@ -37,8 +37,8 @@
 #-------------------------------------------------------------------------------
 
 # BEE.calc.escape is not designed to work on 4D data (time + spatial 3D).
-# true_event_output <- result ; start_date = "2022-08-01";
-# end_date = "2022-08-12" ; pixel = GPS ; only_days_EE = FALSE ;
+# true_event_output <- result ; start_date = "2024-08-01";
+# end_date = "2024-08-20" ; pixel = GPS ; only_days_EE = FALSE ;
 # group_by_event = FALSE
 
 BEE.calc.escape <- function(
@@ -46,8 +46,8 @@ BEE.calc.escape <- function(
   start_date = NULL,
   end_date = NULL,
   pixel,
-  only_days_EE = TRUE,
-  group_by_event = TRUE
+  only_days_EE = FALSE,
+  group_by_event = FALSE
 ) {
   ### Recreate a Spatraster using Events_corrected. In this list, there are one
   # df per pixel and one raw per dates
@@ -82,7 +82,7 @@ BEE.calc.escape <- function(
 
   # Compute by data/layer
   dist_dir <- lapply(rasters, function(x) {
-    # x <- rasters[[70]] # 1 : no MHX , 700 : 1 MHW # <-> iterate through dates
+    # x <- rasters[[4]] # 1 : no MHX , 700 : 1 MHW # <-> iterate through dates
     values_x <- terra::values(x)
     if (only_days_EE == TRUE) {
       pixels_from <- which(values_x == 1)
@@ -304,7 +304,30 @@ BEE.calc.escape <- function(
   }
 
   if (group_by_event == FALSE) {
-    # dist_dir <- points
+    # Add event_ID
+    ## Add ID
+    data <- data[unique(dist_dir$pixel_from_id)]
+    names(data) <- unique(dist_dir$pixel_from_id)
+    data <- data.table::rbindlist(data, idcol = "pixel_from_id")
+    dist_dir$pixel_from_id <- as.character(dist_dir$pixel_from_id)
+    data$date <- as.Date(data$date)
+    dist_dir$date <- as.Date(dist_dir$date)
+    dist_dir <- merge(
+      dist_dir,
+      data[, c("pixel_from_id", "date", "ID")],
+      by = c("pixel_from_id", "date"),
+      all.x = TRUE
+    )
+    ## Reformat ID
+    # pixelnumber_startdate_end_date_eventnumber
+    dist_dir$ID = paste0(
+      dist_dir$pixel_from_id,
+      "_",
+      sub("^[^_]+_", "", dist_dir$ID),
+      "_",
+      sub("_.*$", "", dist_dir$ID)
+    )
+    colnames(dist_dir)[colnames(dist_dir) == "ID"] <- "event_ID"
     return(dist_dir)
   }
   if (group_by_event == TRUE) {
@@ -333,7 +356,8 @@ BEE.calc.escape <- function(
     # in a data.table format :
     data.table::setkey(dist_dir, pixel_from_id, date_start, date_end)
     data.table::setkey(data, pixel_from_id, start_date, end_date)
-
+    dist_dir$date_start <- as.Date(dist_dir$date_start)
+    dist_dir$date_end <- as.Date(dist_dir$date_end)
     dist_dir <- data.table::foverlaps(
       # magic function that found if the line from dt x is inside the time frame
       # of a line from dt y and identify which one AND joint the 2 dt respecting
@@ -352,49 +376,62 @@ BEE.calc.escape <- function(
     dist_dir$date_start <- NULL
     dist_dir$date_end <- NULL
 
+    ## Reformat ID pixelnumber_startdate_end_date_eventnumber
+    dist_dir$ID = paste0(
+      dist_dir$pixel_from_id,
+      "_",
+      sub("^[^_]+_", "", dist_dir$ID),
+      "_",
+      sub("_.*$", "", dist_dir$ID)
+    )
+    colnames(dist_dir)[colnames(dist_dir) == "ID"] <- "event_ID"
+
     # Now we can compute some metrics of the metrics distance and azimut !!
     old_warn <- options("warn") # Save curent warning settings
     options(warn = -1) # unactivate warnings
     ## Distance
-    tmp_mean <- stats::aggregate(
-      as.numeric(dist_dir$distance) ~ ID,
+    dist_dir$distance <- as.numeric(dist_dir$distance)
+    tmp_mean <- aggregate(
+      distance ~ event_ID,
       data = dist_dir,
-      FUN = mean,
-      na.rm = TRUE
+      FUN = function(x) mean(x, na.rm = TRUE)
     )
-    dist_dir$distance_mean <- tmp_mean[match(dist_dir$ID, tmp_mean$ID), 2]
+    dist_dir$distance_mean <- tmp_mean[
+      match(dist_dir$event_ID, tmp_mean$event_ID),
+      2
+    ]
 
     distance_sd <- tapply(
       as.numeric(dist_dir$distance),
-      dist_dir$ID,
+      dist_dir$event_ID,
       stats::sd,
       na.rm = TRUE
     )
-    dist_dir$distance_sd <- distance_sd[dist_dir$ID]
+    dist_dir$distance_sd <- distance_sd[dist_dir$event_ID]
 
     distance_median <- tapply(
       as.numeric(dist_dir$distance),
-      dist_dir$ID,
+      dist_dir$event_ID,
       stats::median,
       na.rm = TRUE
     )
-    dist_dir$distance_median <- distance_median[dist_dir$ID]
+    dist_dir$distance_median <- distance_median[dist_dir$event_ID]
 
     distance_min <- tapply(
       as.numeric(dist_dir$distance),
-      dist_dir$ID,
+      dist_dir$event_ID,
       min,
       na.rm = TRUE
     )
-    dist_dir$distance_min <- distance_min[dist_dir$ID]
+    dist_dir$distance_min <- distance_min[dist_dir$event_ID]
 
     distance_max <- tapply(
       as.numeric(dist_dir$distance),
-      dist_dir$ID,
+      dist_dir$event_ID,
       max,
       na.rm = TRUE
     )
-    dist_dir$distance_max <- distance_max[dist_dir$ID]
+    dist_dir$distance_max <- distance_max[dist_dir$event_ID]
 
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
     # special way to compute it :
@@ -411,41 +448,41 @@ BEE.calc.escape <- function(
     )
     azimut_mean <- tapply(
       as.numeric(dist_dir$azimut_circ),
-      dist_dir$ID,
+      dist_dir$event_ID,
       mean,
       na.rm = TRUE
     )
-    dist_dir$azimut_mean <- azimut_mean[dist_dir$ID]
+    dist_dir$azimut_mean <- azimut_mean[dist_dir$event_ID]
     azimut_med <- tapply(
       as.numeric(dist_dir$azimut_circ),
-      dist_dir$ID,
+      dist_dir$event_ID,
       stats::median,
       na.rm = TRUE
     )
-    dist_dir$azimut_med <- azimut_med[dist_dir$ID]
+    dist_dir$azimut_med <- azimut_med[dist_dir$event_ID]
 
     tmp_sd <- stats::aggregate(
-      azimut_circ ~ ID,
+      azimut_circ ~ event_ID,
       data = dist_dir,
       FUN = azimut_sd_fun
     )
-    dist_dir$azimut_sd <- tmp_sd[match(dist_dir$ID, tmp_sd$ID), 2]
+    dist_dir$azimut_sd <- tmp_sd[match(dist_dir$event_ID, tmp_sd$event_ID), 2]
 
     azimut_min <- tapply(
       as.numeric(dist_dir$azimut_circ),
-      dist_dir$ID,
+      dist_dir$event_ID,
       min,
       na.rm = TRUE
     )
-    dist_dir$azimut_min <- azimut_min[dist_dir$ID]
+    dist_dir$azimut_min <- azimut_min[dist_dir$event_ID]
 
     azimut_max <- tapply(
       as.numeric(dist_dir$azimut_circ),
-      dist_dir$ID,
+      dist_dir$event_ID,
       max,
       na.rm = TRUE
     )
-    dist_dir$azimut_max <- azimut_max[dist_dir$ID]
+    dist_dir$azimut_max <- azimut_max[dist_dir$event_ID]
     options(warn = old_warn$warn) # reactivate warnings
 
     # Delete column that refer to daily value and not to value compute on all
@@ -454,9 +491,9 @@ BEE.calc.escape <- function(
       c('date', 'distance', 'azimut', 'azimut_num', 'azimut_circ')
     ] <- NULL
 
-    # Keep only one row per EE (<-> per value of ID column) :
-    dist_dir <- dist_dir[!duplicated(dist_dir$ID), ] # keep the first line of every
-    # group of same value of ID
+    # Keep only one row per EE (<-> per value of event_ID column) :
+    dist_dir <- dist_dir[!duplicated(dist_dir$event_ID), ] # keep the first line of every
+    # group of same value of event_ID
 
     # delete the column x_to and y_to as the represent the pixel where to
     # escape on first day and not a characteristic of the all event
