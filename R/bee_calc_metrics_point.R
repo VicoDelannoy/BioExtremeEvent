@@ -33,9 +33,9 @@
 #'
 
 #-------------------------------------------------------------------------------
-# start_date <- "2024-06-01" ; end_date <- "2024-10-31" ; Values <- ds ; p <- 1
-# GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781))
-# group_by_event = TRUE, time_lapse_vector = c(3,5,7,14,21)
+# start_date <- "2024-06-01" ; end_date <- "2024-10-31" ; Values <- ds ; p <- 1;
+# GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781));
+# group_by_event = TRUE; time_lapse_vector = c(3,5,7,14,21)
 BEE.calc.metrics_point <- function(
   Events_corrected,
   Values,
@@ -45,10 +45,10 @@ BEE.calc.metrics_point <- function(
   time_lapse_vector = NULL, # number of time unit on which to compute the warming rates and cooling rates, NULL means it will not be computated
   baseline_qt = baseline_qt90,
   baseline_mean = baseline_mean,
-  group_by_event = TRUE
+  group_by_event = FALSE
 ) {
   terra::set.names(Values, as.Date(terra::time(Values)))
-  # WARNINGS
+  ############################### WARNINGS #####################################
   if (is.null(start_date) | is.null(end_date)) {
     warning(
       "You didn't specify a begining date and a ending date (see argument 
@@ -121,7 +121,7 @@ BEE.calc.metrics_point <- function(
     message(utils::capture.output(print(GPS[wrong_position, ])))
   }
 
-  # CODE
+  ############################### CODE #########################################
   #Extract values for the given GPS position
   df_list <- lapply(GPS$pixel, function(p) {
     Events_corrected[[p]]
@@ -250,8 +250,15 @@ BEE.calc.metrics_point <- function(
         x = GPS$x[p],
         y = GPS$y[p],
 
-        # Get the ID of each event
-        event_ID = unique(ID),
+        # Get the ID of each event and rename it as
+        # pixelnumber_startdate_end_date_eventnumber
+        event_ID = paste0(
+          GPS$pixel[p],
+          "_",
+          sub("^[^_]+_", "", unique(ID)),
+          "_",
+          sub("_.*$", "", unique(ID))
+        ),
 
         # Duration of each event (assuming Nb_days is constant per ID)
         Nb_days = data.table::first(Nb_days),
@@ -405,7 +412,7 @@ BEE.calc.metrics_point <- function(
           ordered = TRUE
         )
       )
-    df <- df |> dplyr::mutate(event_ID = ID)
+    #df <- df |> dplyr::mutate(event_ID = ID)
     max_category <- df |>
       dplyr::filter(!is.na(daily_category)) |>
       dplyr::group_by(event_ID) |>
@@ -416,7 +423,7 @@ BEE.calc.metrics_point <- function(
     # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to
     # the ouputs + add maximal category of each event
     summary_stats <- df |>
-      dplyr::group_by(ID) |>
+      dplyr::group_by(event_ID) |>
       dplyr::summarise(
         mean_anomaly_qt90 = mean(anomaly_qt90, na.rm = TRUE),
         sd_anomaly_qt90 = stats::sd(anomaly_qt90, na.rm = TRUE),
@@ -429,7 +436,7 @@ BEE.calc.metrics_point <- function(
         .groups = 'drop'
       )
     df <- df |>
-      dplyr::left_join(summary_stats, by = "ID")
+      dplyr::left_join(summary_stats, by = "event_ID")
     data.table::setnames(
       df,
       old = "max_category.y",

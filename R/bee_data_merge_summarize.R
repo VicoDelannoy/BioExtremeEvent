@@ -259,53 +259,172 @@ BEE.data.merge_summarize <- function(
   }
 
   ## Are the dataset spatially overlapping ?
-  ### data_metrics_point coordinates
-  data_metrics_point_xy <- data.table::rbindlist(data_metrics_point)
-  data_metrics_point_xy <- data.frame(
-    lon = data_metrics_point_xy$x,
-    lat = data_metrics_point_xy$y
-  )
-  data_metrics_point_xy <- stats::na.omit(unique(data_metrics_point_xy))
+  ### data_metrics_point polygon
+  if (!is.null(data_metrics_point)) {
+    # Get informations positions
+    data_metrics_point_xy <- data.table::rbindlist(data_metrics_point)
+    data_metrics_point_xy <- data.frame(
+      lon = data_metrics_point_xy$x,
+      lat = data_metrics_point_xy$y
+    )
+    data_metrics_point_xy <- stats::na.omit(unique(data_metrics_point_xy))
+    # Create polygones for each datasets :
+    ## Convert df to sf (using a metric crs)
+    sf_data_metrics_point_xy <- sf::st_as_sf(
+      data_metrics_point_xy,
+      coords = c("lon", "lat"),
+      crs = crs
+    )
+    ## Gather the point into one object (otherwise it will create one polygone
+    # per point)
+    sf_data_metrics_point_xy <- sf::st_combine(sf_data_metrics_point_xy)
+    ## Compute polygones
+    pol_data_metrics_point <- sf::st_concave_hull(
+      sf_data_metrics_point_xy,
+      ratio = 0.8,
+      allow_holes = FALSE
+    )
+  }
+  ### data_morpho_point polygon
+  if (!is.null(data_metrics_morpho)) {
+    # Get informations positions
+    data_metrics_morpho_xy <- as.data.frame(data_metrics_morpho)
+    data_metrics_morpho_xy <- data.frame(
+      lon = data_metrics_morpho_xy$centroid_x,
+      lat = data_metrics_morpho_xy$centroid_y
+    )
+    data_metrics_morpho_xy <- stats::na.omit(unique(data_metrics_morpho_xy))
+    # Create polygones for each datasets :
+    ## Convert df to sf (using a metric crs)
+    sf_data_metrics_morpho_xy <- sf::st_as_sf(
+      data_metrics_morpho_xy,
+      coords = c("lon", "lat"),
+      crs = crs
+    )
+    ## Gather the morpho into one object (otherwise it will create one polygone
+    # per morpho)
+    sf_data_metrics_morpho_xy <- sf::st_combine(sf_data_metrics_morpho_xy)
+    ## Compute polygones
+    pol_data_metrics_morpho <- sf::st_concave_hull(
+      sf_data_metrics_morpho_xy,
+      ratio = 0.8,
+      allow_holes = FALSE
+    )
+  }
+  ### data_escape polygon
+  if (!is.null(data_escape)) {
+    # Get informations positions
+    data_escape_xy <- data.frame(
+      lon = data_escape$from_x,
+      lat = data_escape$from_y
+    )
+    data_escape_xy <- stats::na.omit(unique(data_escape_xy))
+    # Create polygones for each datasets :
+    ## Convert df to sf (using a metric crs)
+    sf_data_escape_xy <- sf::st_as_sf(
+      data_escape_xy,
+      coords = c("lon", "lat"),
+      crs = crs
+    )
+    ## Gather the escape into one object (otherwise it will create one polygone
+    # per morpho)
+    sf_data_escape_xy <- sf::st_combine(sf_data_escape_xy)
+    ## Compute polygones
+    pol_data_escape <- sf::st_concave_hull(
+      sf_data_escape_xy,
+      ratio = 0.8,
+      allow_holes = FALSE
+    )
+  }
 
-  ### data_metrics_morpho coordinates
-  data_metrics_morpho_xy <- as.data.frame(data_metrics_morpho)
-  data_metrics_morpho_xy <- data.frame(
-    lon = data_metrics_morpho_xy$centroid_x,
-    lat = data_metrics_morpho_xy$centroid_y
-  )
-  data_metrics_morpho_xy <- stats::na.omit(unique(data_metrics_morpho_xy))
-
-  ### data_escape coordinates
-  data_escape_xy <- data.frame(
-    lon = data_escape$from_x,
-    lat = data_escape$from_y
-  )
-  data_escape_xy <- stats::na.omit(unique(data_escape_xy))
-
-  ### Create polygones for each datasets :
-  #### Convert df to sf (using a metric crs)
-  sf_data_metrics_point_xy <- sf::st_as_sf(
-    data_metrics_point_xy,
-    coords = c("lon", "lat"),
-    crs = crs
-  )
-  sf_data_metrics_morpho_xy <- sf::st_as_sf(
-    data_metrics_morpho_xy,
-    coords = c("lon", "lat"),
-    crs = crs
-  )
-  sf_data_escape_xy <- sf::st_as_sf(
-    data_escape_xy,
-    coords = c("lon", "lat"),
-    crs = crs
-  )
-  #### COmpute polygones
-  pol_data_metrics_point <- sf::st_concave_hull(
-    sf_data_metrics_point_xy,
-    ratio = 0.8,
-    allow_holes = FALSE
-  )
-  #### Test overlapping :
+  ### Tests overlapping :
+  if (
+    !is.null(data_metrics_point) &
+      !is.null(data_metrics_morpho) &
+      is.null(data_escape)
+  ) {
+    inter_point_morpho <- sf::st_intersection(
+      pol_data_metrics_point,
+      pol_data_metrics_morpho
+    )
+    if (is.null(inter_point_morpho)) {
+      warnings(
+        "data_metrics_point and data_metrics_morpho are not overlapping 
+      spatially, merging is not possible. Please check the following points : 
+        - computation of metrics with BEE.calc.metrics_point() and 
+      BEE.calc.metrics_morpho() were done on the same files.
+        - The crs of on of the datasets has been modified in between operations.
+        - The grid resolution has been modified in between operations.
+        "
+      )
+    }
+  }
+  if (
+    is.null(data_metrics_point) &
+      !is.null(data_metrics_morpho) &
+      !is.null(data_escape)
+  ) {
+    inter_morpho_escape <- sf::st_intersection(
+      pol_data_metrics_morpho,
+      pol_data_escape
+    )
+    if (is.null(inter_morpho_escape)) {
+      warnings(
+        "data_metrics_morpho and data_escape are not overlapping 
+      spatially, merging is not possible. Please check the following points : 
+        - computation of metrics with BEE.calc.metrics_morpho() and 
+      BEE.calc.escape() were done on the same files.
+        - The crs of on of the datasets has been modified in between operations.
+        - The grid resolution has been modified in between operations.
+        "
+      )
+    }
+  }
+  if (
+    !is.null(data_metrics_point) &
+      is.null(data_metrics_morpho) &
+      !is.null(data_escape)
+  ) {
+    inter_point_escape <- sf::st_intersection(
+      pol_data_metrics_point,
+      pol_data_escape
+    )
+    if (is.null(inter_point_escape)) {
+      warnings(
+        "data_metrics_point and data_escape are not overlapping 
+       spatially, merging is not possible. Please check the following points : 
+        - computation of metrics with BEE.calc.metrics_point() and 
+      BEE.calc.escape() were done on the same files.
+        - The crs of on of the datasets has been modified in between operations.
+        - The grid resolution has been modified in between operations.
+        "
+      )
+    }
+  }
+  if (
+    !is.null(data_metrics_point) &
+      !is.null(data_metrics_morpho) &
+      !is.null(data_escape)
+  ) {
+    inter_point_morpho_escape <- sf::st_intersection(
+      pol_data_metrics_point,
+      pol_data_metrics_morpho,
+      pol_data_escape
+    )
+    if (is.null(inter_point_morpho_escape)) {
+      warnings(
+        "at least one dataset among data_metrics_point, 
+      data_metrics_morpho and data_escape is not overlapping spatially with the
+      others, merging is not possible. Please check the following points : 
+        - computation of metrics with BEE.calc.metrics_point(),
+      BEE.calc.metrics_morpho() and BEE.calc.escape() were done on the same files.
+        - There were no modifications of the crs in between operations.
+        - There were no modifications of the grid resolution in between operations.
+        "
+      )
+    }
+  }
+  
 
   ########################## CODE ################################################
 }
