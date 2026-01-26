@@ -10,8 +10,8 @@ BEE.calc.escape(
   start_date = NULL,
   end_date = NULL,
   pixel,
-  only_days_EE = TRUE,
-  group_by_event = TRUE
+  only_days_EE = FALSE,
+  group_by_event = FALSE
 )
 }
 \arguments{

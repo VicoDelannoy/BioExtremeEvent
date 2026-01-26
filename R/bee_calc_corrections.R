@@ -1,58 +1,60 @@
 #' Compute the impact of the selected definition of extreme events on the number
 #' of days of extreme event
-#' 
-#' @description It computes the number of modifications between the raw 
-#' binerised Spatraster and the Spartraster produced using the 
-#' BEE.calc.true_event. 
+#'
+#' @description It computes the number of modifications between the raw
+#' binerised Spatraster and the Spartraster produced using the
+#' BEE.calc.true_event.
 #' This indicates of the differences in the number of days above the
 #' threshold/baseline and the number of days that are considered to be
 #' extreme events, according to the criteria set in BEE.calc.true_event.
 #' @param Events_corrected The second element of the BEE.calc.true_event ouput,
-#' which is a list of data.table containing information 
-#' about the value of each pixel before and after definition criteria are 
+#' which is a list of data.table containing information
+#' about the value of each pixel before and after definition criteria are
 #' applied to distinguish isolated extreme days from extreme events).
 #'
 #' @returns A text summarising the modifications induced.
 #'
 #'
-#' @examples 
+#' @examples
 #' # to be added
-#' 
+#'
 #' @export
 #'
 #-------------------------------------------------------------------------------
-
-
 
 BEE.calc.corrections <- function(Events_corrected) {
   # Number of cores available
   num_cores <- parallel::detectCores() - 2
   # Calculate changes
-  results <- parallel::mclapply(Events_corrected, analyze_changes, mc.cores = num_cores)
+  results <- parallel::mclapply(
+    Events_corrected,
+    analyze_changes,
+    mc.cores = num_cores
+  )
   results_df <- do.call(rbind, results)
   rm(results)
-  
+
   #Calculate percentages (data for the whole area and the whole time period)
   abs_one_to_zero <- as.numeric(sum(results_df$one_to_zero, na.rm = TRUE))
-  abs_1 <-  as.numeric(sum(results_df$total_ones, na.rm = TRUE))
-  abs_zero_to_one <-  as.numeric(sum(results_df$zero_to_one, na.rm = TRUE))
-  abs_0 <-  as.numeric(sum(results_df$total_zeros, na.rm = TRUE))
+  abs_1 <- as.numeric(sum(results_df$total_ones, na.rm = TRUE))
+  abs_zero_to_one <- as.numeric(sum(results_df$zero_to_one, na.rm = TRUE))
+  abs_0 <- as.numeric(sum(results_df$total_zeros, na.rm = TRUE))
   #percentage of 1 converted to 0 :
-  percentage_one_to_zero <- abs_one_to_zero * 100 / abs_1 
+  percentage_one_to_zero <- abs_one_to_zero * 100 / abs_1
   percentage_zero_to_one <- abs_zero_to_one * 100 / abs_0
-  
+
   #Calculate mean per year and pixel
   total_nb_info = sum(results_df$total_not_NA)
-  abs_one_to_zero_Ymean <- abs_one_to_zero * 100 / total_nb_info 
+  abs_one_to_zero_Ymean <- abs_one_to_zero * 100 / total_nb_info
   abs_1_Ymean <- abs_1 / total_nb_info
-  # sd_1_Ymean <- as.numeric(stats::sd(results_df$total_ones, na.rm=TRUE)) / 
+  # sd_1_Ymean <- as.numeric(stats::sd(results_df$total_ones, na.rm=TRUE)) /
   # total_nb_info # variability of being 1 among the pixel
   # corrections among the pixel :
-  sd_1to0_Ymean <- as.numeric(stats::sd(results_df$one_to_zero, na.rm = TRUE))  
+  sd_1to0_Ymean <- as.numeric(stats::sd(results_df$one_to_zero, na.rm = TRUE))
   abs_zero_to_one_Ymean <- abs_zero_to_one / total_nb_info
   abs_0_Ymean <- abs_0 / total_nb_info
   # corrections among the pixel :
-  sd_1to0_Ymean <- as.numeric(stats::sd(results_df$zero_to_one, na.rm = TRUE))  
+  sd_1to0_Ymean <- as.numeric(stats::sd(results_df$zero_to_one, na.rm = TRUE))
   cat(
     "Absolut values for the whole area and whole time period :",
     "\n",
@@ -116,38 +118,45 @@ BEE.calc.corrections <- function(Events_corrected) {
     sum(results_df$total_NA),
     "\n",
     "Total number of pixel that are always NA :",
-    sum(sapply(Events_corrected, function(df)
-      all(is.na(df$Original_value)))),
+    sum(sapply(Events_corrected, function(df) {
+      all(is.na(df$original_value))
+    })),
     "\n",
     "Total number of NA values excluding those from pixels that are 
     always NA :",
-    # total NA value - number of pixels that alwayes are NA * number of days 
+    # total NA value - number of pixels that alwayes are NA * number of days
     # in the time serie :
-    sum(results_df$total_NA) - sum(sapply(Events_corrected, function(df)
-all(is.na(df$Original_value)))) * length(Events_corrected[[1]]$Original_value),
-    "\n"  
+    sum(results_df$total_NA) -
+      sum(sapply(Events_corrected, function(df) {
+        all(is.na(df$original_value))
+      })) *
+        length(Events_corrected[[1]]$original_value),
+    "\n"
   )
-  
 }
 
 analyze_changes <- function(dataframe) {
   # Count modifications
-  one_to_zero <- sum(dataframe$Original_value == 1 &
-                       dataframe$Cleanned_value == 0,
-                     na.rm = TRUE)
-  zero_to_one <- sum(dataframe$Original_value == 0 &
-                       dataframe$Cleanned_value == 1,
-                     na.rm = TRUE)
-  
+  one_to_zero <- sum(
+    dataframe$original_value == 1 &
+      dataframe$cleanned_value == 0,
+    na.rm = TRUE
+  )
+  zero_to_one <- sum(
+    dataframe$original_value == 0 &
+      dataframe$cleanned_value == 1,
+    na.rm = TRUE
+  )
+
   # Count orginal total value
-  total_ones <- sum(dataframe$Original_value == 1, na.rm = TRUE)
-  total_zeros <- sum(dataframe$Original_value == 0, na.rm = TRUE)
-  
+  total_ones <- sum(dataframe$original_value == 1, na.rm = TRUE)
+  total_zeros <- sum(dataframe$original_value == 0, na.rm = TRUE)
+
   # Count NA
-  total_NA <- sum(is.na(dataframe$Original_value))
-  total_not_NA <- sum(!is.na(dataframe$Original_value))
+  total_NA <- sum(is.na(dataframe$original_value))
+  total_not_NA <- sum(!is.na(dataframe$original_value))
   tot_value <- total_not_NA + total_NA
-  
+
   return(
     data.frame(
       one_to_zero = one_to_zero,

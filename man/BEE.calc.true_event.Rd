@@ -45,11 +45,11 @@ Returns a list with 2 elements, first one is called
 corrected according the definition used in the function. The second element
 is called "Event_corrected". This is a list with one data.table per pixel.
 Each data.table as a date per rows (and as many date as there are layers in
-YourSpatraster). The columns "Original_value" gives the value of the raw
-binarisation, before appling the definition. "Cleanned_value" gives for
-each dates the values after correction. "ID" is an ID of the event,
-built using the pixel ID, first day of the event and last day of the
-event. "Nb_days" indicates the duration (in unit of time) of the event.
+YourSpatraster). The columns "original_value" gives the value of the raw
+binarisation, before appling the definition. "cleanned_value" gives for
+each dates the values after correction. "event_ID" is an event_ID of the event,
+built using the pixel event_ID, first day of the event and last day of the
+event. "duration" indicates the duration (in unit of time) of the event.
 "date" indicates the date corresponding to the row.
 }
 \description{

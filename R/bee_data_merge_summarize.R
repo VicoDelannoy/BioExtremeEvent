@@ -347,7 +347,7 @@ BEE.data.merge_summarize <- function(
       pol_data_metrics_point,
       pol_data_metrics_morpho
     )
-    if (is.null(inter_point_morpho)) {
+    if (is.null(inter_point_morpho)) { # no intersection
       warnings(
         "data_metrics_point and data_metrics_morpho are not overlapping 
       spatially, merging is not possible. Please check the following points : 
@@ -411,7 +411,7 @@ BEE.data.merge_summarize <- function(
       pol_data_metrics_morpho,
       pol_data_escape
     )
-    if (is.null(inter_point_morpho_escape)) {
+    if (is.null(inter_point_morpho_escape)) { 
       warnings(
         "at least one dataset among data_metrics_point, 
       data_metrics_morpho and data_escape is not overlapping spatially with the
@@ -425,6 +425,7 @@ BEE.data.merge_summarize <- function(
     }
   }
   
-
   ########################## CODE ################################################
+
+  
 }

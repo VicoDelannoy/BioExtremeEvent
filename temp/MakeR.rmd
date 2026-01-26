@@ -174,7 +174,6 @@ gc()
 #Check settings
 BEE.calc.corrections(Events_corrected)
 
-
 # Save and load : 
 saveRDS(Events_corrected, file = "Data/Events_corrected.rds")
 Events_corrected <- readRDS("Data/Events_corrected.rds")

@@ -35,11 +35,11 @@
 #'  corrected according the definition used in the function. The second element
 #'   is called "Event_corrected". This is a list with one data.table per pixel.
 #'   Each data.table as a date per rows (and as many date as there are layers in
-#'    YourSpatraster). The columns "Original_value" gives the value of the raw
-#'     binarisation, before appling the definition. "Cleanned_value" gives for
-#'      each dates the values after correction. "ID" is an ID of the event,
-#'      built using the pixel ID, first day of the event and last day of the
-#'      event. "Nb_days" indicates the duration (in unit of time) of the event.
+#'    YourSpatraster). The columns "original_value" gives the value of the raw
+#'     binarisation, before appling the definition. "cleanned_value" gives for
+#'      each dates the values after correction. "event_ID" is an event_ID of the event,
+#'      built using the pixel event_ID, first day of the event and last day of the
+#'      event. "duration" indicates the duration (in unit of time) of the event.
 #'      "date" indicates the date corresponding to the row.
 #' @details w and p settings are not available yet. BEE.calc.true_event is not
 #'  designed to work on 4D data (time + spatial 3D).
@@ -183,11 +183,8 @@ BEE.calc.true_event <- function(
       is.null(p)
   ) {
     # code for low complexity
-
     correct_lowcomplexity_n_d <- function(pixel_time_series, c, n, d, pix) {
-      # pixel_values <- pixel_time_series[1,] and pix=1; "pix" is a dynamic
-      # argument that is automatically indexed when calling the function,
-      # it identify each pixels (~ each rows of pixel_time_series)
+      # pixel_values <- pixel_time_series[507,] (each pixel of pixel_time_series)
 
       pixel_values <- pixel_time_series[c, ]
       rle_series <- rle(pixel_values)
@@ -206,15 +203,16 @@ BEE.calc.true_event <- function(
       # other.
       pixel <- local({
         dt <- data.table::data.table(
-          Original_value = as.vector(pixel_values),
+          pixel_id = rep(c, length(pixel_values)),
+          original_value = as.vector(pixel_values),
           #need to go through a dataframe because I don't know how to modify the
-          # ID directly in rle object
-          Cleanned_value = unlist(pixel_values_cleanned),
-          ID = rep(
+          # event_id directly in rle object
+          cleanned_value = unlist(pixel_values_cleanned),
+          event_id = rep(
             seq_along(rle_series_cleanned$lengths),
             rle_series_cleanned$lengths
           ),
-          Nb_days = rep(
+          duration = rep(
             rle_series_cleanned$lengths,
             rle_series_cleanned$lengths
           )
@@ -224,14 +222,14 @@ BEE.calc.true_event <- function(
 
       # Rename event that should gathered because they are separated by d days
       # (or less) bellow threshold
-      zero_series <- unique(pixel$ID[
-        (is.na(pixel$Cleanned_value) |
-          pixel$Cleanned_value == 0) &
-          pixel$Nb_days <= d
+      zero_series <- unique(pixel$event_ID[
+        (is.na(pixel$cleanned_value) |
+          pixel$cleanned_value == 0) &
+          pixel$duration <= d
       ]) #identify series of
       # 0 or NA shorter than d (or equal to d) This imply that a sequence of NA
       # shorter than d will not be considered as a limit of event
-      zero_series <- setdiff(zero_series, c(1, max(pixel$ID))) # withdraw the
+      zero_series <- setdiff(zero_series, c(1, max(pixel$event_ID))) # withdraw the
       # beginning and end of the timeserie as it cannot be surrounded by
       # '1' values
       to_modify <- sort(c(zero_series, zero_series + 1)) #list of futur EE
@@ -241,38 +239,31 @@ BEE.calc.true_event <- function(
       modifier <- zero_series - 1 #sequence of one before the short sequence of
       # 0, <-> the sequence of one that will be merge with the next sequence of
       # 1
-      # associate the ID value to replace (firt line) with the value of
+      # associate the event_id value to replace (firt line) with the value of
       # replacement (second line)
       replacement_map <- stats::setNames(rep(modifier, each = 2), to_modify)
       # Here above, if you have something like 111110111110111110 you will get
-      # aaabb as ID instead of aaaaa to adress this issue, I've added the lines
+      # aaabb as event_id instead of aaaaa to adress this issue, I've added the lines
       # bellow :
-      pixel$ID <- ifelse(
-        pixel$ID %in% names(replacement_map),
-        as.numeric(replacement_map[as.character(pixel$ID)]),
-        pixel$ID
+
+      pixel$duration <- rep(
+        rle(pixel$event_id)$lengths,
+        rle(pixel$event_id)$lengths
       )
-
-      pixel$Nb_days <- rep(rle(pixel$ID)$lengths, rle(pixel$ID)$lengths)
-
-      pixel$ID <- paste0(c, "_", pixel$ID)
 
       pixel$date <- sort(all_dates)
 
-      pixel$id_part <- data.table::tstrsplit(pixel$ID, "_", keep = 2)[[1]]
-
       # Get the first and last date of each extreme event
-      first_date <- stats::ave(pixel$date, pixel$id_part, FUN = function(x) {
+      first_date <- stats::ave(pixel$date, pixel$event_id, FUN = function(x) {
         min(x, na.rm = TRUE)
       })
-      last_date <- stats::ave(pixel$date, pixel$id_part, FUN = function(x) {
+      last_date <- stats::ave(pixel$date, pixel$event_id, FUN = function(x) {
         max(x, na.rm = TRUE)
       })
 
       # Create new extreme event id has pixel_first_day_last_day
-      pixel$ID <- paste0(pixel$id_part, "_", first_date, "_", last_date)
-      pixel$id <- NULL # Supprimer la colonne temporaire "id"
-
+      pixel$ID <- paste0(pixel$event_id, "_", first_date, "_", last_date)
+      # pixel$event_ID <- NULL 
       return(pixel)
     }
     #pixel_time_series <- as.data.table(pixel_time_series)
@@ -291,10 +282,11 @@ BEE.calc.true_event <- function(
     if (length(indices_all_na) > 0) {
       Event_corrected[indices_all_na] <- lapply(indices_all_na, function(c) {
         data.table::data.table(
-          Original_value = rep(NA, n_columns),
-          Cleanned_value = rep(NA, n_columns),
-          ID = rep(paste0(c, "_"), n_columns),
-          Nb_days = rep(0, n_columns)
+          pixel_id = rep(c, n_columns),
+          original_value = rep(NA, n_columns),
+          cleanned_value = rep(NA, n_columns),
+          event_ID = rep(paste0(c, "_"), n_columns),
+          duration = rep(0, n_columns)
         )
       })
     }
@@ -347,7 +339,7 @@ correct_raster <- function(raster, t, Event_corrected) {
   # get values of each layers
   corrected_values <- terra::values(raster)
   Matching_cleanning_values <- sapply(Event_corrected, function(event) {
-    event$Cleanned_value[t]
+    event$cleanned_value[t]
   })
   # Identify where corrections are needed /!\
   correction_indices <- which(

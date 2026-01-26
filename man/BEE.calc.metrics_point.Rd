@@ -13,7 +13,7 @@ BEE.calc.metrics_point(
   time_lapse_vector = NULL,
   baseline_qt = baseline_qt90,
   baseline_mean = baseline_mean,
-  group_by_event = TRUE
+  group_by_event = FALSE
 )
 }
 \arguments{
