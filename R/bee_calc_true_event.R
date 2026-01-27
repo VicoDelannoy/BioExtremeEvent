@@ -107,11 +107,11 @@
 #'
 #-------------------------------------------------------------------------------
 
-# n = 5, d= 3
+# n = 5; d= 3 ; nbis= 2 # for medium complexity
 BEE.calc.true_event <- function(
   binarized_EE,
   n,
-  d = NULL,
+  d,
   nbis = NULL,
   w = NULL,
   p = NULL
@@ -137,10 +137,6 @@ BEE.calc.true_event <- function(
   # Clean memory
   rm(all_data)
   gc()
-
-  # start_date <- min(unlist(all_dates), na.rm = TRUE) # for later when I'll
-  # give the possibility to only work on a subset of the time période
-  # end_date <- max(all_dates, na.rm = TRUE)
 
   # Reorder informations in chronological order :
   ## get a list of the raster layers
@@ -173,7 +169,6 @@ BEE.calc.true_event <- function(
   storage.mode(pixel_time_series) <- "numeric" # NB : if this still to much
   # memory we could swich to sparseMatrix but then, the manipulation on
   # that matrix may be slower.
-  # Transform to character the series of value for each pixels
 
   if (
     !is.null(n) &
@@ -182,114 +177,16 @@ BEE.calc.true_event <- function(
       is.null(w) &
       is.null(p)
   ) {
-    # code for low complexity
-    correct_lowcomplexity_n_d <- function(pixel_time_series, c, n, d, pix) {
-      # pixel_values <- pixel_time_series[507,] (each pixel of pixel_time_series)
-
-      pixel_values <- pixel_time_series[c, ]
-      rle_series <- rle(pixel_values)
-      # Clean isolated '1'
-      One_to_0 <- which(
-        rle_series$values == 1 &
-          rle_series$lengths < n
-      ) #list isolated '1'
-      # (series < n ) by 0
-      rle_series$values[One_to_0] <- 0 # replace isolated 1 by 0
-      pixel_values_cleanned <- inverse.rle(rle_series) # values of each
-      # pixel trough time
-      rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify
-      # the series of 0, this way series of zeros are re-defined to include 0
-      # and 1 transformed to 0 in one same serie when they are next to each
-      # other.
-      pixel <- local({
-        dt <- data.table::data.table(
-          pixel_id = rep(c, length(pixel_values)),
-          original_value = as.vector(pixel_values),
-          #need to go through a dataframe because I don't know how to modify the
-          # event_id directly in rle object
-          cleanned_value = unlist(pixel_values_cleanned),
-          event_id = rep(
-            seq_along(rle_series_cleanned$lengths),
-            rle_series_cleanned$lengths
-          ),
-          duration = rep(
-            rle_series_cleanned$lengths,
-            rle_series_cleanned$lengths
-          )
-        )
-        dt
-      })
-
-      # Rename event that should gathered because they are separated by d days
-      # (or less) bellow threshold
-      zero_series <- unique(pixel$event_ID[
-        (is.na(pixel$cleanned_value) |
-          pixel$cleanned_value == 0) &
-          pixel$duration <= d
-      ]) #identify series of
-      # 0 or NA shorter than d (or equal to d) This imply that a sequence of NA
-      # shorter than d will not be considered as a limit of event
-      zero_series <- setdiff(zero_series, c(1, max(pixel$event_ID))) # withdraw the
-      # beginning and end of the timeserie as it cannot be surrounded by
-      # '1' values
-      to_modify <- sort(c(zero_series, zero_series + 1)) #list of futur EE
-      # index to rename zero series and one series under one same name when
-      # necessary, using the first one serie's name (only when 0 serie length
-      # <=d)
-      modifier <- zero_series - 1 #sequence of one before the short sequence of
-      # 0, <-> the sequence of one that will be merge with the next sequence of
-      # 1
-      # associate the event_id value to replace (firt line) with the value of
-      # replacement (second line)
-      replacement_map <- stats::setNames(rep(modifier, each = 2), to_modify)
-      # Here above, if you have something like 111110111110111110 you will get
-      # aaabb as event_id instead of aaaaa to adress this issue, I've added the lines
-      # bellow :
-
-      pixel$duration <- rep(
-        rle(pixel$event_id)$lengths,
-        rle(pixel$event_id)$lengths
-      )
-
-      pixel$date <- sort(all_dates)
-
-      # Get the first and last date of each extreme event
-      first_date <- stats::ave(pixel$date, pixel$event_id, FUN = function(x) {
-        min(x, na.rm = TRUE)
-      })
-      last_date <- stats::ave(pixel$date, pixel$event_id, FUN = function(x) {
-        max(x, na.rm = TRUE)
-      })
-
-      # Create new extreme event id has pixel_first_day_last_day
-      pixel$ID <- paste0(pixel$event_id, "_", first_date, "_", last_date)
-      # pixel$event_ID <- NULL 
-      return(pixel)
-    }
-    #pixel_time_series <- as.data.table(pixel_time_series)
     gc()
-
     Event_corrected <- list()
     #We want to avoid processing a pixel that is always NA :
     indices_all_na <- which(rowSums(!is.na(pixel_time_series)) == 0)
     indices_to_do <- which(rowSums(!is.na(pixel_time_series)) != 0)
 
-    Event_corrected <- vector("list", nrow(pixel_time_series))
-    Event_corrected[indices_to_do] <- lapply(indices_to_do, function(c) {
-      correct_lowcomplexity_n_d(pixel_time_series, c, n, d, c)
+    Event_corrected <- vector("list", length(indices_to_do))
+    Event_corrected <- lapply(indices_to_do, function(c) {
+      correct_lowcomplexity_n_d(pixel_time_series, c, n, d, all_dates)
     })
-    n_columns <- dim(pixel_time_series)[2]
-    if (length(indices_all_na) > 0) {
-      Event_corrected[indices_all_na] <- lapply(indices_all_na, function(c) {
-        data.table::data.table(
-          pixel_id = rep(c, n_columns),
-          original_value = rep(NA, n_columns),
-          cleanned_value = rep(NA, n_columns),
-          event_ID = rep(paste0(c, "_"), n_columns),
-          duration = rep(0, n_columns)
-        )
-      })
-    }
   }
 
   if (
@@ -299,7 +196,23 @@ BEE.calc.true_event <- function(
       is.null(w) &
       is.null(p)
   ) {
-    #here add code for medium complexity
+    gc()
+    Event_corrected <- list()
+    #We want to avoid processing a pixel that is always NA :
+    indices_all_na <- which(rowSums(!is.na(pixel_time_series)) == 0)
+    indices_to_do <- which(rowSums(!is.na(pixel_time_series)) != 0)
+
+    Event_corrected <- vector("list", length(indices_to_do))
+    Event_corrected <- lapply(indices_to_do, function(c) {
+      correct_mediumcomplexity_n_d_nbis(
+        pixel_time_series,
+        c,
+        n,
+        d,
+        nbis,
+        all_dates
+      )
+    })
   }
   if (
     !is.null(n) &
@@ -316,7 +229,7 @@ BEE.calc.true_event <- function(
     function(t) {
       #stacked raster are rasters in the same order than in Event_corrected but
       # before modifications
-      correct_raster(stacked_rasters[[t]], t, Event_corrected)
+      correct_raster(stacked_rasters[[t]], t, Event_corrected, indices_to_do)
     }
   )
 
@@ -332,25 +245,220 @@ BEE.calc.true_event <- function(
 }
 
 
-#function used in the big function :
+#' ###############  Correct the dt list according "low complexity" framework
+#'
+#' @noRd
+correct_lowcomplexity_n_d <- function(pixel_time_series, c, n, d, all_dates) {
+  # (go through each pixels of pixel_time_series)
+  # c=675
+  pixel_values <- pixel_time_series[c, ]
 
-# Apply corrections
-correct_raster <- function(raster, t, Event_corrected) {
-  # get values of each layers
-  corrected_values <- terra::values(raster)
-  Matching_cleanning_values <- sapply(Event_corrected, function(event) {
-    event$cleanned_value[t]
+  rle_series <- rle(pixel_values)
+  # Clean isolated '1'
+  One_to_0 <- which(
+    rle_series$values == 1 &
+      rle_series$lengths < n
+  ) ##list isolated '1'
+  ## (series < n ) by 0
+  rle_series$values[One_to_0] <- 0 # replace isolated 1 by 0
+  pixel_values_cleanned <- inverse.rle(rle_series) # values of each
+  ## pixel trough time
+  rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify
+  ## the series of 0, this way series of zeros are re-defined to include 0
+  ## and 1 transformed to 0 in one same serie when they are next to each
+  ## other.
+  # Clean isolated '0'
+  Zero_to_1 <- which(
+    rle_series_cleanned$values == 0 &
+      rle_series_cleanned$lengths <= d
+  ) ##list isolated '1'
+  ## (series < n ) by 1
+  rle_series_cleanned$values[Zero_to_1] <- 1 # replace isolated 0 by 1
+  pixel_values_cleanned <- inverse.rle(rle_series_cleanned) # values of each
+  ## pixel trough time
+  rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify
+  ## the series of 1, this way series of ones are re-defined to include 1
+  ## and 0 transformed to 1 in one same serie when they are next to each
+  ## other.
+
+  pixel <- local({
+    dt <- data.table::data.table(
+      pixel_id = rep(c, length(pixel_values)),
+      original_value = as.vector(pixel_values),
+      #need to go through a dataframe because I don't know how to modify the
+      # event_id directly in rle object
+      cleanned_value = unlist(pixel_values_cleanned),
+      event_id = rep(
+        seq_along(rle_series_cleanned$lengths),
+        rle_series_cleanned$lengths
+      ),
+      duration = rep(
+        rle_series_cleanned$lengths,
+        rle_series_cleanned$lengths
+      )
+    )
+    dt
   })
-  # Identify where corrections are needed /!\
-  correction_indices <- which(
-    !is.na(corrected_values) &
-      !is.na(Matching_cleanning_values) &
-      corrected_values != Matching_cleanning_values
+
+  # add dates:
+  pixel$date <- sort(all_dates)
+
+  # Get the first and last date of each extreme event
+  first_date <- stats::ave(pixel$date, pixel$event_id, FUN = function(x) {
+    min(x, na.rm = TRUE)
+  })
+  last_date <- stats::ave(pixel$date, pixel$event_id, FUN = function(x) {
+    max(x, na.rm = TRUE)
+  })
+
+  # Create new extreme event id has pixel_first_day_last_day
+  pixel$ID <- paste0(
+    pixel$pixel_id,
+    "_",
+    first_date,
+    "_",
+    last_date,
+    "_",
+    pixel$event_id
   )
-  # Apply corrections
-  corrected_values[correction_indices] <-
-    Matching_cleanning_values[correction_indices]
-  # Modify raster layer values
-  terra::values(raster) <- corrected_values
+
+  return(pixel)
+}
+
+#' #########  Correct the dt list according "medium complexity" framework
+#'
+#' @noRd
+correct_mediumcomplexity_n_d_nbis <- function(
+  pixel_time_series,
+  c,
+  n,
+  d,
+  nbis,
+  all_dates
+) {
+  # (go through each pixels of pixel_time_series)
+  # c=675
+  pixel_values <- pixel_time_series[c, ]
+
+  rle_series <- rle(pixel_values)
+
+  ## 1) Identify series of 1 with a length superior or equal to n
+  series_1_n <- which(rle_series$values == 1 & rle_series$lengths >= n)
+  ## 2) Identify series of 1 with a length superior or equal to nbis and inferior
+  #  to n that are distant from a serie identified in 1) from d or less day
+  series_1_nbis_potentials <- which(
+    rle_series$values == 1 & rle_series$lengths < n & rle_series$lengths >= nbis
+  )
+  series_1_nbis <- series_1_nbis_potentials[which(
+    rle_series$lengths[as.integer(series_1_nbis_potentials) - 1] <= d &
+      as.integer(series_1_nbis_potentials - 2) %in% as.integer(series_1_n) |
+      rle_series$lengths[as.integer(series_1_nbis_potentials) + 1] <= d &
+        as.integer(series_1_nbis_potentials + 2) %in% as.integer(series_1_n)
+  )] #before a serie of 1 there is always a serie of 0
+
+  # Clean isolated '1' (series < n), with "lowcomplexity" all of those should
+  # disappear
+  One_to_0 <- which(
+    rle_series$values == 1 &
+      rle_series$lengths < n
+  )
+  # 3) With "mediumcomplexity" we want to save the series of ones with a length
+  # btw nbis and n if they are close (<d) to a serie of ones longer or equal to
+  # n:
+  One_to_0 <- One_to_0[which(!(One_to_0 %in% series_1_nbis))] #save the series
+  # identified above.
+  # 4) correct the VERY isolated ones:
+  rle_series$values[One_to_0] <- 0 # replace isolated 1 by 0
+  pixel_values_cleanned <- inverse.rle(rle_series) # values of each
+  ## pixel trough time
+  rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify
+  ## the series of 0, this way series of zeros are re-defined to include 0
+  ## and 1 transformed to 0 in one same serie when they are next to each
+  ## other.
+
+  # Clean isolated '0'
+  Zero_to_1 <- which(
+    rle_series_cleanned$values == 0 &
+      rle_series_cleanned$lengths <= d
+  )
+
+  rle_series_cleanned$values[Zero_to_1] <- 1 # replace isolated 0 by 1
+  pixel_values_cleanned <- inverse.rle(rle_series_cleanned) # values of each
+  ## pixel trough time
+  rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify
+  ## the series of 1, this way series of ones are re-defined to include 1
+  ## and 0 transformed to 1 in one same serie when they are next to each
+  ## other.
+
+  pixel <- local({
+    dt <- data.table::data.table(
+      pixel_id = rep(c, length(pixel_values)),
+      original_value = as.vector(pixel_values),
+      #need to go through a dataframe because I don't know how to modify the
+      # event_id directly in rle object
+      cleanned_value = unlist(pixel_values_cleanned),
+      event_id = rep(
+        seq_along(rle_series_cleanned$lengths),
+        rle_series_cleanned$lengths
+      ),
+      duration = rep(
+        rle_series_cleanned$lengths,
+        rle_series_cleanned$lengths
+      )
+    )
+    dt
+  })
+
+  # add dates:
+  pixel$date <- sort(all_dates)
+
+  # Get the first and last date of each extreme event
+  first_date <- stats::ave(pixel$date, pixel$event_id, FUN = function(x) {
+    min(x, na.rm = TRUE)
+  })
+  last_date <- stats::ave(pixel$date, pixel$event_id, FUN = function(x) {
+    max(x, na.rm = TRUE)
+  })
+
+  # Create new extreme event id has pixel_first_day_last_day
+  pixel$ID <- paste0(
+    pixel$pixel_id,
+    "_",
+    first_date,
+    "_",
+    last_date,
+    "_",
+    pixel$event_id
+  )
+
+  return(pixel)
+}
+
+#' ################# Apply corrections to the binarize spatraster
+#'
+#' @noRd
+
+correct_raster <- function(raster, t, Event_corrected, indices_to_do) {
+  # t=1 ; raster <- stacked_rasters[[t]]
+
+  # get values of each layers (taking in account the NA pixels that are no
+  # longer in Event_corrected)
+  ## Create a vector full of NA
+  n <- terra::ncell(raster)
+  full_values <- rep(NA_real_, n)
+  ## Get corrected values of non NA pixels
+  Matching_cleanning_values <- sapply(Event_corrected, function(event) {
+    event[t]$cleanned_value
+  })
+  Matching_cleaning_values <- vapply(
+    Event_corrected,
+    function(event) event$cleanned_value[t],
+    numeric(1)
+  )
+  ## Add non NA pixels to the NA vector
+  full_values[indices_to_do] <- Matching_cleaning_values
+
+  # replace raster values by corrected values
+  terra::values(raster) <- full_values
   return(raster)
 }
