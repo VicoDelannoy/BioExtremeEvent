@@ -134,9 +134,6 @@ BEE.calc.true_event <- function(
     lapply(all_data, `[[`, "dates"),
     recursive = FALSE
   )
-  # Clean memory
-  rm(all_data)
-  gc()
 
   # Reorder informations in chronological order :
   ## get a list of the raster layers
@@ -153,7 +150,7 @@ BEE.calc.true_event <- function(
   # Transform the list of sorted raster into a multilayers raster to be able to
   # use terra:extract on cells
   stacked_rasters <- terra::rast(sorted_rasters)
-  rm(all_rasters, all_rasters_names, sorted_indices, sorted_rasters)
+  rm(all_data, all_rasters, all_rasters_names, sorted_indices, sorted_rasters)
   gc()
   pixel_time_series <- terra::extract(
     stacked_rasters,
@@ -177,7 +174,6 @@ BEE.calc.true_event <- function(
       is.null(w) &
       is.null(p)
   ) {
-    gc()
     Event_corrected <- list()
     #We want to avoid processing a pixel that is always NA :
     indices_all_na <- which(rowSums(!is.na(pixel_time_series)) == 0)
@@ -185,7 +181,13 @@ BEE.calc.true_event <- function(
 
     Event_corrected <- vector("list", length(indices_to_do))
     Event_corrected <- lapply(indices_to_do, function(c) {
-      correct_lowcomplexity_n_d(pixel_time_series, c, n, d, all_dates)
+      correct_lowcomplexity_n_d(
+        pixel_time_series,
+        c,
+        n,
+        d,
+        all_dates
+      )
     })
   }
 
@@ -196,7 +198,6 @@ BEE.calc.true_event <- function(
       is.null(w) &
       is.null(p)
   ) {
-    gc()
     Event_corrected <- list()
     #We want to avoid processing a pixel that is always NA :
     indices_all_na <- which(rowSums(!is.na(pixel_time_series)) == 0)
@@ -223,23 +224,42 @@ BEE.calc.true_event <- function(
   ) {
     #here add code for high complexity
   }
-  # Aply corrections to raster of 1 and 0
-  stacked_rasters_corrected <- lapply(
-    1:terra::nlyr(stacked_rasters),
-    function(t) {
-      #stacked raster are rasters in the same order than in Event_corrected but
-      # before modifications
-      correct_raster(stacked_rasters[[t]], t, Event_corrected, indices_to_do)
-    }
-  )
+  ### Modify the spatraster :
+  # Build a matrice pixel x time using cleanned_value column from Event_corrected
+  n_pixels <- terra::ncell(stacked_rasters)
+  n_dates <- length(all_dates)
+  # empty matrice :
+  mat <- matrix(NA_real_, nrow = n_pixels, ncol = n_dates)
+  # add corrected values from Event_correct (column cleanned value of each dt)
+  for (p in seq(1, length(indices_to_do), 1)) {
+    #1.4 s 419 MB
+    # no correction needed for pixels that are always NA
+    mat[indices_to_do[p], ] <- Event_corrected[[p]]$cleanned_value
+  }
+  stacked_rasters_corrected <- stacked_rasters
+  terra::values(stacked_rasters_corrected) <- mat
+  rm(mat)
+  gc()
 
   stacked_rasters_corrected <- terra::rast(stacked_rasters_corrected)
   names(stacked_rasters_corrected) <- sort(all_dates)
 
+  ### Convert data.table list to a dataframe list with empty position for NA
+  # pixels:
+  list_df <- vector("list", n_pixels)
+
+  list_df[indices_to_do] <- lapply(
+    seq(1, length(indices_to_do), 1),
+    function(i) {
+      dt <- Event_corrected[[i]]
+      as.data.frame(dt)
+    }
+  )
+
   return(
     list(
       stacked_rasters_corrected = stacked_rasters_corrected,
-      Event_corrected = Event_corrected
+      Event_corrected = list_df
     )
   )
 }
@@ -263,7 +283,7 @@ correct_lowcomplexity_n_d <- function(pixel_time_series, c, n, d, all_dates) {
   rle_series$values[One_to_0] <- 0 # replace isolated 1 by 0
   pixel_values_cleanned <- inverse.rle(rle_series) # values of each
   ## pixel trough time
-  rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify
+  rle_series_cleanned <- rle(pixel_values_cleanned) # re-identify
   ## the series of 0, this way series of zeros are re-defined to include 0
   ## and 1 transformed to 0 in one same serie when they are next to each
   ## other.
@@ -276,7 +296,7 @@ correct_lowcomplexity_n_d <- function(pixel_time_series, c, n, d, all_dates) {
   rle_series_cleanned$values[Zero_to_1] <- 1 # replace isolated 0 by 1
   pixel_values_cleanned <- inverse.rle(rle_series_cleanned) # values of each
   ## pixel trough time
-  rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify
+  rle_series_cleanned <- rle(pixel_values_cleanned) # re-identify
   ## the series of 1, this way series of ones are re-defined to include 1
   ## and 0 transformed to 1 in one same serie when they are next to each
   ## other.
@@ -371,7 +391,7 @@ correct_mediumcomplexity_n_d_nbis <- function(
   rle_series$values[One_to_0] <- 0 # replace isolated 1 by 0
   pixel_values_cleanned <- inverse.rle(rle_series) # values of each
   ## pixel trough time
-  rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify
+  rle_series_cleanned <- rle(pixel_values_cleanned) # re-identify
   ## the series of 0, this way series of zeros are re-defined to include 0
   ## and 1 transformed to 0 in one same serie when they are next to each
   ## other.
@@ -385,7 +405,7 @@ correct_mediumcomplexity_n_d_nbis <- function(
   rle_series_cleanned$values[Zero_to_1] <- 1 # replace isolated 0 by 1
   pixel_values_cleanned <- inverse.rle(rle_series_cleanned) # values of each
   ## pixel trough time
-  rle_series_cleanned <- rle(unlist(pixel_values_cleanned)) # re-identify
+  rle_series_cleanned <- rle(pixel_values_cleanned) # re-identify
   ## the series of 1, this way series of ones are re-defined to include 1
   ## and 0 transformed to 1 in one same serie when they are next to each
   ## other.
@@ -439,7 +459,7 @@ correct_mediumcomplexity_n_d_nbis <- function(
 #' @noRd
 
 correct_raster <- function(raster, t, Event_corrected, indices_to_do) {
-  # t=1 ; raster <- stacked_rasters[[t]]
+  # t=12625 ; raster <- stacked_rasters[[t]]
 
   # get values of each layers (taking in account the NA pixels that are no
   # longer in Event_corrected)
@@ -447,14 +467,9 @@ correct_raster <- function(raster, t, Event_corrected, indices_to_do) {
   n <- terra::ncell(raster)
   full_values <- rep(NA_real_, n)
   ## Get corrected values of non NA pixels
-  Matching_cleanning_values <- sapply(Event_corrected, function(event) {
+  Matching_cleaning_values <- sapply(Event_corrected, function(event) {
     event[t]$cleanned_value
   })
-  Matching_cleaning_values <- vapply(
-    Event_corrected,
-    function(event) event$cleanned_value[t],
-    numeric(1)
-  )
   ## Add non NA pixels to the NA vector
   full_values[indices_to_do] <- Matching_cleaning_values
 

@@ -135,6 +135,10 @@ BEE.calc.corrections <- function(Events_corrected) {
   )
 }
 
+#' Check modifications
+#' 
+#' @noRd
+
 analyze_changes <- function(dataframe) {
   # Count modifications
   one_to_zero <- sum(
@@ -169,3 +173,4 @@ analyze_changes <- function(dataframe) {
     )
   )
 }
+

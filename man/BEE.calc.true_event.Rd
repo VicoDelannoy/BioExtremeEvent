@@ -4,7 +4,7 @@
 \alias{BEE.calc.true_event}
 \title{Identify the extreme event}
 \usage{
-BEE.calc.true_event(binarized_EE, n, d = NULL, nbis = NULL, w = NULL, p = NULL)
+BEE.calc.true_event(binarized_EE, n, d, nbis = NULL, w = NULL, p = NULL)
 }
 \arguments{
 \item{binarized_EE}{A list of Spatraster built using the BEE.calc.binarize
