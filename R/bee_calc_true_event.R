@@ -241,9 +241,6 @@ BEE.calc.true_event <- function(
   rm(mat)
   gc()
 
-  stacked_rasters_corrected <- terra::rast(stacked_rasters_corrected)
-  names(stacked_rasters_corrected) <- sort(all_dates)
-
   ### Convert data.table list to a dataframe list with empty position for NA
   # pixels:
   list_df <- vector("list", n_pixels)
