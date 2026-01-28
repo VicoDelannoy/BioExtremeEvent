@@ -48,6 +48,7 @@ BEE.calc.metrics_point <- function(
   group_by_event = FALSE
 ) {
   terra::set.names(Values, as.Date(terra::time(Values)))
+
   ############################### WARNINGS #####################################
   if (is.null(start_date) | is.null(end_date)) {
     warning(
@@ -56,18 +57,7 @@ BEE.calc.metrics_point <- function(
       Values SpatRaster will be used."
     )
     start_date <- min(as.Date.character(terra::names(Values)))
-    end_date <- max(as.Date.character(terra::names(period_of_interest)))
-  }
-  if (
-    class(start_date) != class(terra::names(Values[[1]])) |
-      class(end_date) != class(terra::names(Values[[1]])) |
-      class(start_date) != class(end_date)
-  ) {
-    warning(
-      "The date formats are inconsistent between start_date, end_date and 
-      Values. Please ensure that the layer names follow a consistent date 
-      format. Use class(YourObject) to verify the current format."
-    )
+    end_date <- max(as.Date.character(terra::names(Values)))
   }
   #Check that start date and end_date are within the SpatRasters provided
   if (
@@ -75,8 +65,11 @@ BEE.calc.metrics_point <- function(
       !(end_date %in% terra::names(Values))
   ) {
     warning(
-      "One or both the specified layers are not present in the SpatRaster 
-      containning corrected binarized extreme event."
+      "One or both of the specified layers is/are not present in the SpatRaster 
+      containing the corrected binarised extreme event. The provided dates may
+      be outside the SpatRaster timeframe or in the wrong format. Please check 
+      terra::time(Values) to see in which format start_date and end_date must be
+      provided in."
     )
   }
   Values_extent <- terra::ext(Values)
@@ -108,17 +101,25 @@ BEE.calc.metrics_point <- function(
   # Check that one of the GPS position is not in a pixel that is always an NA
   # (it may indicates that it falls in an area that is not interesting for the
   # study)
-  NA_pixels <- which(sapply(Events_corrected, function(df) {
-    all(is.na(
-      df$Original_value
-    ))
-  })) # List of pixel that are always NA
-  GPS$pixel <- terra::cellFromXY(Values, GPS) # List of the pixels corresponding
-  # to the GPS position provided
+  ## List of pixel that are always NA:
+  NA_pixels <- which(vapply(Events_corrected, is.null, logical(1)))
+  ## Identify the pixels corresponding to the GPS position provided:
+  GPS$pixel <- terra::cellFromXY(Values, GPS)
   if (any(GPS$pixel %in% NA_pixels)) {
     wrong_position <- which(GPS$pixel %in% NA_pixels)
-    message("Problematic GPS positions:\n")
-    message(utils::capture.output(print(GPS[wrong_position, ])))
+    warning(
+      paste(
+        "Problematic GPS positions:\n",
+        paste(
+          utils::capture.output(print(GPS[wrong_position, ])),
+          collapse = "\n"
+        ),
+        "These pixels fall on pixels that are always marked as NA, no matter the 
+      date.  Please check the accuracy of the GPS position(s) provided and 
+      ensure that it is in the correct format."
+      ),
+      call. = FALSE
+    )
   }
 
   ############################### CODE #########################################
@@ -140,9 +141,7 @@ BEE.calc.metrics_point <- function(
   Values <- as.matrix(Values)
   df_list <- Map(
     function(df, col_idx) {
-      # col_idx is the id
-      df$Date <- Date
-      df <- df[df$Date >= start_date & df$Date <= end_date, ]
+      df <- df[df$date >= start_date & df$date <= end_date, ]
       df$value <- Values[, col_idx] #Merge df_list and Values  # Ad to each
       # dataframe the corresponding column of pixel value
       return(df)
@@ -155,10 +154,10 @@ BEE.calc.metrics_point <- function(
   # intensity, category, sum of anomalies, date of maximum intensity, position
   # of the day of maximum intensity, mean increasing slop, mean decreasing
   # slope, start_date, end_date
-  ##Contrary to Events_corrected, Values didn't kept this information of which
-  # extreme event were merge together because they were separated by d days or
-  # less. Thus, we need to use Events corrected if we want to calculate a metric
-  # that describe an event.
+  # # # # # # # # # # # # # # # # ##Contrary to Events_corrected, Values didn't kept the information of which
+  # # NOT SURE THIS IS  # # # extreme event were merge together because they were separated by d days or
+  # # STILL TRUE  # # # # # # less. Thus, we need to use Events corrected if we want to calculate a metric
+  # # # # # # # # # # # # # # # # # that describe an event.
 
   #Create a list of dataframe to store the information using one element (df)
   # per pixel and one row per event
@@ -260,8 +259,8 @@ BEE.calc.metrics_point <- function(
           sub("_.*$", "", unique(ID))
         ),
 
-        # Duration of each event (assuming Nb_days is constant per ID)
-        Nb_days = data.table::first(Nb_days),
+        # Duration of each event (assuming duration is constant per ID)
+        duration = data.table::first(duration),
 
         # First and last day of each event
         first_date = as.Date(min(Date)),
@@ -389,7 +388,7 @@ BEE.calc.metrics_point <- function(
         anomaly_mean = value - baseline_mean,
         anomaly_unit = baseline_qt90 - baseline_mean,
         daily_category = dplyr::case_when(
-          Cleanned_value == 0 ~ "No extreme event",
+          cleanned_value == 0 ~ "No extreme event",
           anomaly_qt90 < anomaly_unit ~ "Category I",
           anomaly_qt90 < 2 * anomaly_unit & anomaly_qt90 >= 0 ~ "Category II",
           anomaly_qt90 < 3 * anomaly_unit & anomaly_qt90 >= 0 ~ "Category III",
