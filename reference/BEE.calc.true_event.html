@@ -69,7 +69,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.calc.true_event</span><span class="op">(</span><span class="va">binarized_EE</span>, <span class="va">n</span>, d <span class="op">=</span> <span class="cn">NULL</span>, nbis <span class="op">=</span> <span class="cn">NULL</span>, w <span class="op">=</span> <span class="cn">NULL</span>, p <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.calc.true_event</span><span class="op">(</span><span class="va">binarized_EE</span>, <span class="va">n</span>, <span class="va">d</span>, nbis <span class="op">=</span> <span class="cn">NULL</span>, w <span class="op">=</span> <span class="cn">NULL</span>, p <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -127,11 +127,11 @@ Example : n = 5; w = 10; p = 0.5 -&gt; w * p = 5 . Default: NULL.</p></dd>
 corrected according the definition used in the function. The second element
 is called "Event_corrected". This is a list with one data.table per pixel.
 Each data.table as a date per rows (and as many date as there are layers in
-YourSpatraster). The columns "Original_value" gives the value of the raw
-binarisation, before appling the definition. "Cleanned_value" gives for
-each dates the values after correction. "ID" is an ID of the event,
-built using the pixel ID, first day of the event and last day of the
-event. "Nb_days" indicates the duration (in unit of time) of the event.
+YourSpatraster). The columns "original_value" gives the value of the raw
+binarisation, before appling the definition. "cleanned_value" gives for
+each dates the values after correction. "event_ID" is an event_ID of the event,
+built using the pixel event_ID, first day of the event and last day of the
+event. "duration" indicates the duration (in unit of time) of the event.
 "date" indicates the date corresponding to the row.</p>
     </div>
     <div id="details">
