@@ -35,7 +35,8 @@
 #-------------------------------------------------------------------------------
 # start_date <- "2024-06-01" ; end_date <- "2024-10-31" ; Values <- ds ; p <- 1;
 # GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781));
-# group_by_event = TRUE; time_lapse_vector = c(3,5,7,14,21)
+# group_by_event = TRUE; time_lapse_vector = c(1,3,5,7,14,21) ;
+# baseline_qt = baseline_qt90
 BEE.calc.metrics_point <- function(
   Events_corrected,
   Values,
@@ -43,7 +44,7 @@ BEE.calc.metrics_point <- function(
   start_date = NULL,
   end_date = NULL,
   time_lapse_vector = NULL, # number of time unit on which to compute the warming rates and cooling rates, NULL means it will not be computated
-  baseline_qt = baseline_qt90,
+  baseline_qt = NULL,
   baseline_mean = baseline_mean,
   group_by_event = FALSE
 ) {
@@ -154,18 +155,14 @@ BEE.calc.metrics_point <- function(
   # intensity, category, sum of anomalies, date of maximum intensity, position
   # of the day of maximum intensity, mean increasing slop, mean decreasing
   # slope, start_date, end_date
-  # # # # # # # # # # # # # # # # ##Contrary to Events_corrected, Values didn't kept the information of which
-  # # NOT SURE THIS IS  # # # extreme event were merge together because they were separated by d days or
-  # # STILL TRUE  # # # # # # less. Thus, we need to use Events corrected if we want to calculate a metric
-  # # # # # # # # # # # # # # # # # that describe an event.
 
   #Create a list of dataframe to store the information using one element (df)
   # per pixel and one row per event
   colnames(GPS) <- c("x", "y", names(GPS[3]))
 
-  #Get daily anomaly to baseline_qt90 and to baseline_mean
-  qt90 <- as.data.frame(t(terra::extract(baseline_qt90, GPS[, 3])))
-  qt90$dates <- format(
+  #Get daily anomaly to baseline_qt and to baseline_mean
+  qt <- as.data.frame(t(terra::extract(baseline_qt, GPS[, 3])))
+  qt$dates <- format(
     seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
     "%m-%d"
   )
@@ -178,8 +175,8 @@ BEE.calc.metrics_point <- function(
   metrics <- lapply(1:length(df_list), function(p) {
     # Go through each pixel
     df <- df_list[[p]]
-    df$Date <- as.Date(df$Date)
-    df$dates <- format(as.Date(df$Date), "%m-%d")
+    df$date <- as.Date(df$date)
+    df$dates <- format(as.Date(df$date), "%m-%d")
 
     # Check that the first/last extreme event didn't start before/after the
     # selected timeframe.
@@ -194,7 +191,11 @@ BEE.calc.metrics_point <- function(
       )
     }
     if (
-      sub(".*_(\\d{4}-\\d{2}-\\d{2})$", "\\1", df$ID[nrow(df)]) >
+      sub(
+        ".?\\d{3}_\\d{4}-\\d{2}-\\d{2}_(\\d{4}-\\d{2}-\\d{2}).*",
+        "\\1",
+        df$ID[nrow(df)]
+      ) >
         df$date[nrow(df)]
     ) {
       warnings(
@@ -206,6 +207,7 @@ BEE.calc.metrics_point <- function(
                frame."
       )
     }
+
     ## Evolution rate on the given time laps
     if (!is.null(time_lapse_vector)) {
       for (lag in time_lapse_vector) {
@@ -214,6 +216,13 @@ BEE.calc.metrics_point <- function(
         for (r in seq(lag + 1, nrow(df))) {
           df[[col_name]][r] <- (df$value[r] - df$value[r - lag]) / lag
         }
+      }
+    }
+    if (is.null(time_lapse_vector)) {
+      col_name <- paste0("evolution_rate_lag_", 1)
+      df[[col_name]] <- NA_real_
+      for (r in seq(1 + 1, nrow(df))) {
+        df[[col_name]][r] <- (df$value[r] - df$value[r - 1]) / 1
       }
     }
     ## Variance during the given time laps
@@ -226,9 +235,16 @@ BEE.calc.metrics_point <- function(
         }
       }
     }
+    if (is.null(time_lapse_vector)) {
+      col_name <- paste0("variance_value_lag_", 1)
+      df[[col_name]] <- NA_real_
+      for (r in seq(1 + 1, nrow(df))) {
+        df[[col_name]][r] <- stats::var(df$value[(r - 1):r])
+      }
+    }
 
     df <- df |>
-      dplyr::arrange(ID, Date) |> # put data in pixel order and chronological order
+      dplyr::arrange(ID, date) |> # put data in pixel order and chronological order
       dplyr::group_by(ID) |> # Create columns with info on the previous group
       dplyr::mutate(row_num = dplyr::row_number()) |> # useful later
       dplyr::ungroup() |>
@@ -249,22 +265,12 @@ BEE.calc.metrics_point <- function(
         x = GPS$x[p],
         y = GPS$y[p],
 
-        # Get the ID of each event and rename it as
-        # pixelnumber_startdate_end_date_eventnumber
-        event_ID = paste0(
-          GPS$pixel[p],
-          "_",
-          sub("^[^_]+_", "", unique(ID)),
-          "_",
-          sub("_.*$", "", unique(ID))
-        ),
-
         # Duration of each event (assuming duration is constant per ID)
         duration = data.table::first(duration),
 
         # First and last day of each event
-        first_date = as.Date(min(Date)),
-        last_date = as.Date(max(Date)),
+        first_date = as.Date(min(date)),
+        last_date = as.Date(max(date)),
 
         # Mean, median, max temperature per event
         mean_value = mean(value),
@@ -272,27 +278,43 @@ BEE.calc.metrics_point <- function(
         max_value = max(value),
 
         # Day of absolute maximum temperature
-        date_max_value = as.Date(Date[which.max(value)]),
-
-        #Daily rates
-        daily_rates = (dplyr::lead(value) - value) /
-          as.numeric(dplyr::lead(Date) - Date),
+        date_max_value = as.Date(date[which.max(value)]),
 
         # Onset rate (up to the absolut maximum value during the event)
         days_onset_abs = as.numeric(date_max_value - first_date),
         ## raw
         raw_onset_rate_abs = ifelse(
           days_onset_abs > 0,
-          (max_value - value[which(Date == first_date)]) / days_onset_abs,
+          (max_value - value[which(date == first_date)]) / days_onset_abs,
           value[1] - data.table::first(last_value_prev_group)
         ),
+
+        # Offset rate (from the absolut maximum value during the event)
+        days_offset_abs = as.numeric(last_date - date_max_value),
+        ## raw
+        raw_offset_rate_abs = ifelse(
+          days_offset_abs > 0,
+          (value[which(date == last_date)] - max_value) / days_offset_abs,
+          utils::tail(value, 1) - utils::tail(value, 2)[1]
+        )
+      ) |>
+      dplyr::ungroup()
+
+    df <- df |>
+      dplyr::mutate(
+        #Daily rates
+        daily_rates = (value - dplyr::lag(value)) /
+          as.numeric(date - dplyr::lag(date)),
+      ) |>
+      dplyr::group_by(ID) |>
+      dplyr::mutate(
         ## mean
         mean_onset_rate_abs = ifelse(
           days_onset_abs > 0,
           mean(
             daily_rates[
-              Date >= first_date &
-                Date <= date_max_value
+              date >= first_date &
+                date <= date_max_value
             ],
             na.rm = TRUE
           ),
@@ -303,8 +325,8 @@ BEE.calc.metrics_point <- function(
           days_onset_abs > 0,
           stats::median(
             daily_rates[
-              Date >= first_date &
-                Date <= date_max_value
+              date >= first_date &
+                date <= date_max_value
             ],
             na.rm = TRUE
           ),
@@ -315,29 +337,20 @@ BEE.calc.metrics_point <- function(
           days_onset_abs > 0,
           stats::sd(
             daily_rates[
-              Date >= first_date &
-                Date <= date_max_value
+              date >= first_date &
+                date <= date_max_value
             ],
             na.rm = TRUE
           ),
           NA
-        ),
-
-        # Offset rate (from the absolut maximum value during the event)
-        days_offset_abs = as.numeric(last_date - date_max_value),
-        ## raw
-        raw_offset_rate_abs = ifelse(
-          days_offset_abs > 0,
-          (value[which(Date == last_date)] - max_value) / days_offset_abs,
-          utils::tail(value, 1) - utils::tail(value, 2)[1]
         ),
         ## mean
         mean_offset_rate_abs = ifelse(
           days_offset_abs > 0,
           mean(
             daily_rates[
-              Date >= date_max_value &
-                Date <= last_date
+              date >= date_max_value &
+                date <= last_date
             ],
             na.rm = TRUE
           ),
@@ -348,8 +361,8 @@ BEE.calc.metrics_point <- function(
           days_offset_abs > 0,
           stats::median(
             daily_rates[
-              Date >= date_max_value &
-                Date <= last_date
+              date >= date_max_value &
+                date <= last_date
             ],
             na.rm = TRUE
           ),
@@ -360,8 +373,8 @@ BEE.calc.metrics_point <- function(
           days_offset_abs > 0,
           stats::sd(
             daily_rates[
-              Date >= date_max_value &
-                Date <= last_date
+              date >= date_max_value &
+                date <= last_date
             ],
             na.rm = TRUE
           ),
@@ -369,13 +382,13 @@ BEE.calc.metrics_point <- function(
         )
       ) |>
       dplyr::ungroup()
-    # Add daily baseline_qt90 and daily baseline_mean
+    # Add daily baseline_qt and daily baseline_mean
     df <- df |>
       dplyr::left_join(
-        qt90[, c("dates", paste0("V", as.character(p)))],
+        qt[, c("dates", paste0("V", as.character(p)))],
         by = "dates"
       ) |>
-      dplyr::rename(baseline_qt90 = paste0("V", as.character(p))) |>
+      dplyr::rename(baseline_qt = paste0("V", as.character(p))) |>
       dplyr::left_join(
         mean[, c("dates", paste0("V", as.character(p)))],
         by = "dates"
@@ -384,18 +397,26 @@ BEE.calc.metrics_point <- function(
     # Calculate anomalies
     df <- df |>
       dplyr::mutate(
-        anomaly_qt90 = value - baseline_qt90,
+        anomaly_qt = value - baseline_qt,
         anomaly_mean = value - baseline_mean,
-        anomaly_unit = baseline_qt90 - baseline_mean,
+        anomaly_unit = baseline_qt - baseline_mean,
         daily_category = dplyr::case_when(
           cleanned_value == 0 ~ "No extreme event",
-          anomaly_qt90 < anomaly_unit ~ "Category I",
-          anomaly_qt90 < 2 * anomaly_unit & anomaly_qt90 >= 0 ~ "Category II",
-          anomaly_qt90 < 3 * anomaly_unit & anomaly_qt90 >= 0 ~ "Category III",
-          anomaly_qt90 >= 3 * anomaly_unit & anomaly_qt90 >= 0 ~ "Category IV",
+          anomaly_qt < anomaly_unit ~ "Category I",
+          anomaly_qt < 2 * anomaly_unit & anomaly_qt >= 0 ~ "Category II",
+          anomaly_qt < 3 * anomaly_unit & anomaly_qt >= 0 ~ "Category III",
+          anomaly_qt >= 3 * anomaly_unit & anomaly_qt >= 0 ~ "Category IV",
           TRUE ~ NA_character_
         )
       )
+
+    df <- df |>
+      dplyr::group_by(ID) |>
+      dplyr::mutate(
+        cumulative_anomaly_qt = cumsum(anomaly_qt),
+        sum_anomaly_qt = sum(anomaly_qt, na.rm = T)
+      ) |>
+      dplyr::ungroup()
     # Keep the maximum category reached by each event
     df <- df |>
       dplyr::mutate(
@@ -411,22 +432,22 @@ BEE.calc.metrics_point <- function(
           ordered = TRUE
         )
       )
-    #df <- df |> dplyr::mutate(event_ID = ID)
+
     max_category <- df |>
       dplyr::filter(!is.na(daily_category)) |>
-      dplyr::group_by(event_ID) |>
+      dplyr::group_by(ID) |>
       dplyr::summarise(max_category = max(daily_category), .groups = 'drop')
     df <- df |>
-      dplyr::left_join(max_category, by = "event_ID")
+      dplyr::left_join(max_category, by = "ID")
 
-    # Add mean value and standard deviation of anomaly_qt90 and anomaly_mean to
+    # Add mean value and standard deviation of anomaly_qt and anomaly_mean to
     # the ouputs + add maximal category of each event
     summary_stats <- df |>
-      dplyr::group_by(event_ID) |>
+      dplyr::group_by(ID) |>
       dplyr::summarise(
-        mean_anomaly_qt90 = mean(anomaly_qt90, na.rm = TRUE),
-        sd_anomaly_qt90 = stats::sd(anomaly_qt90, na.rm = TRUE),
-        max_anomaly_qt90 = max(anomaly_qt90, na.rm = TRUE),
+        mean_anomaly_qt = mean(anomaly_qt, na.rm = TRUE),
+        sd_anomaly_qt = stats::sd(anomaly_qt, na.rm = TRUE),
+        max_anomaly_qt = max(anomaly_qt, na.rm = TRUE),
         mean_anomaly_mean = mean(anomaly_mean, na.rm = TRUE),
         sd_anomaly_mean = stats::sd(anomaly_mean, na.rm = TRUE),
         max_anomaly_mean = max(anomaly_mean, na.rm = TRUE),
@@ -435,7 +456,7 @@ BEE.calc.metrics_point <- function(
         .groups = 'drop'
       )
     df <- df |>
-      dplyr::left_join(summary_stats, by = "event_ID")
+      dplyr::left_join(summary_stats, by = "ID")
     data.table::setnames(
       df,
       old = "max_category.y",
@@ -446,14 +467,14 @@ BEE.calc.metrics_point <- function(
       df <- df |>
         # Delete daily values that are not usefull to describe the full event
         dplyr::select(
-          -baseline_qt90,
+          -baseline_qt,
           -baseline_mean,
-          -anomaly_mean,
-          -anomaly_qt90,
+          -anomaly_mean, # anomaly to the baseline_mean
+          -anomaly_qt,
           -anomaly_unit,
+          -cumulative_anomaly_qt,
           -daily_category,
           -date,
-          -ID,
           -daily_category,
           -row_num,
           -prev_value,
@@ -462,12 +483,11 @@ BEE.calc.metrics_point <- function(
           -dplyr::starts_with("evolution_rate_lag_"),
           -dplyr::starts_with("variance_value_lag_")
         ) |>
-        dplyr::distinct(event_ID, .keep_all = TRUE) # Une seule ligne par ID
+        dplyr::distinct(ID, .keep_all = TRUE) # Une seule ligne par ID
     } else {
       df <- df |>
         dplyr::select(
-          -date,
-          -ID,
+          -dates,
           -row_num,
           -prev_value,
           -prev_ID,
@@ -481,12 +501,6 @@ BEE.calc.metrics_point <- function(
 # OTHER PART TO DEVELOP :
 # For each pixels :
 # - anomalie cumulée par événements
-# - catégories
-# - onset rate, offset_rate (dans l'événement et depuis une période donnée
-# avant et après dont la durée est fixée par l'utilisateur)
-#For the all period I want : Frequency, maximum intensity, mean and median
-# intensity, sum of anomalies, date of maximum intensity, first date 1, last
-# date 1
 
 #The categorie of each event are determined according according Hobday et al.
 # 2018 definition
