@@ -301,7 +301,7 @@ dist_to_escape <- BEE.calc.escape(true_event_output=result,
                 start_date = "2024-06-01", end_date = "2024-10-31", 
                 pixel = GPS[1,], 
                 only_days_EE = FALSE,
-                group_by_event = FALSE)
+                group_by_event = TRUE)
 
 saveRDS(dist_to_escape, file = "Data/dist_to_escape.rds")
 dist_to_escape <- readRDS("Data/dist_to_escape.rds")
