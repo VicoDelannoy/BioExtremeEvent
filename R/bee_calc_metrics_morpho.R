@@ -22,8 +22,8 @@
 #'
 #-------------------------------------------------------------------------------
 
-#start_date <- "2024-06-01" ; end_date <- "2024-09-31" ;per_pix=TRUE ;
-#crs = "EPSG:2154" # for europe
+# start_date <- "2024-06-01" ; end_date <- "2024-09-31" ;per_pix=TRUE ;
+# crs = "EPSG:2154" # for europe
 
 BEE.calc.metrics_morpho <- function(
   Corrected_rasters,
@@ -79,6 +79,22 @@ BEE.calc.metrics_morpho <- function(
     rasters <- Corrected_rasters
   }
 
+  nb_NA <- unique(terra::global(
+    # number of NA in each raster
+    rasters,
+    fun = function(x) {
+      sum(is.na(x))
+    }
+  ))
+  if (length(nb_NA) > 1) {
+    message(
+      "The number of NA pixels varies through the layers, this may leads to 
+      unexpected results in the output of that funciton."
+    )
+  }
+
+  ################################ CODE  #######################################
+
   patch_list <- lapply(
     rasters,
     FUN = function(rasters) {
@@ -92,23 +108,12 @@ BEE.calc.metrics_morpho <- function(
     }
   )
 
-  nb_NA <- unique(terra::global(
-    rasters,
-    fun = function(x) {
-      sum(is.na(x))
-    }
-  ))
-  if (length(nb_NA) > 1) {
-    message(
-      "The number of NA pixels varies through the layers, this may leads to 
-      unexpected results in the output of that funciton."
-    )
-  }
   nb_pixel_studied <- terra::ncell(rasters[[1]]) - nb_NA
 
   dist_list <- lapply(patch_list, function(x) {
     #  # 1 only NA # 41 one patch et 45 2 patches,
     # 100 4 patch dont un gros en premier #  x <- patch_list[[100]]
+
     # Create a df with on row per pixel
     vals <- terra::values(x)
     cell_size <- terra::values(terra::cellSize(x))[, 1]
@@ -117,6 +122,7 @@ BEE.calc.metrics_morpho <- function(
     d <- terra::time(x)
 
     data <- data.table::data.table(
+      pixel_id = seq(1, length(vals), 1),
       x = coordonates[, 1],
       y = coordonates[, 2],
       values = vals,
@@ -294,33 +300,44 @@ BEE.calc.metrics_morpho <- function(
 
   names(dist_list) <- terra::time(rasters)
 
-  # Summarise by patch
-  data_summarised <- lapply(dist_list, function(x) {
-    x <- unique(x, by = "patch_id")
-    x[c("x", "y")] <- NULL
-    x
-  })
-
-  data_summarised$pixel_id <- NULL
   # Add a list of patch_ID per pixel (/!\ there are several patch_ID per EE
   # because we cannot do spatio-temporal analysis here)
   if (per_pix == TRUE) {
-    pixels_nb <- seq(1, nrow(dist_list[[1]]))
     dist_tab <- dplyr::bind_rows(dist_list)
-    data.table::setDT(dist_tab)
-    dist_tab <- dist_tab |>
-      dplyr::mutate(
-        valid_patch_ID = ifelse(!is.nan(dist_tab$patch_id), as.Date(dist_tab$date), NA)
-      ) # keeps only
-    # the patch that represents an EE
+    # Withdraw lines of pixels that are always NA :
+    na_cells <- which(is.na(terra::values(rasters[[1]])))
+    dist_tab <- dist_tab[!(dist_tab$pixel_id %in% na_cells), ]
+    # split with one df per pixel
+    data.table::setDF(dist_tab)
+    dist_tab <- split(dist_tab, dist_tab$pixel_id)
+    # prepare outputs:
     patch_list <- terra::rast(patch_list)
     names(patch_list) <- terra::time(rasters)
+    data.table::setDF(dist_tab)
     output <- list(dist_tab, patch_list)
     return(output)
   }
+  # Summarise by patch
+  dist_list <- lapply(dist_list, data.table::setDF)
+  data_summarised <- lapply(dist_list, function(x) {
+    x <- x[!is.na(x[["patch_id"]]), ] # enlever NA / NaN
+    x[, c(
+      "x",
+      "y",
+      "pixel_id",
+      "bordering",
+      "centroid_x",
+      "centroid_y"
+    )] <- NULL
+    x <- x[!duplicated(x[["patch_id"]]), ] # garder la 1re occurrence
+    x
+  })
+
   patch_list <- terra::rast(patch_list)
   names(patch_list) <- terra::time(rasters)
+
   data_summarised <- data.table::rbindlist(data_summarised)
+
   output <- list(data_summarised, patch_list)
   return(output)
 }
