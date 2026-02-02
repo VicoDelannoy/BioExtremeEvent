@@ -385,3 +385,12 @@ ggplot(dist_to_escape, ggplot2::aes(x = as.numeric(azimut), y = distance)) +
 plot(dist_to_escape$date,as.numeric(dist_to_escape$distance))
 
 ```
+
+# Merge the 3 outputs
+
+```{r}
+merged_output <- BEE.data.merge(data_metrics_point = points_metrics,
+                                data_metrics_morpho = list_morpho_metrics[[1]],
+                                data_escape = dist_to_escape , 
+                                crs = "EPSG:3035")
+```

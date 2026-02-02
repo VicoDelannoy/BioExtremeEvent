@@ -1,4 +1,3 @@
-
 #'@param summarize_by takes the followings options, into "" :
 #' - "extreme_event" for each metrics, a mean, median, variance, min and max will
 #' be computed for each extrem event
@@ -16,20 +15,23 @@
 #' - "year" for each metrics, a mean, median, variance, min and max will
 #' be computed yearly. Note that this imply to provide daily output
 #' (BEE.calc.escape(only_days_EE = FALSE))
-#' 
-#' 
-#'  # Check that the summarize_by is a valid option
+
+BEE.data.summarise <- function(
+  data = data,
+  variable = variable,
+  summarise_by = "extreme_event"
+) {
+  # Check that the summarize_by is a valid option
   # ("extreme_event"/"weak"/"month"/"year") :
-  if (!(summarize_by %in% c("extreme_event", "day", "weak", "month", "year"))) {
+  if (!(summarise_by %in% c("extreme_event", "day", "weak", "month", "year"))) {
     warnings(
-      "The summarize_by argument is not a suitable option, please 
+      "The summarise_by argument is not a suitable option, please 
     provide one from the following list : extreme_event, day, weak, month, year"
     )
   }
 
-
   ### Summarize by time
-  if (summarize_by == "day") {
+  if (summarise_by == "day") {
     merged_df <- split(merged_df, merged_df$pixel_id)
     return(merged_df)
   }
@@ -41,6 +43,7 @@
     merged_df <- split(merged_df, merged_df$pixel_id)
     return(merged_df)
   }
+}
 
 
 #' To compute mean median variance max min and day of maximum of every metrics
