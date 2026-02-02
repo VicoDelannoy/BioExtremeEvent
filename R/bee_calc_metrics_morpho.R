@@ -313,7 +313,6 @@ BEE.calc.metrics_morpho <- function(
     # prepare outputs:
     patch_list <- terra::rast(patch_list)
     names(patch_list) <- terra::time(rasters)
-    data.table::setDF(dist_tab)
     output <- list(dist_tab, patch_list)
     return(output)
   }
