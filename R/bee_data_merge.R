@@ -1,4 +1,4 @@
-#' Merge the outputs of the metrics functions and summarize them trought time.
+#' Merge the outputs of the metrics functions.
 #'
 #'@description To merge the daily outputs of at least two datasets of the
 #' following fonctions from BEE package : bee.calc.metrics_point() ;
@@ -14,24 +14,6 @@
 #'@param data_escape the output of the BEE.calc.escape computed
 #' using the argument group_by_event = FALSE.
 #'
-#'@param summarize_by takes the followings options, into "" :
-#' - "extreme_event" for each metrics, a mean, median, variance, min and max will
-#' be computed for each extrem event
-#' - "day" metrics are not summarized through time, the function keeps a daily
-#' resolution and just merge the datasets.
-#' - "week" for each metrics, a mean, median, variance, min and max will
-#' be computed weekly. Note that this imply to provide daily output
-#' (BEE.calc.escape(only_days_EE = FALSE))
-#' - "two_weeks" for each metrics, a mean, median, variance, min and max will
-#' be computed every two weeks. Note that this imply to provide daily output
-#' (BEE.calc.escape(only_days_EE = FALSE))
-#' - "month" for each metrics, a mean, median, variance, min and max will
-#' be computed monthly. Note that this imply to provide daily output
-#' (BEE.calc.escape(only_days_EE = FALSE))
-#' - "year" for each metrics, a mean, median, variance, min and max will
-#' be computed yearly. Note that this imply to provide daily output
-#' (BEE.calc.escape(only_days_EE = FALSE))
-#'
 #'@param crs a METRICS crs that suits the studdied area
 #'
 #'@return A dataframe with the metrics of all the datasets provided in column,
@@ -46,25 +28,16 @@
 #-------------------------------------------------------------------------------
 
 # data_metrics_point <- points_metrics ;
-# data_metrics_morpho <- list_morpho_metrics ;
+# data_metrics_morpho <- list_morpho_metrics[[1]] ;
 # data_escape <- dist_to_escape ; crs = "EPSG:3035" ; summarize_by = "day"
 
-BEE.data.merge_summarize <- function(
+BEE.data.merge <- function(
   data_metrics_point = NULL,
   data_metrics_morpho = NULL,
   data_escape = NULL,
-  summarize_by,
   crs
 ) {
-  ################## FORMAT TESTS AND WARNINGS ###################################
-  # Check that the summarize_by is a valid option
-  # ("extreme_event"/"weak"/"month"/"year") :
-  if (!(summarize_by %in% c("extreme_event", "day", "weak", "month", "year"))) {
-    warnings(
-      "The summarize_by argument is not a suitable option, please 
-    provide one from the following list : extreme_event, day, weak, month, year"
-    )
-  }
+  ################## FORMAT TESTS AND WARNINGS #################################
 
   # Check that the provided crs is valid:
   crs_valid <- tryCatch(
@@ -118,7 +91,7 @@ BEE.data.merge_summarize <- function(
 
   ## Is it a daily resolution ?
   if (!is.null(data_metrics_point)) {
-    dates_point <- as.Date(data_metrics_point[[1]]$Date)
+    dates_point <- as.Date(data_metrics_point[[1]]$date)
     if (
       length(dates_point) !=
         dates_point[length(dates_point)] - dates_point[1] + 1
@@ -131,8 +104,7 @@ BEE.data.merge_summarize <- function(
     }
   }
   if (!is.null(data_metrics_morpho)) {
-    data_metrics_morpho <- data_metrics_morpho[[1]]
-    dates_morpho <- unique(data_metrics_morpho$date)
+    dates_morpho <- unique(data_metrics_morpho[[1]]$date)
     dates_morpho <- as.Date(dates_morpho)
     if (
       length(dates_morpho) !=
@@ -146,7 +118,7 @@ BEE.data.merge_summarize <- function(
     }
   }
   if (!is.null(data_escape)) {
-    dates_escape <- unique(data_escape$date)
+    dates_escape <- unique(data_escape[[1]]$date)
     dates_escape <- as.Date(dates_escape)
     if (
       length(dates_escape) !=
@@ -262,10 +234,10 @@ BEE.data.merge_summarize <- function(
   ### data_metrics_point polygon
   if (!is.null(data_metrics_point)) {
     # Get informations positions
-    data_metrics_point_xy <- data.table::rbindlist(data_metrics_point)
+    data_metrics_point <- data.table::rbindlist(data_metrics_point)
     data_metrics_point_xy <- data.frame(
-      lon = data_metrics_point_xy$x,
-      lat = data_metrics_point_xy$y
+      lon = data_metrics_point$x,
+      lat = data_metrics_point$y
     )
     data_metrics_point_xy <- stats::na.omit(unique(data_metrics_point_xy))
     # Create polygones for each datasets :
@@ -288,10 +260,10 @@ BEE.data.merge_summarize <- function(
   ### data_morpho_point polygon
   if (!is.null(data_metrics_morpho)) {
     # Get informations positions
-    data_metrics_morpho_xy <- as.data.frame(data_metrics_morpho)
+    data_metrics_morpho <- data.table::rbindlist(data_metrics_morpho)
     data_metrics_morpho_xy <- data.frame(
-      lon = data_metrics_morpho_xy$centroid_x,
-      lat = data_metrics_morpho_xy$centroid_y
+      lon = data_metrics_morpho$centroid_x,
+      lat = data_metrics_morpho$centroid_y
     )
     data_metrics_morpho_xy <- stats::na.omit(unique(data_metrics_morpho_xy))
     # Create polygones for each datasets :
@@ -314,9 +286,10 @@ BEE.data.merge_summarize <- function(
   ### data_escape polygon
   if (!is.null(data_escape)) {
     # Get informations positions
+    data_escape <- data.table::rbindlist(data_escape)
     data_escape_xy <- data.frame(
-      lon = data_escape$from_x,
-      lat = data_escape$from_y
+      lon = data_escape$x,
+      lat = data_escape$y
     )
     data_escape_xy <- stats::na.omit(unique(data_escape_xy))
     # Create polygones for each datasets :
@@ -347,7 +320,8 @@ BEE.data.merge_summarize <- function(
       pol_data_metrics_point,
       pol_data_metrics_morpho
     )
-    if (is.null(inter_point_morpho)) { # no intersection
+    if (is.null(inter_point_morpho)) {
+      # no intersection
       warnings(
         "data_metrics_point and data_metrics_morpho are not overlapping 
       spatially, merging is not possible. Please check the following points : 
@@ -411,7 +385,7 @@ BEE.data.merge_summarize <- function(
       pol_data_metrics_morpho,
       pol_data_escape
     )
-    if (is.null(inter_point_morpho_escape)) { 
+    if (is.null(inter_point_morpho_escape)) {
       warnings(
         "at least one dataset among data_metrics_point, 
       data_metrics_morpho and data_escape is not overlapping spatially with the
@@ -424,8 +398,182 @@ BEE.data.merge_summarize <- function(
       )
     }
   }
-  
-  ########################## CODE ################################################
 
-  
+  ########################## CODE ##############################################
+  ### Add a sufix to the column_names that are shared btw sevral dataset:
+  if (!is.null(data_metrics_point)) {
+    to_rename <- which(names(data_metrics_point) %in% c("ID", "x", "y"))
+    colnames(data_metrics_point)[to_rename] <- paste0(
+      colnames(data_metrics_point)[to_rename],
+      "_",
+      "df_point"
+    )
+  }
+  if (!is.null(data_metrics_morpho)) {
+    to_rename <- which(names(data_metrics_morpho) %in% c("ID", "x", "y"))
+    colnames(data_metrics_morpho)[to_rename] <- paste0(
+      colnames(data_metrics_morpho)[to_rename],
+      "_",
+      "df_morpho"
+    )
+  }
+  if (!is.null(data_escape)) {
+    to_rename <- which(names(data_escape) %in% c("ID", "x", "y"))
+    colnames(data_escape)[to_rename] <- paste0(
+      colnames(data_escape)[to_rename],
+      "_",
+      "df_escape"
+    )
+  }
+  ### merge the dataset by pixel_id and date:
+  ## point and morpho
+  if (check_1 == "FALSEFALSETRUE") {
+    data_metrics_point$date <- as.Date(data_metrics_point$date)
+    data_metrics_morpho$date <- as.Date(data_metrics_morpho$date)
+    data_metrics_point$pixel_id <- as.numeric(data_metrics_point$pixel_id)
+    data_metrics_morpho$pixel_id <- as.numeric(data_metrics_morpho$pixel_id)
+    #crop so that only shared pixel are computed:
+    pixel_to_keep <- unique(data_metrics_point$pixel_id)[which(
+      unique(data_metrics_point$pixel_id) %in%
+        unique(data_metrics_morpho$pixel_id)
+    )]
+    data_metrics_point <- data_metrics_point[
+      data_metrics_point$pixel_id %in% pixel_to_keep,
+    ]
+    data_metrics_morpho <- data_metrics_morpho[
+      data_metrics_morpho$pixel_id %in% pixel_to_keep,
+    ]
+    #crop so that only shared dates are computed:
+    date_to_keep <- unique(data_metrics_point$date)[which(
+      unique(data_metrics_point$date) %in%
+        unique(data_metrics_morpho$date)
+    )]
+    data_metrics_point <- data_metrics_point[
+      data_metrics_point$date %in% date_to_keep,
+    ]
+    data_metrics_morpho <- data_metrics_morpho[
+      data_metrics_morpho$date %in% date_to_keep,
+    ]
+    merged_df <- merge(
+      data_metrics_point,
+      data_metrics_morpho,
+      by = c("pixel_id", "date"),
+      all = T
+    )
+  }
+  ## morpho and escape
+  if (check_1 == "TRUEFALSEFALSE") {
+    data_metrics_morpho$date <- as.Date(data_metrics_morpho$date)
+    data_escape$date <- as.Date(data_escape$date)
+    data_metrics_morpho$pixel_id <- as.numeric(data_metrics_morpho$pixel_id)
+    data_escape$pixel_id <- as.numeric(data_escape$pixel_id)
+    #crop so that only shared pixel are computed:
+    pixel_to_keep <- unique(data_escape$pixel_id)[which(
+      unique(data_escape$pixel_id) %in%
+        unique(data_metrics_morpho$pixel_id)
+    )]
+    data_metrics_morpho <- data_metrics_morpho[
+      data_metrics_morpho$pixel_id %in% pixel_to_keep,
+    ]
+    data_escape <- data_escape[data_escape$pixel_id %in% pixel_to_keep, ]
+    #crop so that only shared dates are computed:
+    date_to_keep <- unique(data_escape$date)[which(
+      unique(data_escape$date) %in%
+        unique(data_metrics_morpho$date)
+    )]
+    data_metrics_morpho <- data_metrics_morpho[
+      data_metrics_morpho$date %in% date_to_keep,
+    ]
+    data_escape <- data_escape[data_escape$date %in% date_to_keep, ]
+    merged_df <- merge(
+      data_metrics_morpho,
+      data_escape,
+      by = c("pixel_id", "date"),
+      all = T
+    )
+  }
+  if (check_1 == "FALSETRUEFALSE") {
+    data_metrics_point$date <- as.Date(data_metrics_point$date)
+    data_escape$date <- as.Date(data_escape$date)
+    data_metrics_point$pixel_id <- as.numeric(data_metrics_point$pixel_id)
+    data_escape$pixel_id <- as.numeric(data_escape$pixel_id)
+    #crop so that only shared pixel are computed:
+    pixel_to_keep <- unique(data_escape$pixel_id)[which(
+      unique(data_escape$pixel_id) %in%
+        unique(data_metrics_point$pixel_id)
+    )]
+    data_metrics_point <- data_metrics_point[
+      data_metrics_point$pixel_id %in% pixel_to_keep,
+    ]
+    data_escape <- data_escape[data_escape$pixel_id %in% pixel_to_keep, ]
+    #crop so that only shared dates are computed:
+    date_to_keep <- unique(data_escape$date)[which(
+      unique(data_escape$date) %in%
+        unique(data_metrics_point$date)
+    )]
+    data_metrics_point <- data_metrics_point[
+      data_metrics_point$date %in% date_to_keep,
+    ]
+    data_escape <- data_escape[data_escape$date %in% date_to_keep, ]
+    merged_df <- merge(
+      data_metrics_point,
+      data_escape,
+      by = c("pixel_id", "date"),
+      all = T
+    )
+  }
+  if (check_1 == "FALSEFALSEFALSE") {
+    data_metrics_point$date <- as.Date(data_metrics_point$date)
+    data_metrics_morpho$date <- as.Date(data_metrics_morpho$date)
+    data_escape$date <- as.Date(data_escape$date)
+    data_metrics_point$pixel_id <- as.numeric(data_metrics_point$pixel_id)
+    data_metrics_point$pixel_id <- as.numeric(data_metrics_point$pixel_id)
+    data_escape$pixel_id <- as.numeric(data_escape$pixel_id)
+    #crop so that only shared pixel are computed:
+    pixel_to_keep <- Reduce(
+      intersect,
+      list(
+        data_metrics_morpho$pixel_id,
+        data_metrics_point$pixel_id,
+        data_escape$pixel_id
+      )
+    )
+    data_metrics_point <- data_metrics_point[
+      data_metrics_point$pixel_id %in% pixel_to_keep,
+    ]
+    data_metrics_morpho <- data_metrics_morpho[
+      data_metrics_morpho$pixel_id %in% pixel_to_keep,
+    ]
+    data_escape <- data_escape[data_escape$pixel_id %in% pixel_to_keep, ]
+    #crop so that only shared dates are computed:
+    date_to_keep <- Reduce(
+      intersect,
+      list(
+        data_metrics_morpho$date,
+        data_metrics_point$date,
+        data_escape$date
+      )
+    )
+    data_metrics_point <- data_metrics_point[
+      data_metrics_point$date %in% date_to_keep,
+    ]
+    data_metrics_morpho <- data_metrics_morpho[
+      data_metrics_morpho$date %in% date_to_keep,
+    ]
+    data_escape <- data_escape[data_escape$date %in% date_to_keep, ]
+
+    merged_df <- merge(
+      data_metrics_point,
+      data_metrics_morpho,
+      by = c("pixel_id", "date"),
+      all = T
+    )
+    merged_df <- merge(
+      merged_df,
+      data_escape,
+      by = c("pixel_id", "date"),
+      all = T
+    )
+  }
+  return(merged_df)
 }

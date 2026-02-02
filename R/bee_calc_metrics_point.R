@@ -305,83 +305,8 @@ BEE.calc.metrics_point <- function(
         #Daily rates
         daily_rates = (value - dplyr::lag(value)) /
           as.numeric(date - dplyr::lag(date)),
-      ) |>
-      dplyr::group_by(ID) |>
-      dplyr::mutate(
-        ## mean
-        mean_onset_rate_abs = ifelse(
-          days_onset_abs > 0,
-          mean(
-            daily_rates[
-              date >= first_date &
-                date <= date_max_value
-            ],
-            na.rm = TRUE
-          ),
-          raw_onset_rate_abs
-        ),
-        ## Median onset rate
-        median_onset_rate_abs = ifelse(
-          days_onset_abs > 0,
-          stats::median(
-            daily_rates[
-              date >= first_date &
-                date <= date_max_value
-            ],
-            na.rm = TRUE
-          ),
-          raw_onset_rate_abs
-        ),
-        ## Standard deviation
-        sd_onset_rate_abs = ifelse(
-          days_onset_abs > 0,
-          stats::sd(
-            daily_rates[
-              date >= first_date &
-                date <= date_max_value
-            ],
-            na.rm = TRUE
-          ),
-          NA
-        ),
-        ## mean
-        mean_offset_rate_abs = ifelse(
-          days_offset_abs > 0,
-          mean(
-            daily_rates[
-              date >= date_max_value &
-                date <= last_date
-            ],
-            na.rm = TRUE
-          ),
-          raw_offset_rate_abs
-        ),
+      )
 
-        median_offset_rate_abs = ifelse(
-          days_offset_abs > 0,
-          stats::median(
-            daily_rates[
-              date >= date_max_value &
-                date <= last_date
-            ],
-            na.rm = TRUE
-          ),
-          raw_offset_rate_abs
-        ),
-        ## Standard deviation
-        sd_offset_rate_abs = ifelse(
-          days_offset_abs > 0,
-          stats::sd(
-            daily_rates[
-              date >= date_max_value &
-                date <= last_date
-            ],
-            na.rm = TRUE
-          ),
-          NA
-        )
-      ) |>
-      dplyr::ungroup()
     # Add daily baseline_qt and daily baseline_mean
     df <- df |>
       dplyr::left_join(
