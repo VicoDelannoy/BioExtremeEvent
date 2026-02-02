@@ -1,8 +1,16 @@
-#'@param summarize_by takes the followings options, into "" :
+#' Merge the outputs of the metrics functions.
+#'
+#'@description To merge the daily outputs of at least two datasets of the
+#' following fonctions from BEE package : bee.calc.metrics_point() ;
+#' bee.calc.metrics_morpho() ; bee.calc.escape(). This function can also
+#' summarise metrics over different time periods: extreme events, weak periods,
+#' monthly periods and yearly periods.
+#'
+#'@param data
+#'@param variable description
+#'@param summarise_by takes the followings options, into "" :
 #' - "extreme_event" for each metrics, a mean, median, variance, min and max will
 #' be computed for each extrem event
-#' - "day" metrics are not summarized through time, the function keeps a daily
-#' resolution and just merge the datasets.
 #' - "week" for each metrics, a mean, median, variance, min and max will
 #' be computed weekly. Note that this imply to provide daily output
 #' (BEE.calc.escape(only_days_EE = FALSE))
@@ -14,32 +22,201 @@
 #' (BEE.calc.escape(only_days_EE = FALSE))
 #' - "year" for each metrics, a mean, median, variance, min and max will
 #' be computed yearly. Note that this imply to provide daily output
-#' (BEE.calc.escape(only_days_EE = FALSE))
+#' (BEE.calc.escape(only_days_EE = FALSE)
+#'
+#' #'@return
+#'
+#'@examples
+#' # TO BE ADDED
+#'
+#'@export
+#'
+#-------------------------------------------------------------------------------
 
 BEE.data.summarise <- function(
   data = data,
   variable = variable,
   summarise_by = "extreme_event"
 ) {
+  ########################## CHECKS ############################################
   # Check that the summarize_by is a valid option
   # ("extreme_event"/"weak"/"month"/"year") :
-  if (!(summarise_by %in% c("extreme_event", "day", "weak", "month", "year"))) {
+  if (!(summarise_by %in% c("extreme_event", "weak", "month", "year"))) {
     warnings(
       "The summarise_by argument is not a suitable option, please 
     provide one from the following list : extreme_event, day, weak, month, year"
     )
   }
-
-  ### Summarize by time
-  if (summarise_by == "day") {
-    merged_df <- split(merged_df, merged_df$pixel_id)
-    return(merged_df)
+  if (is.list(data) == FALSE) {
+    data <- data.table::rbindlist(data)
   }
-  if (summarize_by == "extreme_event") {
-    #
+  variable <- as.character(variable)
+  # Is it a variable from BEE ?
+  BEE_col_names <- c(
+    "pixel_id",
+    "date",
+    "original_value",
+    "cleanned_value",
+    "event_id",
+    "duration",
+    "ID_df_point",
+    "value",
+    "evolution_rate_lag_1",
+    "variance_value_lag_1",
+    "x_df_point",
+    "y_df_point",
+    "first_date",
+    "last_date",
+    "mean_value",
+    "median_value",
+    "max_value",
+    "date_max_value",
+    "days_onset_abs",
+    "raw_onset_rate_abs",
+    "days_offset_abs",
+    "raw_offset_rate_abs",
+    "daily_rates",
+    "baseline_qt",
+    "baseline_mean",
+    "anomaly_qt",
+    "anomaly_mean",
+    "anomaly_unit",
+    "daily_category",
+    "cumulative_anomaly_qt",
+    "sum_anomaly_qt",
+    "max_category",
+    "mean_anomaly_qt",
+    "sd_anomaly_qt",
+    "max_anomaly_qt",
+    "mean_anomaly_mean",
+    "sd_anomaly_mean",
+    "max_anomaly_mean",
+    "most_frequent_category",
+    "x_df_morpho",
+    "y_df_morpho",
+    "patch_id",
+    "bordering",
+    "patch_area",
+    "core_area",
+    "core_area_index",
+    "n_pixel",
+    "pixel_EE_tot",
+    "cover_percent",
+    "core_pixel",
+    "ID_df_morpho",
+    "perimeter",
+    "centroid_x",
+    "centroid_y",
+    "perim_pixel_ratio",
+    "perim_area_ratio_m",
+    "shape_index",
+    "fractal_cor_index",
+    "circle_ratio_index",
+    "contiguity_index",
+    "x_df_escape",
+    "y_df_escape",
+    "to_x",
+    "to_y",
+    "pixel_to_id",
+    "distance",
+    "azimut",
+    "ID_df_escape"
+  )
+  if (!(variable %in% BEE_col_names)) {
+    warnings(paste0(
+      "'",
+      variable,
+      "'",
+      "is not a column name from the BEE package. 
+    We recommend not changing the name of the outputs before using this function
+    because some variables require special functions. For instance, 'azimut' is
+    a circular variable so a special function is used to compute mean, sd etc.
+    These variables are recognised by this function, if their names are changed,
+    they will be treated as regular variables which may result in silent
+    errors."
+    ))
+  }
+  ############################ CODE #############################################
+  if (summarise_by == "extreme_event") {
+    ### identify a column ID
+    id <- colnames(data)[which(
+      colnames(data) %in% c("ID_df_point", "ID_df_morpho", "ID_df_escape")
+    )][1]
+    ### Particular cases:
+    if (variable == "azimut") {
+      data$azimut_num <- as.numeric(data$azimut)
+      data$azimut_circ <- ifelse(
+        !is.na(data$azimut_num),
+        circular::circular(
+          data$azimut_num,
+          units = "degrees",
+          template = "geographics"
+        ),
+        NA
+      )
+      azimut_mean <- tapply(
+        as.numeric(data$azimut_circ),
+        data$id,
+        mean,
+        na.rm = TRUE
+      )
+      data$azimut_mean <- azimut_mean[data$id]
+      azimut_med <- tapply(
+        as.numeric(data$azimut_circ),
+        data$id,
+        stats::median,
+        na.rm = TRUE
+      )
 
-    # Delete daily value:
+      tmp_var <- stats::aggregate(
+        azimut_circ ~ id,
+        data = data,
+        FUN = azimut_var_fun
+      )
+      data$azimut_var <- tmp_var[match(data$id, tmp_var$id), 2]
 
+      azimut_min <- tapply(
+        as.numeric(data$azimut_circ),
+        data$id,
+        min,
+        na.rm = TRUE
+      )
+
+      azimut_max <- tapply(
+        as.numeric(data$azimut_circ),
+        data$id,
+        max,
+        na.rm = TRUE
+      )
+
+      azimut_sum <- tapply(
+        as.numeric(data$azimut_circ),
+        data$id,
+        sum,
+        na.rm = TRUE
+      )
+
+      output <- data.frame(
+        azimut_mean = azimut_mean,
+        azimut_median = azimut_median,
+        azimut_var = data$azimut_var,
+        azimut_min = azimut_min,
+        azimut_max = azimut_max,
+        azimut_sum = azimut_sum
+      )
+
+    } else {
+      (output <- summarise_ID(data = data, variable = variable)
+      ### Found day of maximum and minimum value
+    day_max <- data$date[which(variable ==  paste0(variable, "_", names(funs)) )])
+
+    }
+    
+    output <- split(output, summary$pixel_id)
+    return(output)
+  }
+  ### regular situation:
+  if (summarise_by == "week") {
     merged_df <- split(merged_df, merged_df$pixel_id)
     return(merged_df)
   }
@@ -50,14 +227,15 @@ BEE.data.summarise <- function(
 #' to be summarized
 #' @noRd
 #'
-summarize_ID <- function(data = df, variable = "var_name") {
-  #data <- merged_df
+summarise_ID <- function(data = data, variable = "var_name") {
   data[[variable]] = as.numeric(data[[variable]])
   funs <- list(
     mean = function(x) mean(x, na.rm = TRUE),
+    median = function(x) median(x, na.rm = TRUE),
     var = function(x) stats::var(x, na.rm = TRUE),
     min = function(x) min(x, na.rm = TRUE),
-    max = function(x) max(x, na.rm = TRUE)
+    max = function(x) max(x, na.rm = TRUE),
+    sum = function(x) sum(x, na.rm = TRUE)
   )
 
   res_list <- lapply(
@@ -85,4 +263,26 @@ summarize_ID <- function(data = df, variable = "var_name") {
 
   names(output)[-1] <- paste0(variable, "_", names(funs))
   return(output)
+}
+
+#' To compute azimut sd taking in account NA
+#' @noRd
+
+azimut_var_fun <- function(x_a) {
+  az_group <- x_a[!is.na(x_a)]
+  # when there are to many
+  # decimals in azimut_circ, sin and cos used inside circular::sd induce
+  # little imprecisions that leads to NA value when azimut_circ is constant,
+  # to deal with this, when azimut-circ is constant, a value of 0 is forced
+  # into the dt.
+  if (
+    length(az_group) <= 1 ||
+      max(az_group) - min(az_group) < 1e-6
+  ) {
+    return(0)
+  }
+
+  val <- suppressWarnings(as.numeric(circular::var(az_group)))
+
+  if (is.nan(val)) 0 else val
 }
