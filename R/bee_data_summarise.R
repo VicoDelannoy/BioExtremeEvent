@@ -34,7 +34,7 @@ BEE.data.summarise <- function(
   ########################## CHECKS ############################################
   # Check that the summarize_by is a valid option
   # ("extreme_event"/"weak"/"month"/"year") :
-  if (summarise_by !="extreme_event"| !is.numeric(summarise_by)))) {
+  if (summarise_by != "extreme_event" | !is.numeric(summarise_by)) {
     warnings(
       "The summarise_by argument is not a suitable option, please 
     provide one from the following list : extreme_event, day, weak, month, year"
@@ -130,72 +130,40 @@ BEE.data.summarise <- function(
     ))
   }
   ############################ CODE #############################################
+  ### Identify a column ID
+  id <- colnames(data)[which(
+    colnames(data) %in% c("ID_df_point", "ID_df_morpho", "ID_df_escape")
+  )][1]
   if (summarise_by == "extreme_event") {
-    ### Identify a column ID
-    id <- colnames(data)[which(
-      colnames(data) %in% c("ID_df_point", "ID_df_morpho", "ID_df_escape")
-    )][1]
     ### Particular cases:
     if (variable == "azimut") {
       data$azimut_num <- as.numeric(data$azimut)
-      data$azimut_circ <- ifelse(
-        !is.na(data$azimut_num),
-        circular::circular(
-          data$azimut_num,
-          units = "degrees",
-          template = "geographics"
-        ),
-        NA
+      data$azimut_circ <- circular::circular(
+        data$azimut_num,
+        units = "degrees",
+        template = "geographics"
       )
       azimut_mean <- tapply(
-        as.numeric(data$azimut_circ),
-        data$id,
-        mean,
-        na.rm = TRUE
+        data$azimut_circ,
+        data[, id],
+        circular::mean.circular,
+        na.rm = FALSE
       )
-      data$azimut_mean <- azimut_mean[data$id]
-      azimut_med <- tapply(
-        as.numeric(data$azimut_circ),
-        data$id,
-        stats::median,
-        na.rm = TRUE
-      )
+      data$azimut_mean <- (azimut_mean[data[, id]] + 360) %% 360
 
-      tmp_var <- stats::aggregate(
-        azimut_circ ~ id,
-        data = data,
-        FUN = azimut_var_fun
+      azimut_median <- tapply(
+        data$azimut_circ,
+        data[, id],
+        median_if_no_na
       )
-      data$azimut_var <- tmp_var[match(data$id, tmp_var$id), 2]
+      data$azimut_median <- azimut_median[data[, id]]
 
-      azimut_min <- tapply(
-        as.numeric(data$azimut_circ),
-        data$id,
-        min,
-        na.rm = TRUE
+      azimut_sd <- tapply(
+        data$azimut_circ,
+        data[, id],
+        sd_if_no_na
       )
-
-      azimut_max <- tapply(
-        as.numeric(data$azimut_circ),
-        data$id,
-        max,
-        na.rm = TRUE
-      )
-
-      azimut_sum <- tapply(
-        as.numeric(data$azimut_circ),
-        data$id,
-        sum,
-        na.rm = TRUE
-      )
-
-      output <- data.frame(
-        azimut_median = azimut_median,
-        azimut_var = data$azimut_var,
-        azimut_min = azimut_min,
-        azimut_max = azimut_max,
-        azimut_sum = azimut_sum
-      )
+      data$azimut_sd <- azimut_sd[data[, id]]
     } else {
       output <- summarise_ID(data = data, variable = variable)
     }
@@ -213,69 +181,42 @@ BEE.data.summarise <- function(
     if (variable == "azimut") {
       # conversion of angle format to "circular"
       data$azimut_num <- as.numeric(data$azimut)
-      data$azimut_circ <- sapply(data$azimut, function(x) {
-        if (is.na(x)) {
-          NA
-        } else {
-          circular(x, units = "degrees", template = "geographics")
-        }
-      })
+      data$azimut_circ <- circular::circular(
+        data$azimut_num,
+        units = "degrees",
+        template = "geographics"
+      )
 
       data$azimut_mean <- NA
+      data$azimut_median <- NA
+      data$azimut_sd <- NA
       for (i in seq(summarise_by, length(data[, variable]), 1)) {
         start <- i - summarise_by + 1
         index <- start:i # indices à utiliser
-        print(index)
-        data$azimut_mean[i] <- circular::mean.circular(
+        data$azimut_mean[i] <- (circular::mean.circular(
           data[index, "azimut_circ"],
           na.rm = FALSE
-        )
-        print(data$azimut_mean[i])
+        ) +
+          360) %%
+          360
+
+        if (any(is.na(data[index, "azimut_circ"]))) {
+          data$azimut_median[i] <- NA
+        } else {
+          data$azimut_median[i] <- (circular::median.circular(
+            data[index, "azimut_circ"],
+            na.rm = FALSE
+          ) +
+            360) %%
+            360
+        }
+        data$azimut_sd[i] <- (circular::sd.circular(
+          data[index, "azimut_circ"],
+          na.rm = FALSE
+        ) +
+          360) %%
+          360
       }
-
-      azimut_med <- tapply(
-        as.numeric(data$azimut_circ),
-        data$id,
-        stats::median,
-        na.rm = TRUE
-      )
-
-      tmp_var <- stats::aggregate(
-        azimut_circ ~ id,
-        data = data,
-        FUN = azimut_var_fun
-      )
-      data$azimut_var <- tmp_var[match(data$id, tmp_var$id), 2]
-
-      azimut_min <- tapply(
-        as.numeric(data$azimut_circ),
-        data$id,
-        min,
-        na.rm = TRUE
-      )
-
-      azimut_max <- tapply(
-        as.numeric(data$azimut_circ),
-        data$id,
-        max,
-        na.rm = TRUE
-      )
-
-      azimut_sum <- tapply(
-        as.numeric(data$azimut_circ),
-        data$id,
-        sum,
-        na.rm = TRUE
-      )
-
-      output <- data.frame(
-        azimut_mean = azimut_mean,
-        azimut_median = azimut_median,
-        azimut_var = data$azimut_var,
-        azimut_min = azimut_min,
-        azimut_max = azimut_max,
-        azimut_sum = azimut_sum
-      )
     } else {
       output <- summarise_ID_numeric(data = data, variable = variable)
     }
@@ -348,24 +289,24 @@ summarise_ID <- function(data = data, variable = "var_name") {
   return(output)
 }
 
+#' To compute azimut median taking in account NA
+#' @noRd
+
+median_if_no_na <- function(x) {
+  if (any(is.na(x))) {
+    return(NA) # retourne NA si au moins un NA
+  } else {
+    return((circular::median.circular(x, na.rm = FALSE) + 360) %% 360)
+  }
+}
+
 #' To compute azimut sd taking in account NA
 #' @noRd
 
-azimut_var_fun <- function(x_a) {
-  az_group <- x_a[!is.na(x_a)]
-  # when there are to many
-  # decimals in azimut_circ, sin and cos used inside circular::sd induce
-  # little imprecisions that leads to NA value when azimut_circ is constant,
-  # to deal with this, when azimut-circ is constant, a value of 0 is forced
-  # into the dt.
-  if (
-    length(az_group) <= 1 ||
-      max(az_group) - min(az_group) < 1e-6
-  ) {
-    return(0)
+sd_if_no_na <- function(x) {
+  if (any(is.na(x))) {
+    return(NA) # retourne NA si au moins un NA
+  } else {
+    return((circular::sd.circular(x, na.rm = FALSE)) * 180 / pi)
   }
-
-  val <- suppressWarnings(as.numeric(circular::var(az_group)))
-
-  if (is.nan(val)) 0 else val
 }
