@@ -575,6 +575,8 @@ BEE.data.merge <- function(
       all = T
     )
   }
+  merged_df <- data.table::setDF(merged_df)
   merged_df <- split(merged_df, merged_df$pixel_id)
+  
   return(merged_df)
 }

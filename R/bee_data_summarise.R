@@ -8,21 +8,13 @@
 #'
 #'@param data
 #'@param variable description
-#'@param summarise_by takes the followings options, into "" :
-#' - "extreme_event" for each metrics, a mean, median, variance, min and max will
-#' be computed for each extrem event
-#' - "week" for each metrics, a mean, median, variance, min and max will
-#' be computed weekly. Note that this imply to provide daily output
-#' (BEE.calc.escape(only_days_EE = FALSE))
-#' - "two_weeks" for each metrics, a mean, median, variance, min and max will
-#' be computed every two weeks. Note that this imply to provide daily output
-#' (BEE.calc.escape(only_days_EE = FALSE))
-#' - "month" for each metrics, a mean, median, variance, min and max will
-#' be computed monthly. Note that this imply to provide daily output
-#' (BEE.calc.escape(only_days_EE = FALSE))
-#' - "year" for each metrics, a mean, median, variance, min and max will
-#' be computed yearly. Note that this imply to provide daily output
-#' (BEE.calc.escape(only_days_EE = FALSE)
+#'@param summarise_by takes the followings options:
+#' - "extreme_event" for each metric, the following will be computed for each
+#' extreme event: mean, median, variance, minimum and maximum, and the dates of
+#' the maximum and minimum values.
+#' - a numeric value indicating the time step for which you want to compute the
+#' mean, median, variance, minimum and maximum values, as well as the dates of
+#' the maximum and minimum values.
 #'
 #' #'@return
 #'
@@ -32,6 +24,7 @@
 #'@export
 #'
 #-------------------------------------------------------------------------------
+# data = merged_output ; variable = "perim_pixel_ratio" ; summarise_by = "extreme_event"
 
 BEE.data.summarise <- function(
   data = data,
@@ -41,14 +34,14 @@ BEE.data.summarise <- function(
   ########################## CHECKS ############################################
   # Check that the summarize_by is a valid option
   # ("extreme_event"/"weak"/"month"/"year") :
-  if (!(summarise_by %in% c("extreme_event", "weak", "month", "year"))) {
+  if (summarise_by !="extreme_event"| !is.numeric(summarise_by)))) {
     warnings(
       "The summarise_by argument is not a suitable option, please 
     provide one from the following list : extreme_event, day, weak, month, year"
     )
   }
-  if (is.list(data) == FALSE) {
-    data <- data.table::rbindlist(data)
+  if (is.list(data) == TRUE) {
+    data <- do.call(rbind, data)
   }
   variable <- as.character(variable)
   # Is it a variable from BEE ?
@@ -138,7 +131,7 @@ BEE.data.summarise <- function(
   }
   ############################ CODE #############################################
   if (summarise_by == "extreme_event") {
-    ### identify a column ID
+    ### Identify a column ID
     id <- colnames(data)[which(
       colnames(data) %in% c("ID_df_point", "ID_df_morpho", "ID_df_escape")
     )][1]
@@ -197,6 +190,85 @@ BEE.data.summarise <- function(
       )
 
       output <- data.frame(
+        azimut_median = azimut_median,
+        azimut_var = data$azimut_var,
+        azimut_min = azimut_min,
+        azimut_max = azimut_max,
+        azimut_sum = azimut_sum
+      )
+    } else {
+      output <- summarise_ID(data = data, variable = variable)
+    }
+    groups <- split(seq_len(nrow(data)), data[[id]])
+    pixel_id <- lapply(groups, function(idx) {
+      unique(sub("_.*", "", data[idx, id]))
+    })
+    output$pixel_id <- as.numeric(unlist(pixel_id))
+    output <- split(output, output$pixel_id)
+    return(output)
+  }
+  ### regular situation:
+  if (is.numeric(summarise_by)) {
+    ### Particular cases:
+    if (variable == "azimut") {
+      # conversion of angle format to "circular"
+      data$azimut_num <- as.numeric(data$azimut)
+      data$azimut_circ <- sapply(data$azimut, function(x) {
+        if (is.na(x)) {
+          NA
+        } else {
+          circular(x, units = "degrees", template = "geographics")
+        }
+      })
+
+      data$azimut_mean <- NA
+      for (i in seq(summarise_by, length(data[, variable]), 1)) {
+        start <- i - summarise_by + 1
+        index <- start:i # indices à utiliser
+        print(index)
+        data$azimut_mean[i] <- circular::mean.circular(
+          data[index, "azimut_circ"],
+          na.rm = FALSE
+        )
+        print(data$azimut_mean[i])
+      }
+
+      azimut_med <- tapply(
+        as.numeric(data$azimut_circ),
+        data$id,
+        stats::median,
+        na.rm = TRUE
+      )
+
+      tmp_var <- stats::aggregate(
+        azimut_circ ~ id,
+        data = data,
+        FUN = azimut_var_fun
+      )
+      data$azimut_var <- tmp_var[match(data$id, tmp_var$id), 2]
+
+      azimut_min <- tapply(
+        as.numeric(data$azimut_circ),
+        data$id,
+        min,
+        na.rm = TRUE
+      )
+
+      azimut_max <- tapply(
+        as.numeric(data$azimut_circ),
+        data$id,
+        max,
+        na.rm = TRUE
+      )
+
+      azimut_sum <- tapply(
+        as.numeric(data$azimut_circ),
+        data$id,
+        sum,
+        na.rm = TRUE
+      )
+
+      output <- data.frame(
         azimut_mean = azimut_mean,
         azimut_median = azimut_median,
         azimut_var = data$azimut_var,
@@ -204,21 +276,9 @@ BEE.data.summarise <- function(
         azimut_max = azimut_max,
         azimut_sum = azimut_sum
       )
-
     } else {
-      (output <- summarise_ID(data = data, variable = variable)
-      ### Found day of maximum and minimum value
-    day_max <- data$date[which(variable ==  paste0(variable, "_", names(funs)) )])
-
+      output <- summarise_ID_numeric(data = data, variable = variable)
     }
-    
-    output <- split(output, summary$pixel_id)
-    return(output)
-  }
-  ### regular situation:
-  if (summarise_by == "week") {
-    merged_df <- split(merged_df, merged_df$pixel_id)
-    return(merged_df)
   }
 }
 
@@ -233,8 +293,8 @@ summarise_ID <- function(data = data, variable = "var_name") {
     mean = function(x) mean(x, na.rm = TRUE),
     median = function(x) median(x, na.rm = TRUE),
     var = function(x) stats::var(x, na.rm = TRUE),
-    min = function(x) min(x, na.rm = TRUE),
-    max = function(x) max(x, na.rm = TRUE),
+    min = function(x) if (all(is.na(x))) NA_real_ else min(x, na.rm = TRUE),
+    max = function(x) if (all(is.na(x))) NA_real_ else max(x, na.rm = TRUE),
     sum = function(x) sum(x, na.rm = TRUE)
   )
 
@@ -262,6 +322,29 @@ summarise_ID <- function(data = data, variable = "var_name") {
   )
 
   names(output)[-1] <- paste0(variable, "_", names(funs))
+
+  List <- split(seq_len(nrow(data)), data$ID_df_point)
+  dates_max_min <- lapply(
+    List,
+    function(L_id) {
+      data_mini <- data[L_id, ]
+      x <- data_mini[[as.character(variable)]] # <- ici
+      d <- data_mini$date
+
+      if (all(is.na(x))) {
+        list(NA, NA)
+      } else {
+        d_max <- d[which.max(x)]
+        d_min <- d[which.min(x)]
+        list(d_max, d_min)
+      }
+    }
+  )
+  date_max <- as.Date(sapply(date_max, function(x) x[[1]]))
+  date_min <- as.Date(sapply(dates_max_min, function(x) x[[2]]))
+  output$date_max <- date_max[output[, id]]
+  output$date_min <- date_min[output[, id]]
+
   return(output)
 }
 
