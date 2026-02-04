@@ -96,13 +96,13 @@ BEE.calc.escape <- function(
     if (is.vector(pixel) | is.data.frame(pixel)) {
       if (is.data.frame(pixel)) {
         pixels_to_do <- terra::cellFromXY(
-          true_event_output$stacked_rasters_corrected,
+          shell,
           pixel
         )
       } else {
         if (!is.character(pixel)) {
           pixels_to_do <- terra::cellFromXY(
-            true_event_output$stacked_rasters_corrected,
+            shell,
             t(matrix(pixel))
           )
         }

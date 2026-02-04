@@ -218,14 +218,14 @@ BEE.data.summarise <- function(
           360
       }
     } else {
-      output <- summarise_ID_numeric(data = data, variable = variable)
+      output <- summarise_lag(data = data, variable = variable)
     }
   }
 }
 
 
 #' To compute mean median variance max min and day of maximum of every metrics
-#' to be summarized
+#' to be summarized PER ID
 #' @noRd
 #'
 summarise_ID <- function(data = data, variable = "var_name") {
@@ -309,4 +309,69 @@ sd_if_no_na <- function(x) {
   } else {
     return((circular::sd.circular(x, na.rm = FALSE)) * 180 / pi)
   }
+}
+
+#' To compute mean median variance max min and day of maximum of every metrics
+#' to be summarized PER TIME LAG
+#' @noRd
+#'
+summarise_lag <- function(data = data, variable = "var_name") {
+  data[[variable]] = as.numeric(data[[variable]])
+  funs <- list(
+    mean = function(x) mean(x, na.rm = TRUE),
+    median = function(x) median(x, na.rm = TRUE),
+    var = function(x) stats::var(x, na.rm = TRUE),
+    min = function(x) if (all(is.na(x))) NA_real_ else min(x, na.rm = TRUE),
+    max = function(x) if (all(is.na(x))) NA_real_ else max(x, na.rm = TRUE),
+    sum = function(x) sum(x, na.rm = TRUE)
+  )
+
+  res_list <- lapply(
+    funs,
+    function(f) {
+      tapply(
+        X = data[[variable]],
+        INDEX = data$ID_df_point,
+        FUN = f
+      )
+    }
+  )
+
+  output <- data.frame(
+    ID_df_point = names(res_list[[1]]),
+    do.call(
+      cbind,
+      lapply(
+        names(res_list),
+        function(nm) as.numeric(res_list[[nm]])
+      )
+    ),
+    row.names = NULL
+  )
+
+  names(output)[-1] <- paste0(variable, "_", names(funs))
+
+  List <- split(seq_len(nrow(data)), data$ID_df_point)
+  dates_max_min <- lapply(
+    List,
+    function(L_id) {
+      data_mini <- data[L_id, ]
+      x <- data_mini[[as.character(variable)]] # <- ici
+      d <- data_mini$date
+
+      if (all(is.na(x))) {
+        list(NA, NA)
+      } else {
+        d_max <- d[which.max(x)]
+        d_min <- d[which.min(x)]
+        list(d_max, d_min)
+      }
+    }
+  )
+  date_max <- as.Date(sapply(date_max, function(x) x[[1]]))
+  date_min <- as.Date(sapply(dates_max_min, function(x) x[[2]]))
+  output$date_max <- date_max[output[, id]]
+  output$date_min <- date_min[output[, id]]
+
+  return(output)
 }
