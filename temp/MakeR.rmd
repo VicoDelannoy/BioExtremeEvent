@@ -396,3 +396,13 @@ merged_output <- BEE.data.merge(data_metrics_point = points_metrics,
  saveRDS(merged_output, file = "Data/merged_output.rds")      
  merged_output <- readRDS("Data/merged_output.rds")                         
 ```
+
+# 9 Summarise 
+
+```{r}
+summarised_data <- BEE.data.summarise(
+  data = merged_output,
+  variable = "azimut",
+  summarise_by = 3
+) 
+```
