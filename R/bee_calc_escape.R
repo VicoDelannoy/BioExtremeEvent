@@ -384,6 +384,7 @@ BEE.calc.escape <- function(
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
     # special way to compute it :
     # Conversion to circular angle :
+
     dist_dir$azimut_num <- as.numeric(dist_dir$azimut)
     dist_dir$azimut_circ <- ifelse(
       !is.na(dist_dir$azimut_num),
@@ -394,43 +395,30 @@ BEE.calc.escape <- function(
       ),
       NA
     )
+
     azimut_mean <- tapply(
-      as.numeric(dist_dir$azimut_circ),
+      dist_dir$azimut_circ,
       dist_dir$ID,
-      mean,
+      circular::mean.circular,
       na.rm = TRUE
     )
-    dist_dir$azimut_mean <- azimut_mean[dist_dir$ID]
+    dist_dir$azimut_mean <- (azimut_mean[dist_dir$ID] + 360) %% 360
+
     azimut_med <- tapply(
       as.numeric(dist_dir$azimut_circ),
       dist_dir$ID,
-      stats::median,
+      circular::median.circular,
       na.rm = TRUE
     )
-    dist_dir$azimut_med <- azimut_med[dist_dir$ID]
+    dist_dir$azimut_med <- (azimut_med[dist_dir$ID] + 360) %% 360
 
     tmp_sd <- stats::aggregate(
       azimut_circ ~ ID,
       data = dist_dir,
       FUN = azimut_sd_fun
     )
-    dist_dir$azimut_sd <- tmp_sd[match(dist_dir$ID, tmp_sd$ID), 2]
-
-    azimut_min <- tapply(
-      as.numeric(dist_dir$azimut_circ),
-      dist_dir$ID,
-      min,
-      na.rm = TRUE
-    )
-    dist_dir$azimut_min <- azimut_min[dist_dir$ID]
-
-    azimut_max <- tapply(
-      as.numeric(dist_dir$azimut_circ),
-      dist_dir$ID,
-      max,
-      na.rm = TRUE
-    )
-    dist_dir$azimut_max <- azimut_max[dist_dir$ID]
+    dist_dir$azimut_sd <- (tmp_sd[match(dist_dir$ID, tmp_sd$ID), 2] + 360) %%
+      360
 
     # Delete column that refer to daily value and not to value compute on all
     # the event :
@@ -475,7 +463,7 @@ azimut_sd_fun <- function(x_a) {
     return(0)
   }
 
-  val <- suppressWarnings(as.numeric(circular::sd(az_group)))
+  val <- suppressWarnings(as.numeric(circular::sd.circular(az_group)))
 
   if (is.nan(val)) 0 else val
 }
