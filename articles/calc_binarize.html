@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BioExtremeEvent • BioExtremeEvent</title>
+<title>2. Compare a time serie with the baseline or fixed threshold.Rmd • BioExtremeEvent</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="BioExtremeEvent">
+<script src="../pkgdown.js"></script><meta property="og:title" content="2. Compare a time serie with the baseline or fixed threshold.Rmd">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -86,53 +86,48 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>BioExtremeEvent</h1>
+      <h1 data-toc-skip>2. Compare a time serie with the baseline or
+fixed threshold.Rmd</h1>
                         <h4 data-toc-skip class="author">Victoria
 Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
             
-            <h4 data-toc-skip class="date">2026-02-05</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/VicoMarbec/BioExtremeEvent/blob/main/vignettes/BioExtremeEvent.Rmd" class="external-link"><code>vignettes/BioExtremeEvent.Rmd</code></a></small>
-      <div class="hidden name"><code>BioExtremeEvent.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/VicoMarbec/BioExtremeEvent/blob/main/vignettes/calc_binarize.Rmd" class="external-link"><code>vignettes/calc_binarize.Rmd</code></a></small>
+      <div class="hidden name"><code>calc_binarize.Rmd</code></div>
 
     </div>
 
     
     
 <div class="section level2">
-<h2 id="about-this-tutorial">About this tutorial<a class="anchor" aria-label="anchor" href="#about-this-tutorial"></a>
+<h2 id="aims-of-the-function">Aims of the function **<a class="anchor" aria-label="anchor" href="#aims-of-the-function"></a>
 </h2>
-<p><br></p>
-<p>This tutorial describes the basic workflow showing how to
-characterized step by step extrem event (Marine Heat Wave, water
-stress…) using <code>BioExtremeEvent</code> package.</p>
-<p><strong>DATA:</strong> The dataset used to illustrate this tutorial
-is a spatraster of the sea surface temperature in Gulf of Lion extract
-from <a href="https://data.marine.copernicus.eu/products" class="external-link">Copernicus</a>,
-product: cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021.</p>
-<p><br></p>
-<p>The use of the <code>BioExtremeEvent</code> package is based on a
-pipeline. This tutorial will guide you through the main framework,
-illustrated in the flowchart below, step by step.</p>
-<p><br></p>
-<strong>FRAMEWORK:</strong>
-<div class="figure" style="text-align: center">
-<img src="pipeline_BEE.png" class="r-plt" alt="Framework of the BioExtremeEvent package" width="100%"><p class="caption">
-Framework of the BioExtremeEvent package
-</p>
+</div>
+<div class="section level2">
+<h2 id="data-for-this-tutorial">Data for this tutorial<a class="anchor" aria-label="anchor" href="#data-for-this-tutorial"></a>
+</h2>
+</div>
+<div class="section level2">
+<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
+</h2>
+<div class="section level3">
+<h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
+</h3>
+</div>
+<div class="section level3">
+<h3 id="warnings">Warnings:<a class="anchor" aria-label="anchor" href="#warnings"></a>
+</h3>
+</div>
+<div class="section level3">
+<h3 id="messages">Messages:<a class="anchor" aria-label="anchor" href="#messages"></a>
+</h3>
 </div>
 </div>
 <div class="section level2">
-<h2 id="install-the-bioextremeevent-package">Install the BioExtremeEvent package<a class="anchor" aria-label="anchor" href="#install-the-bioextremeevent-package"></a>
+<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">## Install &lt; remotes &gt; package (if not already installed) ----</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"remotes"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co">## Install &lt; BioExtremeEvent &gt; from GitHub ----</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"VicoDelannoy/BioExtremeEvent"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VicoMarbec/BioExtremeEvent" class="external-link">BioExtremeEvent</a></span><span class="op">)</span></span></code></pre></div>
 </div>
   </div>
 
