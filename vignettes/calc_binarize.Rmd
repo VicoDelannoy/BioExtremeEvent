@@ -1,0 +1,31 @@
+---
+title: "2. Compare a time serie with the baseline or fixed threshold.Rmd"
+author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{2. Compare a time serie with the baseline or fixed threshold.Rmd}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Aims of the function **
+
+# Data for this tutorial
+
+# Usage
+## Arguments:
+## Warnings:
+## Messages:
+
+# Example
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(BioExtremeEvent)
+```
