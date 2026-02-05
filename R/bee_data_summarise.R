@@ -1,24 +1,30 @@
-#' Merge the outputs of the metrics functions.
+#' Summarise the outputs of the 'merge' function.
 #'
-#'@description To merge the daily outputs of at least two datasets of the
+#'@description
+#' To summarise one of the daily outputs of the
 #' following fonctions from BEE package : bee.calc.metrics_point() ;
-#' bee.calc.metrics_morpho() ; bee.calc.escape(). This function can also
-#' summarise metrics over different time periods: extreme events, weak periods,
-#' monthly periods and yearly periods.
+#' bee.calc.metrics_morpho() ; bee.calc.escape() ; bee.data.merge(). Metrics
+#' values can be summarised per extreme event or over a sliding time window.
 #'
-#'@param data the dataset conatainning the column you want to process (e.g. the
-#' ouput of BEE.data.merge())
-#'@param variable the name of the column for wich you want to compute mean,
-#' median etc.
-#'@param summarise_by takes the followings options:
+#' @details
+#' In addition to the mean value, the function provides the median, standard
+#' deviation, minimum and maximum values, sum, date of minimum and maximum
+#' values (within the time window), and date of minimum value (also within the
+#' time window).
+#'
+#'@param data the dataset containing the column you want to process (e.g. the
+#' ouput of BEE.data.merge(), as a list of data frame).
+#'@param variable the name of the column for which you want to compute mean,
+#' median etc. over a time window.
+#'@param summarise_by takes the following options:
 #' - "extreme_event" for each metric, the following will be computed for each
-#' extreme event: mean, median, variance, minimum and maximum, and the dates of
-#' the maximum and minimum values.
+#' extreme event: mean, median, variance or sd, minimum and maximum, sum, and
+#' the dates of the maximum and minimum values.
 #' - a numeric value indicating the time step for which you want to compute the
-#' mean, median, variance, minimum and maximum values, as well as the dates of
-#' the maximum and minimum values.
+#' mean, median, etc.
 #'
-#' #'@return
+#' #'@return a list of dataframes, with one dataframe per pixel, with the dates
+#' in the rows and the values summarised.
 #'
 #'@examples
 #' # TO BE ADDED
@@ -26,8 +32,8 @@
 #'@export
 #'
 #-------------------------------------------------------------------------------
-# data = merged_output ; variable = "perim_pixel_ratio" ; summarise_by = "extreme_event"
-# summarise_by = 3 ; variable = "azimut"
+# data = merged_output ; variable = "perim_pixel_ratio" ;
+# summarise_by = "extreme_event" ; summarise_by = 3 ; variable = "azimut"
 
 BEE.data.summarise <- function(
   data = data,
@@ -133,7 +139,7 @@ BEE.data.summarise <- function(
     errors."
     ))
   }
-  ############################ CODE #############################################
+  ############################ CODE ############################################
   ### Identify a column ID
   id <- colnames(data)[which(
     colnames(data) %in% c("ID_df_point", "ID_df_morpho", "ID_df_escape")
@@ -207,17 +213,17 @@ BEE.data.summarise <- function(
         ID = data[, id],
         date = data[, "date"],
         azimut = circular::circular(
-            data$azimut_num,
-            units = "degrees",
-            template = "geographics"
-          ),
+          data$azimut_num,
+          units = "degrees",
+          template = "geographics"
+        ),
         data[, "azimut_num"],
         azimut_mean = circular::circular(rep(NA, n_rows)),
         azimut_median = circular::circular(rep(NA, n_rows)),
         azimut_sd = circular::circular(rep(NA, n_rows)),
         pixel_id = data[, "pixel_id"]
       )
-  
+
       for (i in seq(summarise_by, length(data[, variable]), 1)) {
         start <- i - summarise_by + 1
         index <- start:i

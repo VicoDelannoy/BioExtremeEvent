@@ -2,7 +2,7 @@
 % Please edit documentation in R/bee_data_summarise.R
 \name{BEE.data.summarise}
 \alias{BEE.data.summarise}
-\title{Merge the outputs of the metrics functions.}
+\title{Summarise the outputs of the 'merge' function.}
 \usage{
 BEE.data.summarise(
   data = data,
@@ -11,30 +11,35 @@ BEE.data.summarise(
 )
 }
 \arguments{
-\item{data}{the dataset conatainning the column you want to process (e.g. the
-ouput of BEE.data.merge())}
+\item{data}{the dataset containing the column you want to process (e.g. the
+ouput of BEE.data.merge(), as a list of data frame).}
 
-\item{variable}{the name of the column for wich you want to compute mean,
-median etc.}
+\item{variable}{the name of the column for which you want to compute mean,
+median etc. over a time window.}
 
-\item{summarise_by}{takes the followings options:
+\item{summarise_by}{takes the following options:
 \itemize{
 \item "extreme_event" for each metric, the following will be computed for each
-extreme event: mean, median, variance, minimum and maximum, and the dates of
-the maximum and minimum values.
+extreme event: mean, median, variance or sd, minimum and maximum, sum, and
+the dates of the maximum and minimum values.
 \item a numeric value indicating the time step for which you want to compute the
-mean, median, variance, minimum and maximum values, as well as the dates of
-the maximum and minimum values.
+mean, median, etc.
 }
 
-#'@return}
+#'@return a list of dataframes, with one dataframe per pixel, with the dates
+in the rows and the values summarised.}
 }
 \description{
-To merge the daily outputs of at least two datasets of the
+To summarise one of the daily outputs of the
 following fonctions from BEE package : bee.calc.metrics_point() ;
-bee.calc.metrics_morpho() ; bee.calc.escape(). This function can also
-summarise metrics over different time periods: extreme events, weak periods,
-monthly periods and yearly periods.
+bee.calc.metrics_morpho() ; bee.calc.escape() ; bee.data.merge(). Metrics
+values can be summarised per extreme event or over a sliding time window.
+}
+\details{
+In addition to the mean value, the function provides the median, standard
+deviation, minimum and maximum values, sum, date of minimum and maximum
+values (within the time window), and date of minimum value (also within the
+time window).
 }
 \examples{
 # TO BE ADDED
