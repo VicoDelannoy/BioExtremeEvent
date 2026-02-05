@@ -1,9 +1,9 @@
 ---
-title: "Compute a threshold value.Rmd"
+title: "1. Compute a baseline value.Rmd"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Compute a threshold value.Rmd}
+  %\VignetteIndexEntry{1. Compute a baseline value.Rmd}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

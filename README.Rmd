@@ -28,8 +28,7 @@ knitr::opts_chunk$set(collapse  = TRUE,
 
 The R package `BioExtremeEvent` identifies and characterises an extreme event in  
 time and space for a given GPS point (e.g. a sampling site) or for every pixel 
-in an area.
-
+in an area. 
 
 
 ## Installation
@@ -43,7 +42,7 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 }
 
 ## Install < BioExtremeEvent > from GitHub ----
-remotes::install_github("VicoMarbec/BioExtremeEvent")
+remotes::install_github("VicoDelannoy/BioExtremeEvent")
 ```
 
 Then you can attach the package `BioExtremeEvent`:
@@ -67,8 +66,10 @@ For an overview of the main features of `BioExtremeEvent`, please read the [Get 
 
 Please cite `BioExtremeEvent` as:
 
-> Delannoy Victoria (`r format(Sys.Date(), "%Y")`) BioExtremeEvent: An R package
-to characterise extreme event**. R package version 0.0.900. <https://github.com/VicoMarbec/BioExtremeEvent/>
+> Delannoy Victoria, Loiseau Nicolas, Villéger Sébastien, Cabrol Nicolas, Fièvre
+Céleste (`r format(Sys.Date(), "%Y")`) BioExtremeEvent: An R package
+to **characterise extreme event**. R package version 0.0.900. 
+<https://github.com/VicoMarbec/BioExtremeEvent/>
 
 ## Contributing
 
@@ -82,4 +83,9 @@ Please note that the `BioExtremeEvent` project is released with a [Contributor C
 
 ## References
 
-**{{ OPTIONAL SECTION }}**
+The dataset used in the exemple comes from :
+Embury, O., Merchant, C.J., Good, S.A., Rayner, N.A., Høyer, J.L., Atkinson, C.,
+Block, T., Alerskans, E., Pearson, K.J., Worsfold, M., McCarroll, N.,
+Donlon, C., (2024). Satellite-based time-series of sea-surface temperature since
+1980 for climate applications. Sci Data 11, 326. 
+doi: https://doi.org/10.1038/s41597-024-03147-w

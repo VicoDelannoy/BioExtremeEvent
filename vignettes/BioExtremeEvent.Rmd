@@ -29,7 +29,7 @@ flowchart below, step by step.
 <br />
 
 **FRAMEWORK:**
-```{r, echo = FALSE, out.width = "2000px", fig.cap = "Framework of the BioExtremeEvent package", fig.align = 'center'}
+```{r, echo = FALSE, out.width = "100%", fig.cap = "Framework of the BioExtremeEvent package", fig.align = 'center'}
 knitr::include_graphics("pipeline_BEE.png")
 ```
 
@@ -37,5 +37,11 @@ knitr::include_graphics("pipeline_BEE.png")
 # Install the BioExtremeEvent package
 
 ```{r, eval = FALSE}
-install.packages("BioExtremeEvent")
+## Install < remotes > package (if not already installed) ----
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+
+## Install < BioExtremeEvent > from GitHub ----
+remotes::install_github("VicoDelannoy/BioExtremeEvent")
 ```

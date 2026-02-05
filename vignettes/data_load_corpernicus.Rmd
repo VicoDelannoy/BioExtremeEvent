@@ -1,39 +1,30 @@
 ---
-title: "Dowload data from Copernicus"
+title: "0. Dowload data from Copernicus"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Dowload data from Copernicus}
+  %\VignetteIndexEntry{0. Dowload data from Copernicus}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 # Aims of the function *BEE.data.load_copernicus()*
 
-  This is an **optional function** to import data from the [Copernicus Marine 
-Data Store](https://data.marine.copernicus.eu/products) some dataset. This  
-function uses the CopernicusMarine Python library.  A virtual Python environment 
-is automatically created to enable it to run in R. If Python is not already 
-installed on your computer, *BEE.data.load_copernicus* will download it for you.  
-This allows you to copy and paste the Python API generated in the copernicus 
-website (Data access>select your data and ONLY one variable> Automate> Python 
-API) almost directly as argument of the BioExtremeEvent::BEE.data.load_copernicus() 
-function.
+This is an **optional function** to import data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products) some dataset. This\
+function uses the CopernicusMarine Python library. A virtual Python environment is automatically created to enable it to run in R. If Python is not already installed on your computer, *BEE.data.load_copernicus* will download it for you.\
+This allows you to copy and paste the Python API generated on the copernicus website (Data access\>select your data and ONLY one variable\> Automate\> Python API) almost directly as an argument for the BioExtremeEvent::BEE.data.load_copernicus() function.
 
-# Usage 
+# Usage
 
-To fulfil the argument of the BioExtremeEvent::BEE.data.load_copernicus() function, you just need to copy and paste the contents of the copernicusmarine.subset function, which is visible in the Python API, into the BioExtremeEvent function. 
-1. To access the API code, go on the Copernicus Marine Data Store page of the 
-selected products > Data access > in the colonne 'Subset' clic on 'Form' > select
-only one variable > select your area of interest and your date range > on the top 
-of the webpage clic on Automate > copy/paste whats inside the brakets of the 
-copernicusmarine.subset() function.
-2. Then, add three arguments in *BEE.data.load_copernicus()* :
-- *username*: wich is your username from the Copernicus Marine Data Store.
-- *password*: your Copernicus Marine Data Store passeword.
-- *output_directory*: The path where you want to store your dataset. 
+To fulfil the argument of the BioExtremeEvent::BEE.data.load_copernicus() function, you just need to copy and paste the contents of the copernicusmarine.subset function, which is visible in the Python API, into the BioExtremeEvent function.\
+1. To access the API code, go on the Copernicus Marine Data Store page of the selected products \> Data access \> in the colonne 'Subset' clic on 'Form' \> select only one variable \> select your area of interest and your date range \> on the top of the webpage clic on Automate \> copy/paste whats inside the brakets of the copernicusmarine.subset() function.\
+2. Then, add three arguments in *BEE.data.load_copernicus()* :\
+- *username*: wich is your username from the Copernicus Marine Data Store.\
+- *password*: your Copernicus Marine Data Store passeword.\
+- *output_directory*: The path where you want to store your dataset.\
 You can now run the function.
+
 ```{r, eval=FALSE}
 BioExtremeEvent::BEE.data.load_copernicus(
     username = my_user_name, # In addition of the API copy&paste
@@ -54,9 +45,7 @@ BioExtremeEvent::BEE.data.load_copernicus(
 )
 ```
 
-You obtained a spatraster with one layer per time step in your R environment, 
-the same dataset is saved in your computer at the location indicated by 
-*output_directory*. 
+You obtained a spatraster with one layer per time step in your R environment, the same dataset is saved in your computer at the location indicated by *output_directory*.
 
 # Example of the dataset obtained
 

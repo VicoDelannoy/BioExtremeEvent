@@ -2,7 +2,7 @@
 % Please edit documentation in R/bee_data_merge.R
 \name{BEE.data.merge}
 \alias{BEE.data.merge}
-\title{Merge the outputs of the metrics functions.}
+\title{Merge the outputs of the .calc. functions.}
 \usage{
 BEE.data.merge(
   data_metrics_point = NULL,
@@ -15,24 +15,31 @@ BEE.data.merge(
 \item{data_metrics_point}{the output of the BEE.calc.metrics_point computed
 using the argument group_by_event = FALSE.}
 
-\item{data_metrics_morpho}{the output of the BEE.calc.metrics_morpho}
+\item{data_metrics_morpho}{the output of the BEE.calc.metrics_morpho computed
+using the argument per_pix = TRUE.}
 
 \item{data_escape}{the output of the BEE.calc.escape computed
-using the argument group_by_event = FALSE.}
+using the argument only_days_EE = FALSE AND group_by_event = FALSE.}
 
-\item{crs}{a METRICS crs that suits the studdied area}
+\item{crs}{a METRICS crs that suits the studdied area.}
 }
 \value{
-A dataframe with the metrics of all the datasets provided in column,
-if you haven't choose a daily resolution, a mean, median, variance, minimum
-and maximum will be computed for each variables over the choosen time step.
+A list of dataframe (one df per pixel) with the metrics of all the
+datasets provided in column. If you haven't choose a daily resolution,
+a mean, median, variance, minimum and maximum will be computed for each
+variables over the time step present in the data.
 }
 \description{
 To merge the daily outputs of at least two datasets of the
 following fonctions from BEE package : bee.calc.metrics_point() ;
-bee.calc.metrics_morpho() ; bee.calc.escape(). This function can also
-summarise metrics over different time periods: extreme events, weak periods,
-monthly periods and yearly periods.
+bee.calc.metrics_morpho() ; bee.calc.escape().
+}
+\details{
+The datasets provided must contain daily values with no gaps. This implies
+the use of specific arguments in the .calc. metrics :
+bee.calc.metrics_point(..., group_by_event = FALSE)
+bee.calc.metrics_morpho(..., per_pix = TRUE)
+bee.calc.escape(..., only_days_EE = FALSE, group_by_event = FALSE).
 }
 \examples{
 # TO BE ADDED

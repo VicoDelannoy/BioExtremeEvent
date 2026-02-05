@@ -26,12 +26,10 @@ Check](https://github.com/VicoDelannoy/BioExtremeEvent/actions/workflows/R-CMD-c
 
 ## Overview
 
-The R package `BioExtremeEvent`… **{{ DESCRIBE YOUR PACKAGE }}**
+The R package `BioExtremeEvent` identifies and characterises an extreme event in  
+time and space for a given GPS point (e.g. a sampling site) or for every pixel 
+in an area.
 
-## Features
-
-The main purpose of `BioExtremeEvent` is to… **{{ DESCRIBE THE MAIN
-FEATURES }}**
 
 ## Installation
 
@@ -75,9 +73,10 @@ learn more about the package:
 
 Please cite `BioExtremeEvent` as:
 
-> Delannoy Victoria (2026) BioExtremeEvent: An R package to **{{ TITLE
-> }}**. R package version 0.0.900.
-> <https://github.com/VicoMarbec/BioExtremeEvent/>
+> Delannoy Victoria, Loiseau Nicolas, Villéger Sébastien, Cabrol Nicolas, Fièvre
+Céleste (`r format(Sys.Date(), "%Y")`) BioExtremeEvent: An R package
+to **characterise extreme event**. R package version 0.0.900. 
+<https://github.com/VicoMarbec/BioExtremeEvent/>
 
 ## Contributing
 
@@ -96,4 +95,9 @@ By contributing to this project, you agree to abide by its terms.
 
 ## References
 
-**{{ OPTIONAL SECTION }}**
+The dataset used in the exemple comes from :
+Embury, O., Merchant, C.J., Good, S.A., Rayner, N.A., Høyer, J.L., Atkinson, C.,
+Block, T., Alerskans, E., Pearson, K.J., Worsfold, M., McCarroll, N.,
+Donlon, C., (2024). Satellite-based time-series of sea-surface temperature since
+1980 for climate applications. Sci Data 11, 326. 
+doi: https://doi.org/10.1038/s41597-024-03147-w

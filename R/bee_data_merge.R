@@ -1,24 +1,32 @@
-#' Merge the outputs of the metrics functions.
+#' Merge the outputs of the .calc. functions.
 #'
-#'@description To merge the daily outputs of at least two datasets of the
+#'@description
+#' To merge the daily outputs of at least two datasets of the
 #' following fonctions from BEE package : bee.calc.metrics_point() ;
-#' bee.calc.metrics_morpho() ; bee.calc.escape(). This function can also
-#' summarise metrics over different time periods: extreme events, weak periods,
-#' monthly periods and yearly periods.
+#' bee.calc.metrics_morpho() ; bee.calc.escape().
+#'
+#' @details
+#' The datasets provided must contain daily values with no gaps. This implies
+#' the use of specific arguments in the .calc. metrics :
+#' bee.calc.metrics_point(..., group_by_event = FALSE)
+#' bee.calc.metrics_morpho(..., per_pix = TRUE)
+#' bee.calc.escape(..., only_days_EE = FALSE, group_by_event = FALSE).
 #'
 #'@param data_metrics_point the output of the BEE.calc.metrics_point computed
 #' using the argument group_by_event = FALSE.
 #'
-#'@param data_metrics_morpho the output of the BEE.calc.metrics_morpho
+#'@param data_metrics_morpho the output of the BEE.calc.metrics_morpho computed
+#' using the argument per_pix = TRUE.
 #'
 #'@param data_escape the output of the BEE.calc.escape computed
-#' using the argument group_by_event = FALSE.
+#' using the argument only_days_EE = FALSE AND group_by_event = FALSE.
 #'
-#'@param crs a METRICS crs that suits the studdied area
+#'@param crs a METRICS crs that suits the studdied area.
 #'
-#'@return A dataframe with the metrics of all the datasets provided in column,
-#' if you haven't choose a daily resolution, a mean, median, variance, minimum
-#' and maximum will be computed for each variables over the choosen time step.
+#'@return A list of dataframe (one df per pixel) with the metrics of all the
+#' datasets provided in column. If you haven't choose a daily resolution,
+#' a mean, median, variance, minimum and maximum will be computed for each
+#' variables over the time step present in the data.
 #'
 #'@examples
 #' # TO BE ADDED
@@ -391,9 +399,11 @@ BEE.data.merge <- function(
       data_metrics_morpho and data_escape is not overlapping spatially with the
       others, merging is not possible. Please check the following points : 
         - computation of metrics with BEE.calc.metrics_point(),
-      BEE.calc.metrics_morpho() and BEE.calc.escape() were done on the same files.
+      BEE.calc.metrics_morpho() and BEE.calc.escape() were done on the same 
+      files.
         - There were no modifications of the crs in between operations.
-        - There were no modifications of the grid resolution in between operations.
+        - There were no modifications of the grid resolution in between 
+        operations.
         "
       )
     }
@@ -577,6 +587,6 @@ BEE.data.merge <- function(
   }
   merged_df <- data.table::setDF(merged_df)
   merged_df <- split(merged_df, merged_df$pixel_id)
-  
+
   return(merged_df)
 }
