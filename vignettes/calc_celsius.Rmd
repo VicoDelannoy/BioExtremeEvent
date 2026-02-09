@@ -10,15 +10,11 @@ vignette: >
 
 # Aim of the function *BEE.calc.celsius()*
 
-Identifies the unit of a temperature spatraster and convert the pixels values
-into celsius degrees. If the pixel values are modified, the units metadata of
-the spatraster is updated to celsius.
+Identifies the unit of a temperature spatraster and convert the pixels values into celsius degrees. If the pixel values are modified, the units metadata of the spatraster is updated to celsius.
 
 # Data for this tutorial
 
-A Spatraster imported containning the sea surface temperature in the Gulf of
-Lion from the 1st of January 2023 to the 31th of Decembre 2025. There are only
-one variable in the spatraster (sea surface temperature).
+A Spatraster imported containning the sea surface temperature in the Gulf of Lion from the 1st of January 2023 to the 31th of Decembre 2025. There are only one variable in the spatraster (sea surface temperature).
 
 ```{r}
 ### Load the example dataset in R environement :
@@ -33,8 +29,6 @@ The original dataset is in Kelvin :
 terra::units(copernicus_data[[1]]) #first layer only
 ```
 
-
-
 # Usage
 
 ## Argument:
@@ -42,18 +36,18 @@ terra::units(copernicus_data[[1]]) #first layer only
 The function takes only one argument, your dataset.
 
 ## Warnings:
+
 You will receive a warning if :
 
- - various units are detected for a same layer.
- - different layers have different units.
- - some layers have no unit declared, you will have to declare a unit.
- - the dataset is already in Celsius degrees.
- - if a layer has a unit that is not recognise by the function (see bellow).
+-   various units are detected for a same layer.
+-   different layers have different units.
+-   some layers have no unit declared, you will have to declare a unit.
+-   the dataset is already in Celsius degrees.
+-   if a layer has a unit that is not recognise by the function (see bellow).
 
 ## Messages:
-If your dataset was in Kelvin or Fahrenheit, you will receive a message 
-saying which conversion has been done.
 
+If your dataset was in Kelvin or Fahrenheit, you will receive a message saying which conversion has been done.
 
 ## Example with a dataset in Kelvin
 
@@ -72,7 +66,6 @@ head(na.omit(terra::values(x = copernicus_data_celsius[[1]],
  #### After using BEE.calc.celsius : 
  terra::units(copernicus_data_celsius[[1]])
 ```
-
 
 ## Example with a dataset already in Celsius
 

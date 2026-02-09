@@ -339,7 +339,7 @@ BEE.calc.escape <- function(
 
     ## Distance
     dist_dir$distance <- as.numeric(dist_dir$distance)
-    tmp_mean <- aggregate(
+    tmp_mean <- stats::aggregate(
       distance ~ ID,
       data = dist_dir,
       FUN = function(df) mean(df, na.rm = TRUE)

@@ -9,6 +9,7 @@ NULL
 globalVariables(
   c(
     "pixel_from_id",
+    "pixel_id",
     "pixel_to_id",
     "date_start", #BEE.calc.escape
     "date_end",
@@ -26,6 +27,7 @@ globalVariables(
     "prev_value",
     "last_value_prev_group",
     "Nb_days",
+    "dates",
     "date_max_value",
     "first_date",
     "days_onset_abs",
@@ -37,8 +39,12 @@ globalVariables(
     "raw_offset_rate_abs",
     "daily_category",
     "event_ID",
-    "anomaly_qt90",
+    "anomaly_qt",
+    "cumulative_anomaly_qt",
     "anomaly_mean",
-    "anomaly_unit"
+    "anomaly_unit",
+    "duration",
+    "id", #BEE.data.summarise
+    "summarise_by"
   )
 )

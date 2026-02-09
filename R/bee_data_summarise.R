@@ -296,7 +296,7 @@ summarise_ID <- function(data = data, variable = "var_name") {
   data[[variable]] = as.numeric(data[[variable]])
   funs <- list(
     mean = function(x) mean(x, na.rm = TRUE),
-    median = function(x) median(x, na.rm = TRUE),
+    median = function(x) stats::median(x, na.rm = TRUE),
     var = function(x) stats::var(x, na.rm = TRUE),
     min = function(x) if (all(is.na(x))) NA_real_ else min(x, na.rm = TRUE),
     max = function(x) if (all(is.na(x))) NA_real_ else max(x, na.rm = TRUE),
@@ -433,7 +433,7 @@ summarise_lag <- function(
     output[i, paste0(as.character(variable), "_", "median")] <- ifelse(
       is.na(data[i, variable]),
       NA,
-      median(
+      stats::median(
         data[index, variable],
         na.rm = TRUE
       )
