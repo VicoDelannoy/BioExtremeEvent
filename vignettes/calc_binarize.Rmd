@@ -1,5 +1,5 @@
 ---
-title: "2. Compare a time serie with the baseline or fixed threshold.Rmd"
+title: "2. Compare a time serie with the baseline or fixed threshold"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >

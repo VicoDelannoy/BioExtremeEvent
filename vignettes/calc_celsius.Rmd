@@ -58,6 +58,7 @@ saying which conversion has been done.
 ## Example with a dataset in Kelvin
 
 ```{r}
+library(BioExtremeEvent)
 ### Apply function :
 copernicus_data_celsius <- BioExtremeEvent::BEE.calc.celsius(copernicus_data)
  

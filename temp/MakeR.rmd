@@ -97,7 +97,7 @@ ds <- terra::rast("Data/ds_Golfe_du_lion.tiff")
 # 3. Calculate a baseline value for each cell in your dataset using one of two methods with *"BEE.calc.baseline"* :
 
 ```{r}
-baseline_qt90 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 5, smooth_window = 7) 
+baseline_qt90 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 1, smooth_window = 1) 
 baseline_qt10 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.1, time_window = 5, smooth_window = 7) 
 baseline_mean <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "mean", quantile_value = NULL, time_window = 5, smooth_window = 7)
 
@@ -111,22 +111,24 @@ baseline_mean <- terra::rast("Data/baseline_mean_Golfe_du_lion.tiff")
 
 # PLot climatology in Frontignan
 df_plot <- data.frame(doy=seq(1:366),
-                      qt10=t(terra::extract(baseline_qt10,507)), #507 is frontignant pixel
-                      mean=t(terra::extract(baseline_mean,507)),
-                      qt90=t(terra::extract(baseline_qt90,507)))
-mois_labels <- c("Jan", "Fév", "Mar", "Avr", "Mai", "Juin", 
-                 "Juil", "Août", "Sept", "Oct", "Nov", "Déc")
+                      t1_s1=t(terra::extract(baseline_qt90_t1_s1,507)),
+                      t5_s1=t(terra::extract(baseline_qt90_t5_s1,507)),
+                      t1_s5=t(terra::extract(baseline_qt90_t1_s5,507)),
+                      t5_s5=t(terra::extract(baseline_qt90_t5_s5,507)))
+mois_labels <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 mois_jours <- c(1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336)
 library(ggplot2)
 ggplot(df_plot, ggplot2::aes(x = doy)) +
-  geom_line(ggplot2::aes(y = mean), color = "darkgreen", size = 1) +  # Ligne verte pour la moyenne
-  geom_line(ggplot2::aes(y = qt10), color = "blue4", linetype = "dashed", size = 1) +  # Qt10 en bleu en tirets
-  geom_line(ggplot2::aes(y = qt90), color = "red3", linetype = "dashed", size = 1) +  # Qt90 en rouge en tirets
-  scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  # Labels mensuels
-  scale_y_continuous(breaks = seq(floor(min(df_plot)), ceiling(max(df_plot)), by = 1)) +  # Graduation par degré
-  ggplot2::labs(title = "Évolution des valeurs sur 366 jours",
-       x = "Mois",
-       y = "Température (°C)") +
+  geom_line(ggplot2::aes(y = t5_s1), color = "#1E88E5", size = 1) + 
+  geom_line(ggplot2::aes(y = t1_s1), color = "#D81B60", size = 1) +
+  geom_line(ggplot2::aes(y = t1_s5), color = "#FFC107", linetype = "dashed", size = 1)+
+  geom_line(ggplot2::aes(y = t5_s5), color = "#004D40", linetype = "dashed", size = 1)+
+  scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  
+  scale_y_continuous(breaks = seq(floor(min(df_plot)), ceiling(max(df_plot)), by = 1)) +  
+  ggplot2::labs(title = "Baselines values according various combination of time_window and smothing_window.",
+       x = "Months",
+       y = "Temperature (°C) in pixel 507") +
   ggplot2::theme_minimal()
 ```
 
@@ -405,4 +407,88 @@ summarised_data <- BEE.data.summarise(
   variable = "azimut",
   summarise_by = 3
 ) 
+```
+
+
+
+```{r}
+#BROUILLON FIGURE VIGNETTES
+tictoc::tic() ; baseline_qt90_t1_s1 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 1, smooth_window = 1) ; tictoc::toc()
+tictoc::tic() ; baseline_qt90_t1_s10 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 1, smooth_window = 10) ; tictoc::toc()
+tictoc::tic() ; baseline_qt90_t10_s1 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 10, smooth_window = 1) ; tictoc::toc()
+tictoc::tic() ; baseline_qt90_t10_s10 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 10, smooth_window = 10) ; tictoc::toc()
+# lim fait
+tictoc::tic() ; baseline_mean_t1_s1 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 1, smooth_window = 1) ; tictoc::toc()
+tictoc::tic() ; baseline_mean_t10_s1 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 10, smooth_window = 1) ; tictoc::toc()
+tictoc::tic() ; baseline_mean_t1_s10 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 1, smooth_window = 10) ; tictoc::toc()
+tictoc::tic() ; baseline_mean_t10_s10 <- BEE.calc.baseline(YourSpatraster = ds, start_date = "1982-01-01", end_date = "2010-12-31", threshold = "qt", quantile_value = 0.9, time_window = 10, smooth_window = 10) ; tictoc::toc()
+
+# PLot climatology in Frontignan
+df_plot <- data.frame(doy=seq(1:366),
+                      t1_s1=t(terra::extract(baseline_qt90_t1_s1,507)),
+                      t10_s1=t(terra::extract(baseline_qt90_t10_s1,507)),
+                      t1_s10=t(terra::extract(baseline_qt90_t1_s10,507)),
+                      t10_s10=t(terra::extract(baseline_qt90_t10_s10,507)),
+                      mt1_s1 = t(terra::extract(baseline_mean_t1_s1,507)),
+                      mt1_s10 = t(terra::extract(baseline_mean_t1_s10,507)),
+                      mt10_s1 = t(terra::extract(baseline_mean_t10_s1,507)),
+                      mt10_s10 = t(terra::extract(baseline_mean_t10_s10,507)))
+write.csv(df_plot, file = "Data/baselines_plot_vignette.csv")
+
+mois_labels <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+mois_jours <- c(1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336)
+library(ggplot2)
+ggplot(df_plot, ggplot2::aes(x = doy)) +
+  geom_line(
+    ggplot2::aes(y = t10_s1, color = "Time_window = 10, Smoothing_window = 1"),
+    size = 1.2,
+    show.legend = TRUE
+  ) + 
+  geom_line(
+    ggplot2::aes(y = t1_s1, color = "Time_window = 1, Smoothing_window = 1"),
+    size = 0.8,
+    show.legend = TRUE
+  ) +
+  geom_line(
+    ggplot2::aes(y = t1_s10, color = "Time_window = 1, Smoothing_window = 10"),
+    linetype = "dashed",
+    size = 1.2,
+    show.legend = TRUE
+  ) +
+  geom_line(
+    ggplot2::aes(y = t10_s10, color = "Time_window = 10, Smoothing_window = 10"),
+    linetype = "dashed",
+    size = 1.2,
+    show.legend = TRUE
+  ) +
+  scale_color_manual(
+    name = "Settings",
+    values = c(
+      "Time_window = 10, Smoothing_window = 1"  = "#1E88E5",
+      "Time_window = 1, Smoothing_window = 1"   = "black",
+      "Time_window = 1, Smoothing_window = 10"  = "#FFC107",
+      "Time_window = 10, Smoothing_window = 10" = "#e60d67ff"
+    )
+  ) +
+  scale_x_continuous(breaks = mois_jours, labels = mois_labels) +  
+  scale_y_continuous(
+    breaks = seq(floor(min(df_plot)), ceiling(max(df_plot)), by = 1)
+  ) +  
+  ggplot2::labs(
+    #title = "Baselines values according various combinations of *time_window* and *smothing_window*.",
+    x = "Months",
+    y = "Temperature (°C) in pixel 507"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    legend.position = "right",
+    text = ggplot2::element_text(size = 18),
+    plot.title = ggplot2::element_text(size = 22),
+    axis.title = ggplot2::element_text(size = 20),
+    axis.text  = ggplot2::element_text(size = 18),
+    legend.title = ggplot2::element_text(size = 16),
+    legend.text  = ggplot2::element_text(size = 14)
+  )
+
 ```
