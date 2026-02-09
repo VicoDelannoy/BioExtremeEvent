@@ -3,7 +3,7 @@ title: "1. Compute a baseline value"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{1. Compute a baseline value.Rmd}
+  %\VignetteIndexEntry{1. Compute a baseline value}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -68,6 +68,14 @@ You will receive a message if :
 
 Calculate the baseline value for each day of a year using the 90^th percentile threshold and
 all values between d-5 and d+5. Then smothing over a 15 days period centred on the d day:
+
+```{r, echo = FALSE}
+### Load the example dataset in R environement :
+file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"),
+                                   package = "BioExtremeEvent")
+copernicus_data <- terra::rast(file_name)
+```
+
 ```{r}
 library(BioExtremeEvent)
 #### Smoothing over 15 days: # 18s to run
