@@ -52,10 +52,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/calc_baseline.html">1. Compute a baseline value.Rmd</a>
+      <a href="../articles/calc_baseline.html">1. Compute a baseline value</a>
     </li>
     <li>
-      <a href="../articles/calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold.Rmd</a>
+      <a href="../articles/calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
       <a href="../articles/calc_celsius.html">0bis. Convert temperature data to Celsius</a>
@@ -154,7 +154,8 @@ message saying which conversion has been done.</p>
 <h3 id="example-with-a-dataset-in-kelvin">Example with a dataset in Kelvin<a class="anchor" aria-label="anchor" href="#example-with-a-dataset-in-kelvin"></a>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">### Apply function :</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VicoMarbec/BioExtremeEvent" class="external-link">BioExtremeEvent</a></span><span class="op">)</span></span>
+<span><span class="co">### Apply function :</span></span>
 <span><span class="va">copernicus_data_celsius</span> <span class="op">&lt;-</span> <span class="fu">BioExtremeEvent</span><span class="fu">::</span><span class="fu"><a href="../reference/BEE.calc.celsius.html">BEE.calc.celsius</a></span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning in BioExtremeEvent::BEE.calc.celsius(copernicus_data): Your data were in Kelvin and have been converted to Celsius using:</span></span>
 <span><span class="co">##             former value - 273.15 = new value.</span></span></code></pre>

@@ -52,10 +52,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/calc_baseline.html">1. Compute a baseline value.Rmd</a>
+      <a href="../articles/calc_baseline.html">1. Compute a baseline value</a>
     </li>
     <li>
-      <a href="../articles/calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold.Rmd</a>
+      <a href="../articles/calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
       <a href="../articles/calc_celsius.html">0bis. Convert temperature data to Celsius</a>
@@ -90,7 +90,7 @@
                         <h4 data-toc-skip class="author">Victoria
 Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
             
-            <h4 data-toc-skip class="date">2026-02-05</h4>
+            <h4 data-toc-skip class="date">2026-02-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/VicoMarbec/BioExtremeEvent/blob/main/vignettes/data_load_corpernicus.Rmd" class="external-link"><code>vignettes/data_load_corpernicus.Rmd</code></a></small>
       <div class="hidden name"><code>data_load_corpernicus.Rmd</code></div>
@@ -137,7 +137,9 @@ Data Store.<br>
 dataset.<br>
 You can now run the function.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">BioExtremeEvent</span><span class="fu">::</span><span class="fu"><a href="../reference/BEE.data.load_copernicus.html">BEE.data.load_copernicus</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VicoMarbec/BioExtremeEvent" class="external-link">BioExtremeEvent</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">BioExtremeEvent</span><span class="fu">::</span><span class="fu"><a href="../reference/BEE.data.load_copernicus.html">BEE.data.load_copernicus</a></span><span class="op">(</span></span>
 <span>    username <span class="op">=</span> <span class="va">my_user_name</span>, <span class="co"># In addition of the API copy&amp;paste</span></span>
 <span>    password <span class="op">=</span> <span class="va">my_password</span>, <span class="co"># In addition of the API copy&amp;paste</span></span>
 <span>    dataset_id <span class="op">=</span> <span class="st">"cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021"</span>,</span>
