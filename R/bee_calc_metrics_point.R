@@ -1,6 +1,6 @@
 # BEE.calc.metrics_point is not designed to work on 4D data (time + spatial 3D).
 
-#' BEE.calc.metrics_point compute metrics through time for specific locations.
+#' Compute metrics through time for specific locations.
 #'
 #' @param Events_corrected Is the list of data tables produced by:
 #' bee_calc_true_event (the second element of the output). For each pixel, it

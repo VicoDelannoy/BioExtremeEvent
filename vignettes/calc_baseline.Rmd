@@ -18,9 +18,7 @@ In this pipeline, an extreme event is identified in a given location if the valu
 *BEE.calc.baseline()* computes the daily baseline value for each day. You can choose the percentile value to use when computing your baseline. Futher along the pipeline, this baseline is used to identify extreme event and compute some metrics about the extreme event.
 
 # Data for this tutorial
-copernicus_data is a spatraster form copernicus. It has one layer per day 
-between 1982-01-01 and 2024-12-31 and cover around 10 000 km² in the corner of the
-gulf of lion. See article *0. Download data from Copernicus* for more inforamtions.
+copernicus_data_celsius is a spatraster form copernicus, converted from Kelvin to celsius using BEE.calc.celsius(). It has one layer per day between 2023-01-01 and 2025-12-31 and cover around 10 000 km² in the corner of the gulf of lion. See article *0. Download data from Copernicus* for more informations and *0.bis. Convert tempreature data to Celsius*.
 
 # Usage
 
@@ -71,15 +69,15 @@ all values between d-5 and d+5. Then smothing over a 15 days period centred on t
 
 ```{r, echo = FALSE}
 ### Load the example dataset in R environement :
-file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"),
+file_name <- system.file(file.path("extdata", "copernicus_data_celsius.tiff"),
                                    package = "BioExtremeEvent")
-copernicus_data <- terra::rast(file_name)
+copernicus_data_celsius <- terra::rast(file_name)
 ```
 
 ```{r}
 library(BioExtremeEvent)
 #### Smoothing over 15 days: # 18s to run
-baseline_qt90_smth_15 <- BEE.calc.baseline(YourSpatraster = copernicus_data,
+baseline_qt90_smth_15 <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
                                     start_date = "2023-01-01",
                                     end_date = "2025-12-31",
                                     threshold = "qt",

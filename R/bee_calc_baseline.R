@@ -37,15 +37,15 @@
 #'
 #' @examples
 #' ### Load the example dataset in R environement :
-#' file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"),
+#' file_name <- system.file(file.path("extdata", "copernicus_data_celsius.tiff"),
 #'                                   package = "BioExtremeEvent")
-#' copernicus_data <- terra::rast(file_name)
+#' copernicus_data_celsius <- terra::rast(file_name)
 #'
 #' ### **90th percentile threshold:** 90 % of the values observed at a given day
 #' # accross all years of the reference time period are bellow the baseline
 #' # value.
 #' #### No smoothing: # 16s to run
-#' baseline_qt90_smth_0 <- BEE.calc.baseline(YourSpatraster = copernicus_data,
+#' baseline_qt90_smth_0 <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
 #'                                    start_date = "2023-01-01",
 #'                                    end_date = "2025-12-31",
 #'                                    threshold = "qt",
@@ -53,7 +53,7 @@
 #'                                    time_window = 5,
 #'                                    smooth_window = 0)
 #' #### Smoothing over 15 days: # 18s to run
-#' baseline_qt90_smth_15 <- BEE.calc.baseline(YourSpatraster = copernicus_data,
+#' baseline_qt90_smth_15 <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
 #'                                    start_date = "2023-01-01",
 #'                                    end_date = "2025-12-31",
 #'                                    threshold = "qt",
@@ -61,7 +61,7 @@
 #'                                    time_window = 5,
 #'                                    smooth_window = 7) #7+1+7=15
 #' ###**Mean value threshold:**
-#' baseline_mean <- BEE.calc.baseline(YourSpatraster = copernicus_data,
+#' baseline_mean <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
 #'                                    start_date = "2023-01-01",
 #'                                    end_date = "2025-12-31",
 #'                                    threshold = "mean",

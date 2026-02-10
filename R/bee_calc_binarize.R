@@ -28,7 +28,7 @@
 #'  order of the layers differs from that in 'YourSpatraster'.
 #'  BEE.calc.binarize is not designed to work with 4D data (3D in space and
 #'  time). To do so, please refer to BEE.calc.4thD.
-#'  This function only identifies days more extreme than a baseline, extra 
+#'  This function only identifies days more extreme than a baseline, extra
 #'  criteria to identify extreme event (e.g. minimum duration) will be apply in
 #'  the BEE.calc.true_event() function (next one in the framwork).
 #'
@@ -36,17 +36,17 @@
 #' # Load data:
 #' ## Time series of sea surface temperature in the Gulf of Lion (France)
 #' # between January 2023 and 31 December 2025:
-#' file_name_1 <- system.file(file.path("extdata", "copernicus_example_data.nc"),
+#' file_name_1 <- system.file(file.path("extdata", "copernicus_data_celsius.tiff"),
 #'                                   package = "BioExtremeEvent")
 #' copernicus_data <- terra::rast(file_name_1)
-#' ## Baseline of the sea surface temperature between January 1982 and December 
-#' # 2010 in the Gulf of Lion (France) computed using the BEE.calc.baseline()
-#' # function, with the following the arguments quantile_value = 0.9, 
-#' # time_window = 5, smooth_window = 7:
-#' file_name_2 <- system.file(file.path("extdata", "baseline_qt90"),
+#' ## Baseline of the sea surface temperature between January 2023 and December
+#' # 2025 in the Gulf of Lion (France) computed using the BEE.calc.baseline()
+#' # function, with the following the arguments quantile_value = 0.9,
+#' # time_window = 5, smooth_window = 7. The baseline :
+#' file_name_2 <- system.file(file.path("extdata", "baseline_qt90_smth_15.tiff"),
 #'                                   package = "BioExtremeEvent")
 #' baseline_qt90 <- terra::rast(file_name_2)
-#' 
+#'
 #' # Identify the days on which the values are higher than the baseline for the
 #' # 90th percentile.:
 #' binarized_EE <- BEE.calc.binarize(YourSpatraster=copernicus_data,
@@ -123,7 +123,7 @@ BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
       # Binarize the cells based on the condition
       delta <- terra::ifel(YourSpatraster < baseline, 0, 1)
     }
-    if (direction == "bellow") {
+    if (direction == "below") {
       # Binarize the cells based on the condition
       delta <- terra::ifel(YourSpatraster < baseline, 1, 0)
     }
