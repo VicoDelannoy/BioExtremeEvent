@@ -27,6 +27,7 @@ You can now run the function.
 
 ```{r, eval=FALSE}
 library(BioExtremeEvent)
+
 BioExtremeEvent::BEE.data.load_copernicus(
     username = my_user_name, # In addition of the API copy&paste
     password = my_password, # In addition of the API copy&paste
