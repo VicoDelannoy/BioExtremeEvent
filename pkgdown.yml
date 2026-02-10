@@ -6,5 +6,6 @@ articles:
   calc_baseline: calc_baseline.html
   calc_binarize: calc_binarize.html
   calc_celsius: calc_celsius.html
+  calc_true_event: calc_true_event.html
   data_load_corpernicus: data_load_corpernicus.html
-last_built: 2026-02-10T14:05Z
+last_built: 2026-02-10T16:12Z
