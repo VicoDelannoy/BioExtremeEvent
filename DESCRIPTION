@@ -37,3 +37,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Config/Needs/website: rmarkdown

@@ -3,7 +3,7 @@ title: "2. Compare a time serie with the baseline or fixed threshold"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{2. Compare a time serie with the baseline or fixed threshold.Rmd}
+  %\VignetteIndexEntry{2. Compare a time serie with the baseline or fixed threshold}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -64,9 +64,6 @@ Plot parameter values, baseline value and comparison obtained (binarized values)
 *"1" means the parameter value is more extreme than the baseline value for this day.*
 ```{r}
 library(terra)
-# open a graph:
-graphics.off()
-dev.new()
 
 # color scale:
 zlim_common <- range(
@@ -122,9 +119,6 @@ Plot parameter values, baseline value and comparison obtained (binarized values)
 *"1" means the parameter value is more extreme than the baseline value for this day.*
 ```{r}
 library(terra)
-# open a graph:
-graphics.off()
-dev.new()
 
 # color scale:
 zlim_common <- range(

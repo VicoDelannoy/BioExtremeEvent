@@ -8,22 +8,25 @@ BEE.calc.binarize(YourSpatraster, baseline, direction)
 }
 \arguments{
 \item{YourSpatraster}{The Spatraster containing the values of the studied
-parameter, with one layer per timestep.}
+parameter, with one layer for each timestep.}
 
-\item{baseline}{A Spatraster built using the BEE.calc.baseline function that
-contains the baseline value for each pixel on a given day of the year (with
-366 layers).}
+\item{baseline}{A Spatraster built using the BEE.calc.baseline function,
+which contains the baseline value for each pixel on a given day of the year
+(with 366 layers), \strong{or} a fixed threshold that you want to use as the baseline.
+The fixed threshold must be a number.}
 
-\item{direction}{The accepted values for this argument are "above" or
-"below". This tells the function whether it values above baseline or below
+\item{direction}{The accepted values for this argument are \emph{"above"} or
+\emph{"below"}. This tells the function whether it values above baseline or below
 baseline are to be considered as extreme events.}
 }
 \value{
-The function returns a list containing a Spatraster for each day of
-a typical year (366 Spatraster, with one layer per year provided in
-YourSpatraster). These rasters have the same properties as "YourSpatraster"
-but the values have been replace with 1 if the pixel value was more extreme
-than the baseline and with 0 if it was not.
+The function returns a list containing a Spatraster for each day of a
+typical year, providing a total of 366 Spatrasters, with one layer per year.
+The first element of the list contains the rasters for all the first of
+January included in the provided time series. These rasters have the same
+properties as 'YourSpatraster', but the values have been replaced with 1 if
+the pixel value was more extreme than the baseline, and with 0 if it was
+not.
 }
 \description{
 The function binarise a Spatraster by comparing the observed value with the
@@ -32,8 +35,37 @@ will be converted to 1, and the value bellow baseline will be converted to 0.
 The process works in reverse when "direction" = below.
 }
 \details{
-For computational purposes in the next functions of the pipeline,
-the order of the layers differs from that of "YourSpatraster".
-BEE.calc.binarize is not design to work on 4D data (3D in space + time).
-To do so, please refer to BEE.calc.4thD.
+For computational purposes in the next stages of the pipeline, the
+order of the layers differs from that in 'YourSpatraster'.
+BEE.calc.binarize is not designed to work with 4D data (3D in space and
+time). To do so, please refer to BEE.calc.4thD.
+This function only identifies days more extreme than a baseline, extra
+criteria to identify extreme event (e.g. minimum duration) will be apply in
+the BEE.calc.true_event() function (next one in the framwork).
+}
+\examples{
+# Load data:
+## Time series of sea surface temperature in the Gulf of Lion (France)
+# between January 2023 and 31 December 2025:
+file_name_1 <- system.file(file.path("extdata", "copernicus_data_celsius.tiff"),
+                                  package = "BioExtremeEvent")
+copernicus_data <- terra::rast(file_name_1)
+## Baseline of the sea surface temperature between January 2023 and December
+# 2025 in the Gulf of Lion (France) computed using the BEE.calc.baseline()
+# function, with the following the arguments quantile_value = 0.9,
+# time_window = 5, smooth_window = 7. The baseline :
+file_name_2 <- system.file(file.path("extdata", "baseline_qt90_smth_15.tiff"),
+                                  package = "BioExtremeEvent")
+baseline_qt90 <- terra::rast(file_name_2)
+
+# Identify the days on which the values are higher than the baseline for the
+# 90th percentile.:
+binarized_EE <- BEE.calc.binarize(YourSpatraster=copernicus_data,
+                                  baseline=baseline_qt90,
+                                  direction = "above")
+# Identify days on which the value is lower than a fixed threshold.
+binarized_EE <- BEE.calc.binarize(YourSpatraster=copernicus_data,
+                                  baseline=12,
+                                  direction = "below")
+
 }

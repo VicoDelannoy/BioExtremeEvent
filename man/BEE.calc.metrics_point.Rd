@@ -2,7 +2,7 @@
 % Please edit documentation in R/bee_calc_metrics_point.R
 \name{BEE.calc.metrics_point}
 \alias{BEE.calc.metrics_point}
-\title{BEE.calc.metrics_point compute metrics through time for specific locations.}
+\title{Compute metrics through time for specific locations.}
 \usage{
 BEE.calc.metrics_point(
   Events_corrected,
@@ -51,7 +51,7 @@ values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
 etc. Categories are defined in Hobday et al. 2018.
 }
 \description{
-BEE.calc.metrics_point compute metrics through time for specific locations.
+Compute metrics through time for specific locations.
 }
 \examples{
 # To be added

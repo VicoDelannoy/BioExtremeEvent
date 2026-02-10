@@ -1,0 +1,28 @@
+---
+title: "3. Identify extreme event according specific constraints"
+author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{3. Identify extreme event according specific constraints}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Aims of the function *BEE.calc.true_event()*
+ Identify the extreme event according to a set of constraints (e.g. minimum
+ duration, merging close events).
+
+
+# Data for this tutorial
+
+# Usage
+## Arguments:
+**YourSpatraster** is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.
+
+
+
+## Warnings:  
+## Messages:
+
+# Examples
+## Load data:
