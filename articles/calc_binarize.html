@@ -58,7 +58,7 @@
       <a href="../articles/calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
-      <a href="../articles/calc_celsius.html">0bis. Convert temperature data to Celsius</a>
+      <a href="../articles/calc_celsius.html">0.bis. Convert temperature data to Celsius</a>
     </li>
     <li>
       <a href="../articles/data_load_corpernicus.html">0. Dowload data from Copernicus</a>
@@ -100,12 +100,31 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
     
     
 <div class="section level2">
-<h2 id="aims-of-the-function">Aims of the function **<a class="anchor" aria-label="anchor" href="#aims-of-the-function"></a>
+<h2 id="aims-of-the-function-bee-calc-binarize">Aims of the function <em>BEE.calc.binarize()</em><a class="anchor" aria-label="anchor" href="#aims-of-the-function-bee-calc-binarize"></a>
 </h2>
+<p>The function compares your timeseries (spatraster) with the baseline
+(spatraster created using BEE.calc.baseline) or a fixed threshold.<br>
+For most users, BEE.calc.binarize() serves only as an intermediate step
+in the pipeline, providing a required input for BEE.calc.true_event().
+The output is exposed primarily for advanced users who need to implement
+highly specific or complex filtering procedures beyond the built-in
+options. For standard analyses, BEE.calc.true_event() addresses the vast
+majority of use cases for extreme-event identification, including common
+criteria such as minimum event duration and the merging of temporally
+close events.</p>
 </div>
 <div class="section level2">
 <h2 id="data-for-this-tutorial">Data for this tutorial<a class="anchor" aria-label="anchor" href="#data-for-this-tutorial"></a>
 </h2>
+<p>A Spatraster imported containning the sea surface temperature in the
+Gulf of Lion from the 1st of January 2023 to the 31th of Decembre 2025.
+There are only one variable in the spatraster (sea surface
+temperature).<br>
+A baseline computed with BEE.calc.baseline (01-01-1982 to 31-12-2010,
+quantile_value = 0.9, time_window = 5, smooth_window = 7) or a fixed
+threshold (12 °C).<br>
+Note: the baseline used here have been computed in a longer time serie
+than the BEE.calc.baseline() vignette example.</p>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
@@ -113,21 +132,166 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
+<p><strong>YourSpatraster</strong> is a spatraster with one layer per
+day. Each layer covers the same area and time is continuous (no layers
+are missing). If you are not using a fixed threshold, the baseline
+spatraster computed using BEE.calc.baseline() must be computed using the
+same dataset as YourSpatraster for comparison without bias.
+<strong>baseline</strong> a spatraster computed with BEE.calc.baseline()
+or a numerical value representing a fixed threshold.
+<strong>direction</strong> Only two options are accepted
+<em>“above”</em> or <em>“below”</em>. It indicates whether extreme event
+are expected to have value higher <em>(above)</em> or lower
+<em>(below)</em> than the baseline.<br>
+For example, to identify cold spells, which are anormaly cold period,
+you will computed a baseline using BEE.calc.baseline() with a 10 %
+quantile and used <em>direction = “below”</em>.</p>
 </div>
 <div class="section level3">
 <h3 id="warnings">Warnings:<a class="anchor" aria-label="anchor" href="#warnings"></a>
 </h3>
-</div>
-<div class="section level3">
-<h3 id="messages">Messages:<a class="anchor" aria-label="anchor" href="#messages"></a>
-</h3>
+<p>No warning implemented. ## Messages: No warning implemented.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
 </h2>
+<div class="section level3">
+<h3 id="load-data">Load data:<a class="anchor" aria-label="anchor" href="#load-data"></a>
+</h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VicoMarbec/BioExtremeEvent" class="external-link">BioExtremeEvent</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VicoMarbec/BioExtremeEvent" class="external-link">BioExtremeEvent</a></span><span class="op">)</span></span>
+<span><span class="co">#Time series of sea surface temperature in the Gulf of Lion (France)</span></span>
+<span><span class="co"># between January 2023 and 31 December 2025:</span></span>
+<span><span class="va">file_name_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_data_celsius.tiff"</span><span class="op">)</span>,</span>
+<span>                                   package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
+<span><span class="va">copernicus_data</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name_1</span><span class="op">)</span></span>
+<span><span class="co">## Baseline of the sea surface temperature between January 1982 and December </span></span>
+<span><span class="co"># 2010 in the Gulf of Lion (France) computed using the BEE.calc.baseline()</span></span>
+<span><span class="co"># function, with the following the arguments quantile_value = 0.9, </span></span>
+<span><span class="co"># time_window = 5, smooth_window = 7:</span></span>
+<span><span class="va">file_name_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"baseline_qt90_smth_15.tiff"</span><span class="op">)</span>,</span>
+<span>                                   package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
+<span><span class="va">baseline_qt90</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name_2</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="compare-binarise-against-a-seasonnal-baseline">Compare binarise against a seasonnal baseline:<a class="anchor" aria-label="anchor" href="#compare-binarise-against-a-seasonnal-baseline"></a>
+</h3>
+<p>Binerise the Spatraster</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Identify the days on which the values are higher than the baseline for the</span></span>
+<span><span class="co"># 90th percentile.:</span></span>
+<span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.binarize.html">BEE.calc.binarize</a></span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
+<span>                                   baseline<span class="op">=</span><span class="va">baseline_qt90</span>,</span>
+<span>                                   direction <span class="op">=</span> <span class="st">"above"</span><span class="op">)</span></span></code></pre></div>
+<p>Plot parameter values, baseline value and comparison obtained
+(binarized values): <em>“1” means the parameter value is more extreme
+than the baseline value for this day.</em></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## terra 1.8.93</span></span></code></pre>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># open a graph:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">graphics.off</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.new</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># color scale:</span></span>
+<span><span class="va">zlim_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">baseline_qt90</span><span class="op">[[</span><span class="fl">70</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  na.rm <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">n_colors</span>   <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">cols_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="va">n_colors</span>, palette <span class="op">=</span> <span class="st">"Viridis"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#structure:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/layout.html" class="external-link">layout</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, widths <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1.2</span>, <span class="fl">1.2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span></span>
+<span>  mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>,     </span>
+<span>  oma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span>     </span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#plots:</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>  main   <span class="op">=</span> <span class="st">"Copernicus data"</span>,</span>
+<span>  col    <span class="op">=</span> <span class="va">cols_common</span>,</span>
+<span>  zlim   <span class="op">=</span> <span class="va">zlim_common</span>,</span>
+<span>  legend <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="va">baseline_qt90</span><span class="op">[[</span><span class="fl">70</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>  main   <span class="op">=</span> <span class="st">"Baseline qt90"</span>,</span>
+<span>  col    <span class="op">=</span> <span class="va">cols_common</span>,</span>
+<span>  zlim   <span class="op">=</span> <span class="va">zlim_common</span>,</span>
+<span>  legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  plg    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">70</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>  main <span class="op">=</span> <span class="st">"Binarized EE"</span>,</span>
+<span>  plg  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="compare-against-a-fixed-threshold">Compare against a fixed threshold:<a class="anchor" aria-label="anchor" href="#compare-against-a-fixed-threshold"></a>
+</h3>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Identify days on which the value is lower than a fixed threshold.</span></span>
+<span><span class="va">binarized_EE_fixed_threshold</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.binarize.html">BEE.calc.binarize</a></span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
+<span>                                   baseline<span class="op">=</span> <span class="fl">12.5</span>,</span>
+<span>                                   direction <span class="op">=</span> <span class="st">"below"</span><span class="op">)</span></span></code></pre></div>
+<p>Plot parameter values, baseline value and comparison obtained
+(binarized values): <em>“1” means the parameter value is more extreme
+than the baseline value for this day.</em></p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span>
+<span><span class="co"># open a graph:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">graphics.off</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.new</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># color scale:</span></span>
+<span><span class="va">zlim_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">baseline_qt90</span><span class="op">[[</span><span class="fl">70</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  na.rm <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">n_colors</span>   <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">cols_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="va">n_colors</span>, palette <span class="op">=</span> <span class="st">"Viridis"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#structure:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/layout.html" class="external-link">layout</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, widths <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1.2</span>, <span class="fl">1.2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span></span>
+<span>  mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>,     </span>
+<span>  oma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span>     </span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#plots:</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>  main   <span class="op">=</span> <span class="st">"Copernicus data"</span>,</span>
+<span>  col    <span class="op">=</span> <span class="va">cols_common</span>,</span>
+<span>  zlim   <span class="op">=</span> <span class="va">zlim_common</span>,</span>
+<span>  legend <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="va">baseline_qt90</span><span class="op">[[</span><span class="fl">70</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>  main   <span class="op">=</span> <span class="st">"Baseline qt90"</span>,</span>
+<span>  col    <span class="op">=</span> <span class="va">cols_common</span>,</span>
+<span>  zlim   <span class="op">=</span> <span class="va">zlim_common</span>,</span>
+<span>  legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  plg    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="va">binarized_EE_fixed_threshold</span><span class="op">[[</span><span class="fl">70</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>  main <span class="op">=</span> <span class="st">"Binarized EE"</span>,</span>
+<span>  plg  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
   </div>
 
