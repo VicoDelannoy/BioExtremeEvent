@@ -29,11 +29,8 @@ flowchart below, step by step.
 <br />
 
 **FRAMEWORK:**
-![](pipeline_BEE.png){width=100% fig-align="center"}
 
-*Figure 1 : Framework of the BioExtremeEvent package*
-
-```{r, echo = FALSE, out.width = "100%", fig.cap = "Framework of the BioExtremeEvent package", fig.align = 'center'}
+```{r, echo = FALSE, out.width = "200%", fig.cap = "Framework of the BioExtremeEvent package", fig.align = 'center'}
 knitr::include_graphics("pipeline_BEE.png")
 ```
 

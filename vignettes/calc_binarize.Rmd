@@ -8,9 +8,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Aims of the function **
+# Aims of the function *BEE.calc.binarize()*
+The function compares your timeseries (spatraster) with the baseline (spatraster created using BEE.calc.baseline) or a fixed threshold.
 
 # Data for this tutorial
+A Spatraster imported containning the sea surface temperature in the Gulf of Lion from the 1st of January 2023 to the 31th of Decembre 2025. There are only one variable in the spatraster (sea surface temperature). 
+And the baseline computed with BEE.calc.baseline or a fixed threshold (number).
 
 # Usage
 ## Arguments:
