@@ -1,9 +1,9 @@
 ---
-title: "0.bis. Convert temperature data to Celsius"
+title: "0. bis. Convert temperature data to Celsius"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{0.bis. Convert temperature data to Celsius}
+  %\VignetteIndexEntry{0. bis. Convert temperature data to Celsius}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

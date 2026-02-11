@@ -22,10 +22,10 @@ Imports:
     data.table,
     dplyr,
     geosphere,
+    ggplot2,
     here,
     landscapemetrics,
     lubridate,
-    parallel,
     raster,
     reticulate,
     sf,
@@ -35,6 +35,7 @@ Imports:
     utils
 Suggests: 
     knitr,
+    remotes,
     rmarkdown
 VignetteBuilder: knitr
 Config/Needs/website: rmarkdown

@@ -12,21 +12,21 @@ BEE.calc.corrections(true_event_raster, true_event_df_list, plot = TRUE)
 ouput, which is a spatraster binarized that inclued the corrections by
 \emph{BEE.calc.true_event()}.}
 
-\item{plot}{Accepted values are TRUE of FALSE. Set to “FALSE” to not display
-the graphs.}
-
-\item{true_event_df}{The second element of the \emph{BEE.calc.true_event()} ouput,
+\item{true_event_df_list}{The second element of the \emph{BEE.calc.true_event()} ouput,
 which is a list of data.table containing information about the value of each
 pixel before and after definition criteria are applied to distinguish
 isolated extreme days from extreme events.}
+
+\item{plot}{Accepted values are TRUE of FALSE. Set to “FALSE” to not display
+the graphs.}
 }
 \value{
 In R consol it returns a message with the number of 1 corrected to 0
 and the number of 0 corrected to 1. If plot=TURE it shows the cumulative
 percentage of changes through time.
 The object return if a dataframe with one line percombinaison of date and
-pixel_id. The dataframe has the same structure than the one in true_event_df
-but colomns
+pixel_id. The dataframe has the same structure than the ones in
+true_event_df_list.
 }
 \description{
 It computes the number of modifications between the raw

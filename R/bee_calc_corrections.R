@@ -4,6 +4,7 @@
 #' @description It computes the number of modifications between the raw
 #' binerised Spatraster and the Spartraster produced using the
 #' *BEE.calc.true_event()*.
+#'
 #' @param true_event_raster The first element of the *BEE.calc.true_event()*
 #' ouput, which is a spatraster binarized that inclued the corrections by
 #' *BEE.calc.true_event()*.
