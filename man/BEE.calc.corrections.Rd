@@ -3,26 +3,35 @@
 \name{BEE.calc.corrections}
 \alias{BEE.calc.corrections}
 \title{Compute the impact of the selected definition of extreme events on the number
-of days of extreme event}
+of days of extreme event.}
 \usage{
-BEE.calc.corrections(Events_corrected)
+BEE.calc.corrections(true_event_raster, true_event_df_list, plot = TRUE)
 }
 \arguments{
-\item{Events_corrected}{The second element of the BEE.calc.true_event ouput,
-which is a list of data.table containing information
-about the value of each pixel before and after definition criteria are
-applied to distinguish isolated extreme days from extreme events).}
+\item{true_event_raster}{The first element of the \emph{BEE.calc.true_event()}
+ouput, which is a spatraster binarized that inclued the corrections by
+\emph{BEE.calc.true_event()}.}
+
+\item{plot}{Accepted values are TRUE of FALSE. Set to “FALSE” to not display
+the graphs.}
+
+\item{true_event_df}{The second element of the \emph{BEE.calc.true_event()} ouput,
+which is a list of data.table containing information about the value of each
+pixel before and after definition criteria are applied to distinguish
+isolated extreme days from extreme events.}
 }
 \value{
-A text summarising the modifications induced.
+In R consol it returns a message with the number of 1 corrected to 0
+and the number of 0 corrected to 1. If plot=TURE it shows the cumulative
+percentage of changes through time.
+The object return if a dataframe with one line percombinaison of date and
+pixel_id. The dataframe has the same structure than the one in true_event_df
+but colomns
 }
 \description{
 It computes the number of modifications between the raw
 binerised Spatraster and the Spartraster produced using the
-BEE.calc.true_event.
-This indicates of the differences in the number of days above the
-threshold/baseline and the number of days that are considered to be
-extreme events, according to the criteria set in BEE.calc.true_event.
+\emph{BEE.calc.true_event()}.
 }
 \examples{
 # to be added

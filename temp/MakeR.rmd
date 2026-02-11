@@ -174,7 +174,7 @@ gc()
 #testL <- as.Date.character(c("2022-11-25", "2022-11-26", "2022-11-27", "2022-11-28", "2022-11-29", "2022-11-30", "2022-12-01", "2022-12-02", "2022-12-03", "2022-12-04", "2022-12-05")) ; test <- Corrected_rasters[[names(Corrected_rasters) %in% as.character(testL)]] ;library(viridis) ; plot(sum(test),  col = viridis::viridis(4))  ; plot(Corrected_rasters["2022-11-30"])
 # saveRDS(result, file= here::here("Outputs/result.rds")) ; test_result <- readRDS(here::here("Outputs/result.rds"))
 #Check settings
-BEE.calc.corrections(Events_corrected)
+df_cor_test <- BEE.calc.corrections(Corrected_rasters, Events_corrected, plot = TRUE)
 
 # Save and load : 
 saveRDS(Events_corrected, file = "Data/Events_corrected.rds")
