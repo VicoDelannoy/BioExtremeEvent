@@ -127,7 +127,6 @@ BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
       )
     })
     # Merge data to save memory
-    all_dates <- unlist(lapply(all_data, `[[`, "dates"), recursive = FALSE)
     all_rasters <- terra::rast(lapply(all_data, `[[`, "rasters"))
     all_rasters_names <- unlist(
       lapply(all_data, `[[`, "dates"),
@@ -179,7 +178,6 @@ BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
       )
     })
     # Merge data to save memory
-    all_dates <- unlist(lapply(all_data, `[[`, "dates"), recursive = FALSE)
     all_rasters <- terra::rast(lapply(all_data, `[[`, "rasters"))
     all_rasters_names <- unlist(
       lapply(all_data, `[[`, "dates"),

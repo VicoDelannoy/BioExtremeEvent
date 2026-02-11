@@ -46,8 +46,8 @@
 #' using the pixel number, the first day of the event and the last day of the
 #' event. It is proper to each pixel. "Duration" indicates the duration (in
 #' days) of the event. "Date" indicates the date corresponding to the row.
-#' 
-#' @details 
+#'
+#' @details
 #' Setting *'nbis'* = 1, has the same effect as setting nbis= NULL. When
 #' *'nbis'* = NULL any series of 1 distant from less than *'d'* to a series of 1
 #' at least as long as *'n'* days will be merged into one big series event, even
@@ -84,7 +84,7 @@
 #' binarized_EE <- BEE.calc.true_event(binarized_spatraster = binarized,
 #' n = 5,
 #' d = 2)
-#' 
+#'
 #' ## Medium complexity :
 #' # -   Minimum number of consecutive day above threshold to
 #' #  consider that there is an extreme event: n  (>=)
@@ -104,7 +104,7 @@
 #' n = 5,
 #' d = 2,
 #' nbis = 3)
-#' 
+#'
 #' @export
 #'
 #-------------------------------------------------------------------------------
@@ -132,6 +132,8 @@ BEE.calc.true_event <- function(
   storage.mode(pixel_time_series) <- "numeric" # NB : if this still to much
   # memory we could swich to sparseMatrix but then, the manipulation on
   # that matrix may be slower.
+
+  all_dates <- as.Date(terra::time(binarized_spatraster))
 
   if (
     !is.null(n) &
