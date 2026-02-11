@@ -61,6 +61,9 @@
       <a href="../articles/calc_celsius.html">0.bis. Convert temperature data to Celsius</a>
     </li>
     <li>
+      <a href="../articles/calc_corrections.html">3. bis. Check how much corrected extreme events differ from raw extreme days.</a>
+    </li>
+    <li>
       <a href="../articles/calc_true_event.html">3. Identify extreme event according specific constraints</a>
     </li>
     <li>
@@ -109,10 +112,6 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
 (e.g. minimum duration, merging close events).</p>
 </div>
 <div class="section level2">
-<h2 id="data-for-this-tutorial">Data for this tutorial<a class="anchor" aria-label="anchor" href="#data-for-this-tutorial"></a>
-</h2>
-</div>
-<div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
 <div class="section level3">
@@ -122,23 +121,22 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
 per day. Each layer covers the same area and time is continuous (no
 layers are missing). If you are not using a fixed threshold, the
 baseline spatraster computed using BEE.calc.baseline() must be computed
-using the same dataset as YourSpatraster for comparison without bias.
-<strong>n</strong> The minimum number of consecutive days above the
+using the same dataset as YourSpatraster for comparison without
+bias.<br><strong>n</strong> The minimum number of consecutive days above the
 baseline/threshol required for a series of days more extrem than the
-baseline to be considered as an extreme event (≥). <strong>d</strong>
-The maximum number of days for which two series of values above the
-threshold/baseline, separated by some days below the threshold/baseline,
-can be considered a single extreme event (the maximum distance in days
-between the two events to be merged &lt;=). <strong>nbis</strong> The
-minimum number of days in a series of 1 to allow merging with #’ serie
-of 1 longer than <em>‘n’</em> and distant from <em>‘d’</em> days or
-fewer. #’ /! <em>‘nbis’</em> must be inferior or equal to <em>‘n’</em>.
-This avoid extending an extreme event for only a few extreme day. For
-instance: 0000100111110010000 will be considere as an extreme event of
-duration 11 days when only using n = 5 and d= 2. However, if you set
-nbis=2, lonely extreme days will not be merged and the duration of the
-above event will be 5 days. It allows to be more or less precautionious
-on the temporal extent of the extreme event.</p>
+baseline to be considered as an extreme event (≥).<br><strong>d</strong> The maximum number of days for which two series of
+values above the threshold/baseline, separated by some days below the
+threshold/baseline, can be considered a single extreme event (the
+maximum distance in days between the two events to be merged
+&lt;=).<br><strong>nbis</strong> The minimum number of days in a series of 1 to
+allow merging with #’ serie of 1 longer than <em>‘n’</em> and distant
+from <em>‘d’</em> days or fewer. #’ /! <em>‘nbis’</em> must be inferior
+or equal to <em>‘n’</em>. This avoid extending an extreme event for only
+a few extreme day. For instance: 0000100111110010000 will be considere
+as an extreme event of duration 11 days when only using n = 5 and d= 2.
+However, if you set nbis=2, lonely extreme days will not be merged and
+the duration of the above event will be 5 days. It allows to be more or
+less precautionious on the temporal extent of the extreme event.</p>
 </div>
 <div class="section level3">
 <h3 id="warnings">Warnings:<a class="anchor" aria-label="anchor" href="#warnings"></a>
@@ -157,13 +155,16 @@ definition used in the function. It is used in the next funciton of the
 pipeline.<br>
 The second element is called <strong>“Event_corrected”</strong>. This is
 a list with one data.table per pixel. Each data.table has a date for
-each row (and as many dates as there are layers in YourSpatraster). The
-“original_value” column gives the value of the raw binarisation before
-applying this function. “cleaned_value” provides the corrected values
-for each date. “ID” is the identifier of the event, built using the
-pixel number, the first day of the event and the last day of the event.
-It is proper to each pixel. “Duration” indicates the duration (in days)
-of the event. “Date” indicates the date corresponding to the row.</p>
+each row (and as many dates as there are layers in YourSpatraster).</p>
+<p>COLUMNS MEANNINGS :<br>
+The “original_value” column gives the value of the raw binarisation
+before applying this function.<br>
+“cleaned_value” provides the corrected values for each date.<br>
+“ID” is the identifier of the event, built using the pixel number, the
+first day of the event and the last day of the event and the event_id
+for that pixel. ID and event_id are proper to each pixel.<br>
+“Duration” indicates the duration (in days) of the event.<br>
+“Date” indicates the date corresponding to the row.</p>
 </div>
 </div>
 <div class="section level2">
@@ -199,21 +200,46 @@ settings.</em></p>
 </h3>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get the corrected spatraster:</span></span>
-<span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
+<span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Plot a layer</span></span>
+<span><span class="va">date</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span><span class="op">[[</span><span class="fl">850</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span><span class="op">[[</span><span class="fl">850</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>            main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">date</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="calc_true_event_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="" width="700"></p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Here 850 refers to the layers of the spatraster &lt;-&gt; 850th days of the spatraster.</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="get-the-list-of-data-table-with-former-and-corrected-values-and-with-dates-and-duration">Get the list of data.table with former and corrected values and with
 dates and duration:<a class="anchor" aria-label="anchor" href="#get-the-list-of-data-table-with-former-and-corrected-values-and-with-dates-and-duration"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">binarized_corrected_df</span><span class="op">[[</span><span class="fl">80</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##   pixel_id original_value cleanned_value event_id duration       date</span></span>
+<span><span class="co">## 1       80              1              0        1      196 2023-01-01</span></span>
+<span><span class="co">## 2       80              0              0        1      196 2023-01-02</span></span>
+<span><span class="co">## 3       80              0              0        1      196 2023-01-03</span></span>
+<span><span class="co">## 4       80              0              0        1      196 2023-01-04</span></span>
+<span><span class="co">## 5       80              0              0        1      196 2023-01-05</span></span>
+<span><span class="co">## 6       80              0              0        1      196 2023-01-06</span></span>
+<span><span class="co">##                           ID</span></span>
+<span><span class="co">## 1 80_2023-01-01_2023-07-15_1</span></span>
+<span><span class="co">## 2 80_2023-01-01_2023-07-15_1</span></span>
+<span><span class="co">## 3 80_2023-01-01_2023-07-15_1</span></span>
+<span><span class="co">## 4 80_2023-01-01_2023-07-15_1</span></span>
+<span><span class="co">## 5 80_2023-01-01_2023-07-15_1</span></span>
+<span><span class="co">## 6 80_2023-01-01_2023-07-15_1</span></span></code></pre>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Here 80 refers to the pixel id. The 850th day correspond to the 850th row.</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="how-to-load-the-ouput">How to load the ouput:<a class="anchor" aria-label="anchor" href="#how-to-load-the-ouput"></a>
+<h3 id="how-to-save-the-ouputs">How to save the ouputs:<a class="anchor" aria-label="anchor" href="#how-to-save-the-ouputs"></a>
 </h3>
 <p>Due to the different nature of the two outputs, they must be saved
 separately.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Save the spatraster</span></span>
 <span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span>, <span class="st">"your_path/data/binarized_corrected_spatraster.tiff"</span><span class="op">)</span></span>

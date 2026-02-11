@@ -61,6 +61,9 @@
       <a href="../articles/calc_celsius.html">0.bis. Convert temperature data to Celsius</a>
     </li>
     <li>
+      <a href="../articles/calc_corrections.html">3. bis. Check how much corrected extreme events differ from raw extreme days.</a>
+    </li>
+    <li>
       <a href="../articles/calc_true_event.html">3. Identify extreme event according specific constraints</a>
     </li>
     <li>
@@ -222,7 +225,10 @@ than the baseline value for this day.</em></p>
 <span>  main   <span class="op">=</span> <span class="st">"Copernicus data"</span>,</span>
 <span>  col    <span class="op">=</span> <span class="va">cols_common</span>,</span>
 <span>  zlim   <span class="op">=</span> <span class="va">zlim_common</span>,</span>
-<span>  legend <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="co">#legend = FALSE,</span></span>
+<span>  plg    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span>,</span>
+<span>  cex.main <span class="op">=</span> <span class="fl">1.4</span>,</span>
+<span>  cex.axis <span class="op">=</span> <span class="fl">1.4</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
@@ -230,16 +236,20 @@ than the baseline value for this day.</em></p>
 <span>  main   <span class="op">=</span> <span class="st">"Baseline qt90"</span>,</span>
 <span>  col    <span class="op">=</span> <span class="va">cols_common</span>,</span>
 <span>  zlim   <span class="op">=</span> <span class="va">zlim_common</span>,</span>
-<span>  legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  plg    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span></span>
+<span>  legend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  plg    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span>,</span>
+<span>  cex.main <span class="op">=</span> <span class="fl">1.4</span>,</span>
+<span>  cex.axis <span class="op">=</span> <span class="fl">1.4</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">binarized</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Binarized data"</span>,</span>
-<span>  plg  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span></span>
+<span>  plg  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span>,</span>
+<span>  cex.main <span class="op">=</span> <span class="fl">1.4</span>,</span>
+<span>  cex.axis <span class="op">=</span> <span class="fl">1.4</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="calc_binarize_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="" width="1152"></p>
+<p><img src="calc_binarize_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="" width="1440"></p>
 </div>
 <div class="section level3">
 <h3 id="compare-against-a-fixed-threshold">Compare against a fixed threshold:<a class="anchor" aria-label="anchor" href="#compare-against-a-fixed-threshold"></a>
@@ -258,7 +268,6 @@ than the baseline value for this day.</em></p>
 <span><span class="co"># color scale:</span></span>
 <span><span class="va">zlim_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">copernicus_data</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">baseline_qt90</span><span class="op">[[</span><span class="fl">70</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  na.rm <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">n_colors</span>   <span class="op">&lt;-</span> <span class="fl">100</span></span>
@@ -266,7 +275,7 @@ than the baseline value for this day.</em></p>
 <span></span>
 <span><span class="co">#structure:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span></span>
-<span>  mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">)</span>,</span>
+<span>  mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
 <span>  mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,     </span>
 <span>  oma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span>     </span>
 <span><span class="op">)</span></span>
@@ -277,24 +286,18 @@ than the baseline value for this day.</em></p>
 <span>  main   <span class="op">=</span> <span class="st">"Copernicus data"</span>,</span>
 <span>  col    <span class="op">=</span> <span class="va">cols_common</span>,</span>
 <span>  zlim   <span class="op">=</span> <span class="va">zlim_common</span>,</span>
-<span>  legend <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
-<span>  <span class="va">baseline_qt90</span><span class="op">[[</span><span class="fl">70</span><span class="op">]</span><span class="op">]</span>,</span>
-<span>  main   <span class="op">=</span> <span class="st">"Baseline qt90"</span>,</span>
-<span>  col    <span class="op">=</span> <span class="va">cols_common</span>,</span>
-<span>  zlim   <span class="op">=</span> <span class="va">zlim_common</span>,</span>
-<span>  legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  plg    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span></span>
+<span>  cex.main <span class="op">=</span> <span class="fl">1.4</span>,</span>
+<span>  cex.axis <span class="op">=</span> <span class="fl">1.4</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">binarized_fixed_threshold</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Binarized data "</span>,</span>
+<span>  cex.main <span class="op">=</span> <span class="fl">1.4</span>,</span>
+<span>  cex.axis <span class="op">=</span> <span class="fl">1.4</span>,</span>
 <span>  plg  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1.4</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="calc_binarize_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="1152"></p>
+<p><img src="calc_binarize_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="1440"></p>
 </div>
 <div class="section level3">
 <h3 id="how-to-save-the-ouptut">How to save the ouptut<a class="anchor" aria-label="anchor" href="#how-to-save-the-ouptut"></a>
