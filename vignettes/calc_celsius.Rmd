@@ -80,6 +80,6 @@ copernicus_data_celsius <- BioExtremeEvent::BEE.calc.celsius(copernicus_data_cel
 ## How to save the output
 The output is a spatraster, you can save it using:
 
-```{r}
-# terra::writeRaster(copernicus_data_celsius, "your_path/data/copernicus_data_celsius.tiff")
+```{r, eval = FALSE}
+terra::writeRaster(copernicus_data_celsius, "your_path/data/copernicus_data_celsius.tiff")
 ```

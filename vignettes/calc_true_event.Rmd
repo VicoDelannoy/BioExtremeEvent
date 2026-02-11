@@ -69,18 +69,14 @@ binarized_corrected_df <- binarized_EE[[2]]
 ## How to load the ouput:
 Due to the different nature of the two outputs, they must be saved separately.
 
-```{r}
+```{r, eval = FALSE}
 ## Save the spatraster
 binarized_corrected_spatraster <- binarized_EE[[1]]
-\dontrun{ # not runned because it requires your own path
-  terra::writeRaster(binarized_corrected_spatraster, "your_path/data/binarized_corrected_spatraster.tiff")
-  }
+terra::writeRaster(binarized_corrected_spatraster, "your_path/data/binarized_corrected_spatraster.tiff")
 
 ## Save the list of df
 binarized_corrected_df <- binarized_EE[[2]]
-\dontrun{ # not runned because it requires your own path
 saveRDS(binarized_corrected_df, file = "your_path/data/binarized_corrected_df.rds")
-}
 ```
 
 Please save both because they are both used in the next steps of the pipeline.

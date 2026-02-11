@@ -168,6 +168,6 @@ terra::plot(
 ## How to save the ouptut
 The output is a spatraster, you can save it using:
 
-```{r}
-# terra::writeRaster(binarized, "your_path/data/copernicus_binarized.tiff")
+```{r, eval = FALSE}
+terra::writeRaster(binarized, "your_path/data/copernicus_binarized.tiff")
 ```
