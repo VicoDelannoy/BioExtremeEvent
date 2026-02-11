@@ -43,7 +43,7 @@ BEE.calc.true_event()."><!-- mathjax --><script src="https://cdnjs.cloudflare.co
       <a href="../articles/calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
-      <a href="../articles/calc_celsius.html">0.bis. Convert temperature data to Celsius</a>
+      <a href="../articles/calc_celsius.html">0. bis. Convert temperature data to Celsius</a>
     </li>
     <li>
       <a href="../articles/calc_corrections.html">3. bis. Check how much corrected extreme events differ from raw extreme days.</a>
@@ -95,16 +95,16 @@ ouput, which is a spatraster binarized that inclued the corrections by
 <em>BEE.calc.true_event()</em>.</p></dd>
 
 
-<dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
-<dd><p>Accepted values are TRUE of FALSE. Set to “FALSE” to not display
-the graphs.</p></dd>
-
-
-<dt id="arg-true-event-df">true_event_df<a class="anchor" aria-label="anchor" href="#arg-true-event-df"></a></dt>
+<dt id="arg-true-event-df-list">true_event_df_list<a class="anchor" aria-label="anchor" href="#arg-true-event-df-list"></a></dt>
 <dd><p>The second element of the <em>BEE.calc.true_event()</em> ouput,
 which is a list of data.table containing information about the value of each
 pixel before and after definition criteria are applied to distinguish
 isolated extreme days from extreme events.</p></dd>
+
+
+<dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
+<dd><p>Accepted values are TRUE of FALSE. Set to “FALSE” to not display
+the graphs.</p></dd>
 
 </dl></div>
     <div id="value">
@@ -113,8 +113,8 @@ isolated extreme days from extreme events.</p></dd>
 and the number of 0 corrected to 1. If plot=TURE it shows the cumulative
 percentage of changes through time.
 The object return if a dataframe with one line percombinaison of date and
-pixel_id. The dataframe has the same structure than the one in true_event_df
-but colomns</p>
+pixel_id. The dataframe has the same structure than the ones in
+true_event_df_list.</p>
     </div>
 
     <div id="ref-examples">
