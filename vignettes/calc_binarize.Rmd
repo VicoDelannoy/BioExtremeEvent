@@ -103,8 +103,8 @@ terra::plot(
 )
 
 terra::plot(
-  binarized_EE[[70]][[3]],
-  main = "Binarized EE",
+  binarized[[70]][[3]],
+  main = "Binarized data",
   plg  = list(cex = 1.4)
 )
 ```
@@ -159,7 +159,7 @@ terra::plot(
 
 terra::plot(
   binarized_EE_fixed_threshold[[70]][[3]],
-  main = "Binarized EE",
+  main = "Binarized data ",
   plg  = list(cex = 1.4)
 )
 
