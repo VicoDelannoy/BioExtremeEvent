@@ -89,7 +89,7 @@ BEE.calc.corrections <- function(
           color = "1 -> 0",
           group = 1
         ),
-        size = 1
+        linewidth = 1
       ) +
       ggplot2::geom_line(
         ggplot2::aes(
@@ -98,7 +98,7 @@ BEE.calc.corrections <- function(
           color = "0 -> 1",
           group = 1
         ),
-        size = 1
+        linewidth = 1
       ) +
       ggplot2::scale_color_manual(
         name = "Type of change",

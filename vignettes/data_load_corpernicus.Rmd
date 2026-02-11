@@ -1,10 +1,10 @@
 ---
-title: "0. Dowload data from Copernicus"
+title: "0.1 Dowload data from Copernicus"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{0. Dowload data from Copernicus}
+  %\VignetteIndexEntry{0.1 Dowload data from Copernicus}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

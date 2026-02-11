@@ -1,9 +1,9 @@
 ---
-title: "3. bis. Check how much corrected extreme events differ from raw extreme days."
+title: "3.2 Check how much corrected extreme events differ from raw extreme days."
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{3. bis. Check how much corrected extreme events differ from raw extreme days.}
+  %\VignetteIndexEntry{3.2 Check how much corrected extreme events differ from raw extreme days.}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

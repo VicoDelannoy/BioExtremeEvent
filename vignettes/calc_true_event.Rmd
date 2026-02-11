@@ -1,9 +1,9 @@
 ---
-title: "3. Identify extreme event according specific constraints"
+title: "3.1 Identify extreme event according specific constraints"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{3. Identify extreme event according specific constraints}
+  %\VignetteIndexEntry{3.1 Identify extreme event according specific constraints}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
