@@ -154,6 +154,13 @@ bellow).</li>
 message saying which conversion has been done.</p>
 </div>
 <div class="section level3">
+<h3 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a>
+</h3>
+<p>The output is a spatraster with the same properties as YourSpatraster
+but yhe pixel values are in degrees Celsius. Pixels that were NA remain
+NA.</p>
+</div>
+<div class="section level3">
 <h3 id="example-with-a-dataset-in-kelvin">Example with a dataset in Kelvin<a class="anchor" aria-label="anchor" href="#example-with-a-dataset-in-kelvin"></a>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -190,6 +197,13 @@ message saying which conversion has been done.</p>
 <code class="sourceCode R"><span><span class="co">### Apply function :</span></span>
 <span><span class="va">copernicus_data_celsius</span> <span class="op">&lt;-</span> <span class="fu">BioExtremeEvent</span><span class="fu">::</span><span class="fu"><a href="../reference/BEE.calc.celsius.html">BEE.calc.celsius</a></span><span class="op">(</span><span class="va">copernicus_data_celsius</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "Your dataset is already in celsius, there is no need to use this function."</span></span></code></pre>
+</div>
+<div class="section level3">
+<h3 id="how-to-save-the-output">How to save the output<a class="anchor" aria-label="anchor" href="#how-to-save-the-output"></a>
+</h3>
+<p>The output is a spatraster, you can save it using:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">copernicus_data_celsius</span>, <span class="st">"your_path/data/copernicus_data_celsius.tiff"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </div>

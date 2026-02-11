@@ -118,20 +118,62 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
-<p><strong>YourSpatraster</strong> is a spatraster with one layer per
-day. Each layer covers the same area and time is continuous (no layers
-are missing). If you are not using a fixed threshold, the baseline
-spatraster computed using BEE.calc.baseline() must be computed using the
-same dataset as YourSpatraster for comparison without bias.</p>
+<p><strong>binarized_spatraster</strong> is a spatraster with one layer
+per day. Each layer covers the same area and time is continuous (no
+layers are missing). If you are not using a fixed threshold, the
+baseline spatraster computed using BEE.calc.baseline() must be computed
+using the same dataset as YourSpatraster for comparison without bias.
+<strong>n</strong> The minimum number of consecutive days above the
+baseline/threshol required for a series of days more extrem than the
+baseline to be considered as an extreme event (≥). <strong>d</strong>
+The maximum number of days for which two series of values above the
+threshold/baseline, separated by some days below the threshold/baseline,
+can be considered a single extreme event (the maximum distance in days
+between the two events to be merged &lt;=). <strong>nbis</strong> The
+minimum number of days in a series of 1 to allow merging with #’ serie
+of 1 longer than <em>‘n’</em> and distant from <em>‘d’</em> days or
+fewer. #’ /! <em>‘nbis’</em> must be inferior or equal to <em>‘n’</em>.
+This avoid extending an extreme event for only a few extreme day. For
+instance: 0000100111110010000 will be considere as an extreme event of
+duration 11 days when only using n = 5 and d= 2. However, if you set
+nbis=2, lonely extreme days will not be merged and the duration of the
+above event will be 5 days. It allows to be more or less precautionious
+on the temporal extent of the extreme event.</p>
 </div>
 <div class="section level3">
 <h3 id="warnings">Warnings:<a class="anchor" aria-label="anchor" href="#warnings"></a>
 </h3>
+<p>No warning implemented yet.<br>
+## Messages: No messages implemented yet.</p>
 </div>
 <div class="section level3">
-<h3 id="messages">Messages:<a class="anchor" aria-label="anchor" href="#messages"></a>
+<h3 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a>
 </h3>
+<p>Returns a list with 2 elements.<br>
+The first one is called
+<strong>“binarized_spatraster_corrected”</strong>. This is a Spatraster
+containing binarised values that have been corrected according to the
+definition used in the function. It is used in the next funciton of the
+pipeline.<br>
+The second element is called <strong>“Event_corrected”</strong>. This is
+a list with one data.table per pixel. Each data.table has a date for
+each row (and as many dates as there are layers in YourSpatraster). The
+“original_value” column gives the value of the raw binarisation before
+applying this function. “cleaned_value” provides the corrected values
+for each date. “ID” is the identifier of the event, built using the
+pixel number, the first day of the event and the last day of the event.
+It is proper to each pixel. “Duration” indicates the duration (in days)
+of the event. “Date” indicates the date corresponding to the row.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a>
+</h2>
+<p>The <em>BEE.calc.corrections()</em> function allows to check how many
+modifications your choices of settings in BEE.calc.tru_event have
+induced compare to row binerized data. Please check <em>3.bis. Check the
+number of modifications induced by the BEE.calc.true_event()
+settings.</em></p>
 </div>
 <div class="section level2">
 <h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
@@ -139,6 +181,48 @@ same dataset as YourSpatraster for comparison without bias.</p>
 <div class="section level3">
 <h3 id="load-data">Load data:<a class="anchor" aria-label="anchor" href="#load-data"></a>
 </h3>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VicoMarbec/BioExtremeEvent" class="external-link">BioExtremeEvent</a></span><span class="op">)</span></span>
+<span><span class="co">#Binarized spatraster built using BEE.calc.binarize()</span></span>
+<span><span class="va">file_name_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_binarized.tiff"</span><span class="op">)</span>,</span>
+<span>                                   package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
+<span><span class="va">binarized_data</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name_1</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="apply-filter">Apply filter:<a class="anchor" aria-label="anchor" href="#apply-filter"></a>
+</h3>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.true_event.html">BEE.calc.true_event</a></span><span class="op">(</span>binarized_spatraster <span class="op">=</span> <span class="va">binarized_data</span>, n <span class="op">=</span> <span class="fl">5</span>, d <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="spatraster-output">Spatraster output:<a class="anchor" aria-label="anchor" href="#spatraster-output"></a>
+</h3>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get the corrected spatraster:</span></span>
+<span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="get-the-list-of-data-table-with-former-and-corrected-values-and-with-dates-and-duration">Get the list of data.table with former and corrected values and with
+dates and duration:<a class="anchor" aria-label="anchor" href="#get-the-list-of-data-table-with-former-and-corrected-values-and-with-dates-and-duration"></a>
+</h3>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="how-to-load-the-ouput">How to load the ouput:<a class="anchor" aria-label="anchor" href="#how-to-load-the-ouput"></a>
+</h3>
+<p>Due to the different nature of the two outputs, they must be saved
+separately.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Save the spatraster</span></span>
+<span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span>, <span class="st">"your_path/data/binarized_corrected_spatraster.tiff"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Save the list of df</span></span>
+<span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/serialize.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">binarized_corrected_df</span>, file <span class="op">=</span> <span class="st">"your_path/data/binarized_corrected_df.rds"</span><span class="op">)</span></span></code></pre></div>
+<p>Please save both because they are both used in the next steps of the
+pipeline.</p>
 </div>
 </div>
   </div>

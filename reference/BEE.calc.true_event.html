@@ -75,38 +75,47 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.calc.true_event</span><span class="op">(</span><span class="va">binarized_EE</span>, <span class="va">n</span>, <span class="va">d</span>, nbis <span class="op">=</span> <span class="cn">NULL</span>, w <span class="op">=</span> <span class="cn">NULL</span>, p <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.calc.true_event</span><span class="op">(</span></span>
+<span>  <span class="va">binarized_spatraster</span>,</span>
+<span>  <span class="va">n</span>,</span>
+<span>  <span class="va">d</span>,</span>
+<span>  nbis <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  w <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  p <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
 
 
-<dl><dt id="arg-binarized-ee">binarized_EE<a class="anchor" aria-label="anchor" href="#arg-binarized-ee"></a></dt>
-<dd><p>A list of Spatraster built using the BEE.calc.binarize
-function.</p></dd>
+<dl><dt id="arg-binarized-spatraster">binarized_spatraster<a class="anchor" aria-label="anchor" href="#arg-binarized-spatraster"></a></dt>
+<dd><p>A Spatraster built using the BEE.calc.binarize()
+function. It only contains 1 and 0.</p></dd>
 
 
 <dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
 <dd><p>The minimum number of consecutive days above the baseline/threshold
-required for a series of "1" to be considered as an extreme event (≥).</p></dd>
+required for a series of days more extrem than the baseline to be considered
+as an extreme event (≥).</p></dd>
 
 
 <dt id="arg-d">d<a class="anchor" aria-label="anchor" href="#arg-d"></a></dt>
-<dd><p>The maximum number of days below the baseline/thershold for
-considering two series of values above the threshold/baseline but separated
-by some days below threshold/baseline as a single extreme event (maximum
-distance in days between the two events to be merged, ≤).</p></dd>
+<dd><p>The maximum number of days for which two series of values above the
+threshold/baseline, separated by some days below the threshold/baseline, can
+be considered a single extreme event (the maximum distance in days between
+the two events to be merged &lt;=).</p></dd>
 
 
 <dt id="arg-nbis">nbis<a class="anchor" aria-label="anchor" href="#arg-nbis"></a></dt>
-<dd><p>NOT AVAILBALE YET The minimum number of days in each series of
-1 to allow merging if there are d days or fewer between the to series.
+<dd><p>The minimum number of days in a series of 1 to allow merging with
+serie of 1 longer than <em>'n'</em> and distant from <em>'d'</em> days or fewer.
+/!\ <em>'nbis'</em> must be inferior or equal to <em>'n'</em>.
 Example :
-if you set 'nbis' to 3, short series of 1 (n) can be merged with long
-series of 1 (≥n) if the two series are separated by no more than d days and
-there are at least nbis days between them (with at least one of the series
-having to be longer than n).
+If you set <em>'nbis'</em> to 3, a short series of 1 (&lt;<em>'n'</em>) can be merged with a
+long series of 1 (≥*'n'*) if the two series are separated by no more than
+<em>'d'</em> days, and that the shorter of the two series contains at least <em>'nbis'</em>
+days above the threshold.
 Default: NULL</p></dd>
 
 
@@ -128,32 +137,44 @@ Example : n = 5; w = 10; p = 0.5 -&gt; w * p = 5 . Default: NULL.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>Returns a list with 2 elements, first one is called
-"stacked_rasters_corrected". This is a Spatraster containing binarised values
-corrected according the definition used in the function. The second element
-is called "Event_corrected". This is a list with one data.table per pixel.
-Each data.table as a date per rows (and as many date as there are layers in
-YourSpatraster). The columns "original_value" gives the value of the raw
-binarisation, before appling the definition. "cleanned_value" gives for
-each dates the values after correction. "event_ID" is an event_ID of the event,
-built using the pixel event_ID, first day of the event and last day of the
-event. "duration" indicates the duration (in unit of time) of the event.
-"date" indicates the date corresponding to the row.</p>
+    <p>Returns a list with 2 elements. The first one is called
+<strong>"binarized_spatraster_corrected"</strong>. This is a Spatraster containing binarised
+values that have been corrected according to the definition used in the
+function. It is used in the next funciton of the pipeline.
+The second element is called <strong>"Event_corrected"</strong>. This is a list with one
+data.table per pixel.
+Each data.table has a date for each row (and as many dates as there are
+layers in YourSpatraster). The "original_value" column gives the value of the
+raw binarisation before applying this function. "cleaned_value" provides the
+corrected values for each date. "ID" is the identifier of the event, built
+using the pixel number, the first day of the event and the last day of the
+event. It is proper to each pixel. "Duration" indicates the duration (in
+days) of the event. "Date" indicates the date corresponding to the row.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
-    <p>w and p settings are not available yet. BEE.calc.true_event is not
+    <p>Setting <em>'nbis'</em> = 1, has the same effect as setting nbis= NULL. When
+<em>'nbis'</em> = NULL any series of 1 distant from less than <em>'d'</em> to a series of 1
+at least as long as <em>'n'</em> days will be merged into one big series event, even
+if the serie last only one day. If you provide an argument for <em>'nbis'</em>, only
+series at least as long as <em>'nbis'</em> can be merge to serie as long as <em>'n'</em> (
+if the two are distant from less than <em>'d'</em> days).
+Days above threshold that don't qualify has "extreme event" (e.g. to short
+series or to isolated) are transformed to 0. The second output of the
+function provided for each pixel a dataframe containning daily values before
+and after correctionq.
+<em>"w"</em> and <em>"p"</em> settings are not available yet. BEE.calc.true_event is not
 designed to work on 4D data (time + spatial 3D).</p>
     </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># This function apply a filter to withdraw isolated events. For instance,</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># This function apply a filter to withdraw isolated 1 and 0. For instance,</span></span></span>
 <span class="r-in"><span><span class="co"># is you consider that an event that last only 2 days should not be accounted</span></span></span>
 <span class="r-in"><span><span class="co"># for in future analysis, you can correct those value by 0. Here are the</span></span></span>
 <span class="r-in"><span><span class="co"># different filter you can apply:</span></span></span>
-<span class="r-in"><span><span class="co">#</span></span></span>
-<span class="r-in"><span><span class="co"># Low complexity:</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## Low complexity:</span></span></span>
 <span class="r-in"><span><span class="co"># - Minimum number of consecutive day above threshold to</span></span></span>
 <span class="r-in"><span><span class="co">#  consider that there is an extreme event: n  (&gt;=)</span></span></span>
 <span class="r-in"><span><span class="co">#</span></span></span>
@@ -162,50 +183,164 @@ designed to work on 4D data (time + spatial 3D).</p>
 <span class="r-in"><span><span class="co"># 2 events to merge them): d (&lt;=)</span></span></span>
 <span class="r-in"><span><span class="co">#</span></span></span>
 <span class="r-in"><span><span class="co"># Examples: n &gt;= 5  d&gt;= 2</span></span></span>
-<span class="r-in"><span><span class="co">#       0 0 0 1 1 1 1 ** 1 ** 0 0 0 = 1 event,</span></span></span>
-<span class="r-in"><span><span class="co">#   but 0 0 0 1 1 1 1 0 0 0 = no event</span></span></span>
-<span class="r-in"><span><span class="co">#       0 0 0 1 1 1 1 1 0 0 1 1 1 0 0 0 = 1 event of 5 days,</span></span></span>
-<span class="r-in"><span><span class="co">#   but 0 0 0 1 1 1 1 1 0 0 1 1 1 **1 1 ** 0 0 0 = 1 event of 12 days,</span></span></span>
-<span class="r-in"><span><span class="co">#   but 0 0 0 1 1 1 1 1 0 0 ** 0 ** 1 1 1 1 1 0 0 0 = 2 instincts</span></span></span>
-<span class="r-in"><span><span class="co"># event of 5 days each.</span></span></span>
+<span class="r-in"><span><span class="co">### Load the example dataset in R environement:</span></span></span>
+<span class="r-in"><span><span class="va">file_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_binarized.tiff"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                  package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">binarized</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">### Apply filter:</span></span></span>
+<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.true_event</span><span class="op">(</span>binarized_spatraster <span class="op">=</span> <span class="va">binarized</span>,</span></span>
+<span class="r-in"><span>n <span class="op">=</span> <span class="fl">5</span>,</span></span>
+<span class="r-in"><span>d <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## Medium complexity :</span></span></span>
+<span class="r-in"><span><span class="co"># -   Minimum number of consecutive day above threshold to</span></span></span>
+<span class="r-in"><span><span class="co">#  consider that there is an extreme event: n  (&gt;=)</span></span></span>
+<span class="r-in"><span><span class="co"># -   Maximum number of days bellow thershold to consider two series of</span></span></span>
+<span class="r-in"><span><span class="co"># value above threshold as a single extreme event (distance max in days btw</span></span></span>
+<span class="r-in"><span><span class="co"># 2 events to merge them): d (&lt;=)</span></span></span>
+<span class="r-in"><span><span class="co"># -   Minimum number of consecutive day above threshold to allow merging to</span></span></span>
+<span class="r-in"><span><span class="co"># an event at least as long as n. (nbis must be inferior or equal to n)</span></span></span>
 <span class="r-in"><span><span class="co">#</span></span></span>
-<span class="r-in"><span><span class="co"># Medium complexity (Hobday et al. 2016, 2018):</span></span></span>
-<span class="r-in"><span><span class="co">#- Minimum number of days distant from d days or less to an event</span></span></span>
-<span class="r-in"><span><span class="co">#  of n days : nbis .</span></span></span>
-<span class="r-in"><span><span class="co">#</span></span></span>
-<span class="r-in"><span><span class="co"># Example: n = 5, d = 2, nbis = 3</span></span></span>
-<span class="r-in"><span><span class="co"># This is for the case you want to consider</span></span></span>
-<span class="r-in"><span><span class="co">#     0 0 0 1 1 1 1 1 0 0 1 1 ** 1 ** 0 0 0 as one event of 10 days</span></span></span>
-<span class="r-in"><span><span class="co"># but 0 0 0 1 1 1 1 1 0 0 1 1 0 0 0 as one event of 5 days.</span></span></span>
-<span class="r-in"><span><span class="co"># In the first case, if there are not five consecutive days above threshold</span></span></span>
-<span class="r-in"><span><span class="co"># right before or after (d = n still fixed to 5).</span></span></span>
-<span class="r-in"><span><span class="co">#</span></span></span>
-<span class="r-in"><span><span class="co">#  High complexity : NOT AVAILABLE YET</span></span></span>
-<span class="r-in"><span><span class="co"># - Unstable window * w * between to event in which you allow a certain</span></span></span>
-<span class="r-in"><span><span class="co">#  proportion p of days of w to be bellow threshold if this windows is</span></span></span>
-<span class="r-in"><span><span class="co"># bordered by series of consecutive days above threshold on each size.</span></span></span>
-<span class="r-in"><span><span class="co"># w  and  p  replace d. If w is an odd number, the minimum number of days</span></span></span>
-<span class="r-in"><span><span class="co"># above threshold within w will be the value rounded to the superior round</span></span></span>
-<span class="r-in"><span><span class="co">#  number. For instance if w = 7 and p = 0.3 a window of 7 days between to</span></span></span>
-<span class="r-in"><span><span class="co">#  event of * n * consecutive days will not create two distinct event if at</span></span></span>
-<span class="r-in"><span><span class="co">#  least 4 days are above threshold.</span></span></span>
-<span class="r-in"><span><span class="co">#(w * \ * * p * = 7 \ * 0.5 = 3.5 rounded to 4)</span></span></span>
-<span class="r-in"><span><span class="co">#</span></span></span>
-<span class="r-in"><span><span class="co"># Examples : n = 5</span></span></span>
-<span class="r-in"><span><span class="co"># w = 10</span></span></span>
-<span class="r-in"><span><span class="co"># p = 0.5  -&gt;  w*p = 5</span></span></span>
-<span class="r-in"><span><span class="co"># case that lead to a single big event of 15 days:</span></span></span>
-<span class="r-in"><span><span class="co"># 0 0 0 0 0 1 1 1 1 1 0 1 1 1 0 0 0 1 1 0 1 1 1 1 1 0 0 0 0 0</span></span></span>
-<span class="r-in"><span><span class="co"># 0 0 0 0 0 1 1 1 1 1 0 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0</span></span></span>
-<span class="r-in"><span><span class="co"># (you can also use low complexity n = 5 and d = 3)</span></span></span>
-<span class="r-in"><span><span class="co"># 0 0 0 0 0 1 1 1 1 1 0 1 0 1 0 1 0 1 0 1 1 1 1 1 1 0 0 0 0 0</span></span></span>
-<span class="r-in"><span><span class="co"># case that lead to 2 distinct events:</span></span></span>
-<span class="r-in"><span><span class="co"># 0 0 0 0 0 1 1 1 1 1 0 1 1 0 0 1 0 1 0 0 1 1 1 1 1 0 0 0 0 0</span></span></span>
-<span class="r-in"><span><span class="co"># 0 0 0 0 0 1 1 1 1 1 0 0 0 1 1 1 1 0 0 0 1 1 1 1 1 0 0 0 0 0</span></span></span>
-<span class="r-in"><span><span class="co"># 0 0 0 0 0 1 1 1 1 1 0 1 1 1 1 0 0 0 0 0 1 1 1 1 1 0 0 0 0 0 (</span></span></span>
-<span class="r-in"><span><span class="co"># if you want to detect 1 event of 10 days then a distinct event of 5 days</span></span></span>
-<span class="r-in"><span><span class="co"># instead of 2 events of 5 days only you can use :</span></span></span>
-<span class="r-in"><span><span class="co"># low complexity with n = 4 and d = 1)</span></span></span>
+<span class="r-in"><span><span class="co"># Examples: n &gt;= 5  d&gt;= 2 nbis&gt;=3</span></span></span>
+<span class="r-in"><span><span class="co">### Load the example dataset in R environement:</span></span></span>
+<span class="r-in"><span><span class="va">file_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_binarized.tiff"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                  package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">binarized</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">### Apply filter:</span></span></span>
+<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.true_event</span><span class="op">(</span>binarized_spatraster <span class="op">=</span> <span class="va">binarized</span>,</span></span>
+<span class="r-in"><span>n <span class="op">=</span> <span class="fl">5</span>,</span></span>
+<span class="r-in"><span>d <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>nbis <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>longer object length is not a multiple of shorter object length</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
