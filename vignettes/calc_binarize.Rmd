@@ -30,6 +30,9 @@ For example, to identify cold spells, which are anormaly cold period, you will c
 No warning implemented.
 ## Messages:
 No warning implemented.
+## Output
+The output is a spartaster with the same properties as YourSpatraster but it
+only contains binerized value (1 or 0), '1' if the pixel values was more extreme than the baseline on the day corresponding to the layer. '0' if it was less extreme. Pixel that were NA stays NA. The fonction only identifies extreme days, to identifies extreme event, see *BEE.calc.true_event()*.
 
 # Examples
 ## Load data:
@@ -55,7 +58,7 @@ Binerise the Spatraster
 ```{r}
 # Identify the days on which the values are higher than the baseline for the
 # 90th percentile.:
-binarized_EE <- BEE.calc.binarize(YourSpatraster=copernicus_data,
+binarized <- BEE.calc.binarize(YourSpatraster=copernicus_data,
                                    baseline=baseline_qt90,
                                    direction = "above")
 ```
@@ -110,7 +113,7 @@ terra::plot(
 
 ```{r}
 # Identify days on which the value is lower than a fixed threshold.
-binarized_EE_fixed_threshold <- BEE.calc.binarize(YourSpatraster=copernicus_data,
+binarized_fixed_threshold <- BEE.calc.binarize(YourSpatraster=copernicus_data,
                                    baseline= 12.5,
                                    direction = "below")
 ```
@@ -160,4 +163,11 @@ terra::plot(
   plg  = list(cex = 1.4)
 )
 
+```
+
+## How to save the ouptut
+The output is a spatraster, you can save it using:
+
+```{r}
+# terra::writeRaster(binarized, "your_path/data/copernicus_binarized.tiff")
 ```

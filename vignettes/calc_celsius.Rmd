@@ -49,6 +49,9 @@ You will receive a warning if :
 
 If your dataset was in Kelvin or Fahrenheit, you will receive a message saying which conversion has been done.
 
+## Output
+The output is a spatraster with the same properties as YourSpatraster but yhe pixel values are in degrees Celsius. Pixels that were NA remain NA. 
+
 ## Example with a dataset in Kelvin
 
 ```{r}
@@ -72,4 +75,11 @@ head(na.omit(terra::values(x = copernicus_data_celsius[[1]],
 ```{r}
 ### Apply function :
 copernicus_data_celsius <- BioExtremeEvent::BEE.calc.celsius(copernicus_data_celsius)
+```
+
+## How to save the output
+The output is a spatraster, you can save it using:
+
+```{r}
+# terra::writeRaster(copernicus_data_celsius, "your_path/data/copernicus_data_celsius.tiff")
 ```

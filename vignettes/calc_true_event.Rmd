@@ -1,9 +1,9 @@
 ---
-title: "3. Identify extreme event according specific constraints"
+title: "3. Identify extreme event according specific constraints.Rmd"
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{3. Identify extreme event according specific constraints}
+  %\VignetteIndexEntry{3. Identify extreme event according specific constraints.Rmd}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,12 +17,49 @@ vignette: >
 
 # Usage
 ## Arguments:
-**YourSpatraster** is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.
+**binarized_spatraster** is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.
+**n** The minimum number of consecutive days above the baseline/threshol required for a series of days more extrem than the baseline to be considered as an extreme event (≥).
+**d** The maximum number of days for which two series of values above the threshold/baseline, separated by some days below the threshold/baseline, can be considered a single extreme event (the maximum distance in days between the two events to be merged <=).
+**nbis** The minimum number of days in a series of 1 to allow merging with
+#' serie of 1 longer than *'n'* and distant from *'d'* days or fewer.
+#' /!\ *'nbis'* must be inferior or equal to *'n'*. This avoid extending an extreme event for only a few extreme day. For instance: 0000100111110010000 will be considere as an extreme event
+of duration 11 days when only using n = 5 and d= 2. However, if you set nbis=2, lonely extreme days will not be merged and the duration of the above event will be 5 days. It allows to be more or less precautionious on the temporal extent of the extreme event.
 
 
-
-## Warnings:  
+## Warnings:
+No warning implemented yet.  
 ## Messages:
+No messages implemented yet.
+## Output
+Returns a list with 2 elements.  
+The first one is called **"binarized_spatraster_corrected"**. This is a Spatraster containing binarised values that have been corrected according to the definition used in the function. It is used in the next funciton of the pipeline.  
+The second element is called **"Event_corrected"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in YourSpatraster). The "original_value" column gives the value of the raw binarisation before applying this function. "cleaned_value" provides the corrected values for each date. "ID" is the identifier of the event, built using the pixel number, the first day of the event and the last day of the event. It is proper to each pixel. "Duration" indicates the duration (in days) of the event. "Date" indicates the date corresponding to the row.
 
 # Examples
 ## Load data:
+```{r setup}
+library(BioExtremeEvent)
+#Binarized spatraster built using BEE.calc.binarize()
+file_name_1 <- system.file(file.path("extdata", "copernicus_binarized.tiff"),
+                                   package = "BioExtremeEvent")
+binarized_data <- terra::rast(file_name_1)
+```
+
+## Apply filter:
+```{r}
+binarized_EE <- BEE.calc.true_event(binarized_spatraster = binarized_data, n = 5, d = 2)
+```
+
+## Get the corrected spatraster:
+
+```{r}
+
+```
+
+## Get the list of data.table with former and corrected values and with dates and duration:
+
+```{r}
+
+```
+
+## How to load the ouput:

@@ -79,8 +79,10 @@ BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
     # Check if there is a fourth hidden dimension. For instance there could be
     #several depths or several altitudes which would result in several layer
     #having the same dates and thus the same length.
+
+    ######### THIS SECTION IS IN DEVELOPPEMENT TO WORK WITH 4D data ############
     if (any(table(terra::time(YourSpatraster)) != 1)) {
-      #at least one date has several layers
+      # at least one date has several layers
       rep <- sum(table(terra::time(YourSpatraster))) /
         length(table(terra::time(YourSpatraster)))
       if (rep == round(rep)) {
@@ -105,13 +107,49 @@ BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
         return(delta_list) # Output the list
       }
     }
+    ############################################################################
+
     # Binarize the pixels to 1 & 0 (function from the packacge itself,
     # see bellow) /!\ this part doesn't check if the value is above for five
     # consecutive days or any duration
     delta <- binarize_spat(YourSpatraster, baseline, direction)
     # Create a list of SpatRaster by date in the format %d.%m
     delta_list <- RastToList(delta)
-    return(delta_list) # Output the list
+    # Extract all rasters (If we have to think to a faster way we could filter so
+    # pixel that are always NA (land) are not processed and we could create
+    # "all_dates" starting from scratch, only knowing first day and last day and
+    # assuming there is no missing day)
+    all_data <- lapply(seq_along(delta_list), function(i) {
+      j_indices <- seq(1, length(names(delta_list[[i]])), 1)
+      list(
+        dates = names(delta_list[[i]][j_indices]),
+        rasters = delta_list[[i]][[j_indices]]
+      )
+    })
+    # Merge data to save memory
+    all_dates <- unlist(lapply(all_data, `[[`, "dates"), recursive = FALSE)
+    all_rasters <- terra::rast(lapply(all_data, `[[`, "rasters"))
+    all_rasters_names <- unlist(
+      lapply(all_data, `[[`, "dates"),
+      recursive = FALSE
+    )
+
+    # Reorder informations in chronological order :
+    ## get a list of the raster layers
+    all_rasters <- lapply(1:terra::nlyr(all_rasters), function(i) {
+      all_rasters[[i]]
+    })
+    ## Transforme SpatRaster to list of rasters so it is easier to modify the
+    # order.
+    sorted_indices <- order(all_rasters_names)
+    ## get a list of the current position of the rasters : the first number tell
+    # you where is currently the raster that should be first in chronological
+    # order
+    sorted_rasters <- all_rasters[sorted_indices] #sort the rasters
+    # Transform the list of sorted raster into a multilayers raster to be able to
+    # use terra:extract on cells
+    stacked_rasters <- terra::rast(sorted_rasters)
+    return(stacked_rasters) # Output the list
   }
 
   if (is.numeric(baseline)) {
@@ -129,10 +167,43 @@ BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
     }
     # Create a list of SpatRaster by date in the format %d.%m
     delta_list <- RastToList(delta)
-    return(delta_list) # Output the list
+    # Extract all rasters (If we have to think to a faster way we could filter so
+    # pixel that are always NA (land) are not processed and we could create
+    # "all_dates" starting from scratch, only knowing first day and last day and
+    # assuming there is no missing day)
+    all_data <- lapply(seq_along(delta_list), function(i) {
+      j_indices <- seq(1, length(names(delta_list[[i]])), 1)
+      list(
+        dates = names(delta_list[[i]][j_indices]),
+        rasters = delta_list[[i]][[j_indices]]
+      )
+    })
+    # Merge data to save memory
+    all_dates <- unlist(lapply(all_data, `[[`, "dates"), recursive = FALSE)
+    all_rasters <- terra::rast(lapply(all_data, `[[`, "rasters"))
+    all_rasters_names <- unlist(
+      lapply(all_data, `[[`, "dates"),
+      recursive = FALSE
+    )
+
+    # Reorder informations in chronological order :
+    ## get a list of the raster layers
+    all_rasters <- lapply(1:terra::nlyr(all_rasters), function(i) {
+      all_rasters[[i]]
+    })
+    ## Transforme SpatRaster to list of rasters so it is easier to modify the
+    # order.
+    sorted_indices <- order(all_rasters_names)
+    ## get a list of the current position of the rasters : the first number tell
+    # you where is currently the raster that should be first in chronological
+    # order
+    sorted_rasters <- all_rasters[sorted_indices] #sort the rasters
+    # Transform the list of sorted raster into a multilayers raster to be able to
+    # use terra:extract on cells
+    stacked_rasters <- terra::rast(sorted_rasters)
+    return(stacked_rasters) # Output the list
   }
 }
-
 
 #' Generate dates that take in account lead year
 #'
