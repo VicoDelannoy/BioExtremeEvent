@@ -206,12 +206,12 @@ settings.</em></p>
 <span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co"># Plot a layer</span></span>
-<span><span class="va">date</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span><span class="op">[[</span><span class="fl">850</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span><span class="op">[[</span><span class="fl">850</span><span class="op">]</span><span class="op">]</span>,</span>
+<span><span class="va">date</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>            main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">date</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="e_calc_true_event_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Here 850 refers to the layers of the spatraster &lt;-&gt; 850th days of the spatraster.</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Here 850 refers to the layers of the spatraster &lt;-&gt; 800th days of the spatraster.</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="get-the-list-of-data-table-with-former-and-corrected-values-and-with-dates-and-duration">Get the list of data.table with former and corrected values and with
@@ -221,19 +221,19 @@ dates and duration:<a class="anchor" aria-label="anchor" href="#get-the-list-of-
 <code class="sourceCode R"><span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">binarized_corrected_df</span><span class="op">[[</span><span class="fl">80</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   pixel_id original_value cleanned_value event_id duration       date</span></span>
-<span><span class="co">## 1       80              1              0        1      196 2023-01-01</span></span>
-<span><span class="co">## 2       80              0              0        1      196 2023-01-02</span></span>
-<span><span class="co">## 3       80              0              0        1      196 2023-01-03</span></span>
-<span><span class="co">## 4       80              0              0        1      196 2023-01-04</span></span>
-<span><span class="co">## 5       80              0              0        1      196 2023-01-05</span></span>
-<span><span class="co">## 6       80              0              0        1      196 2023-01-06</span></span>
+<span><span class="co">## 1       80              1              1        1       21 2023-01-01</span></span>
+<span><span class="co">## 2       80              1              1        1       21 2023-01-02</span></span>
+<span><span class="co">## 3       80              1              1        1       21 2023-01-03</span></span>
+<span><span class="co">## 4       80              1              1        1       21 2023-01-04</span></span>
+<span><span class="co">## 5       80              1              1        1       21 2023-01-05</span></span>
+<span><span class="co">## 6       80              1              1        1       21 2023-01-06</span></span>
 <span><span class="co">##                           ID</span></span>
-<span><span class="co">## 1 80_2023-01-01_2023-07-15_1</span></span>
-<span><span class="co">## 2 80_2023-01-01_2023-07-15_1</span></span>
-<span><span class="co">## 3 80_2023-01-01_2023-07-15_1</span></span>
-<span><span class="co">## 4 80_2023-01-01_2023-07-15_1</span></span>
-<span><span class="co">## 5 80_2023-01-01_2023-07-15_1</span></span>
-<span><span class="co">## 6 80_2023-01-01_2023-07-15_1</span></span></code></pre>
+<span><span class="co">## 1 80_2023-01-01_2023-01-21_1</span></span>
+<span><span class="co">## 2 80_2023-01-01_2023-01-21_1</span></span>
+<span><span class="co">## 3 80_2023-01-01_2023-01-21_1</span></span>
+<span><span class="co">## 4 80_2023-01-01_2023-01-21_1</span></span>
+<span><span class="co">## 5 80_2023-01-01_2023-01-21_1</span></span>
+<span><span class="co">## 6 80_2023-01-01_2023-01-21_1</span></span></code></pre>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Here 80 refers to the pixel id. The 850th day correspond to the 850th row.</span></span></code></pre></div>
 </div>
