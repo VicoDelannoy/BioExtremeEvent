@@ -64,10 +64,10 @@ binarized_EE <- BEE.calc.true_event(binarized_spatraster = binarized_data, n = 5
 binarized_corrected_spatraster <- binarized_EE[[1]]
 
 # Plot a layer
-date <- terra::time(binarized_corrected_spatraster[[850]])
-terra::plot(binarized_corrected_spatraster[[850]],
+date <- terra::time(binarized_corrected_spatraster[[800]])
+terra::plot(binarized_corrected_spatraster[[800]],
             main = as.character(date))
-# Here 850 refers to the layers of the spatraster <-> 850th days of the spatraster.
+# Here 850 refers to the layers of the spatraster <-> 800th days of the spatraster.
 ```
 
 ## Get the list of data.table with former and corrected values and with dates and duration:

@@ -17,7 +17,7 @@ For most users, BEE.calc.binarize() serves only as an intermediate step in the p
 A Spatraster imported containning the sea surface temperature in the Gulf of Lion from the 1st of January 2023 to the 31th of Decembre 2025. There are only one variable in the spatraster (sea surface temperature).  
 A baseline computed with BEE.calc.baseline (01-01-1982 to 31-12-2010, quantile_value = 0.9, 
 time_window = 5, smooth_window = 7) or a fixed threshold (12 °C).  
-Note: the baseline used here have been computed in a longer time serie than the BEE.calc.baseline() vignette example.
+Note: the baseline used here have been computed in a longer time serie than the BEE.calc.baseline() vignette example to provided more realistic examples.
 
 # Usage
 ## Arguments:

@@ -155,3 +155,30 @@ saveRDS(metrics_points_day, file = "your_path/data/metrics_points_day.rds")
 ```
 
 # Plots
+
+## Plot parameters values against the baseline, and the colours indicate the extremes according to the categories:
+```{r, fig.width = 20, fig.height =5}
+# get metrics for on GPS position
+one_place <- metrics_points_day[[2]]
+
+#plot
+BEE.plot.categories(metric_point_df = one_place, 
+                    color_theme = "red", 
+                    start_date = "2024-01-01", 
+                    end_date = NULL,
+                    # facultative arguments to customise graph:
+                    ... = ggplot2::theme(  
+                              axis.text.x = ggplot2::element_text(size = 14),
+                              axis.text.y = ggplot2::element_text(size = 14),
+                              axis.title.x = ggplot2::element_text(size = 16),
+                              axis.title.y = ggplot2::element_text(size = 16),
+                              legend.title =  ggplot2::element_text(size = 16),
+                              legend.text  =  ggplot2::element_text(size = 14)
+    ))
+```
+
+## Plot mean value and variance of extreme event:
+
+```{r}
+
+```

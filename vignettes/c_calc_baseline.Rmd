@@ -98,7 +98,6 @@ in this tutorial. The following arguments are used in all the graphs below:
 - threshold = "qt"
 - quantile_value = 0.9
 
-
 ```{r, echo = FALSE, fig.cap = "Baseline values according combinaisons of *time_window* and *smoothing_window*", fig.align = 'center'}
 knitr::include_graphics("baseline_vignette.png")
 ```
