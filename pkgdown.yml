@@ -2,11 +2,11 @@ pandoc: 3.1.11
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
+  0.1_data_load_corpernicus: 0.1_data_load_corpernicus.html
+  0.2_calc_celsius: 0.2_calc_celsius.html
+  1.calc_baseline: 1.calc_baseline.html
+  2.calc_binarize: 2.calc_binarize.html
+  3.1_calc_true_event: 3.1_calc_true_event.html
+  3.2_calc_corrections: 3.2_calc_corrections.html
   BioExtremeEvent: BioExtremeEvent.html
-  calc_baseline: calc_baseline.html
-  calc_binarize: calc_binarize.html
-  calc_celsius: calc_celsius.html
-  calc_corrections: calc_corrections.html
-  calc_true_event: calc_true_event.html
-  data_load_corpernicus: data_load_corpernicus.html
-last_built: 2026-02-11T16:49Z
+last_built: 2026-02-12T08:29Z
