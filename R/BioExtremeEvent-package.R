@@ -45,6 +45,8 @@ globalVariables(
     "anomaly_unit",
     "duration",
     "id", #BEE.data.summarise
-    "summarise_by"
+    "summarise_by",
+    "cum_one_to_zero", # BEE.calc.corrections
+    "cum_zero_to_one"
   )
 )

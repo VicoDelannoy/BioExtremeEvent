@@ -55,19 +55,19 @@ Compute metrics through time for specific locations.
 }
 \examples{
 # Prepare function arguments:
-file_name_1 <- system.file(file.path("extdata", 
+file_name_1 <- system.file(file.path("extdata",
                                      "copernicus_data_celsius.tiff"),
                                      package = "BioExtremeEvent")
 copernicus_data_celsius <- terra::rast(file_name_1)
-file_name_2 <- system.file(file.path("extdata", 
+file_name_2 <- system.file(file.path("extdata",
                                      "binarized_corrected_df.rds"),
                                      package = "BioExtremeEvent")
 binarized_corrected_df <- readRDS(file_name_2)
-file_name_3 <- system.file(file.path("extdata", 
+file_name_3 <- system.file(file.path("extdata",
                                      "baseline_qt90_smth_15.tiff"),
                                      package = "BioExtremeEvent")
 baseline_qt90_smth_15 <- terra::rast(file_name_3)
-file_name_4 <- system.file(file.path("extdata", 
+file_name_4 <- system.file(file.path("extdata",
                                      "baseline_mean_smth_15.tiff"),
                                      package = "BioExtremeEvent")
 baseline_mean_smth_15 <- terra::rast(file_name_4)
@@ -81,8 +81,8 @@ metrics_points_day <- BEE.calc.metrics_point(
  GPS = GPS,
  start_date = NULL,
  end_date = NULL,
- time_lapse_vector = NULL, 
-# number of time unit on which to compute the warming rates and cooling rates, 
+ time_lapse_vector = NULL,
+# number of time unit on which to compute the warming rates and cooling rates,
 #  NULL means it will not be computated
  baseline_qt = baseline_qt90_smth_15,
  baseline_mean = baseline_mean_smth_15,
@@ -97,8 +97,8 @@ metrics_points_ee <- BEE.calc.metrics_point(
  GPS = GPS,
  start_date = NULL,
  end_date = NULL,
- time_lapse_vector = NULL, 
-# number of time unit on which to compute the warming rates and cooling rates, 
+ time_lapse_vector = NULL,
+# number of time unit on which to compute the warming rates and cooling rates,
 #  NULL means it will not be computated
  baseline_qt = baseline_qt90_smth_15,
  baseline_mean = baseline_mean_smth_15,
