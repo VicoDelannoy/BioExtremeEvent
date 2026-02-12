@@ -56,13 +56,13 @@ BEE.plot.cumulative_anomaly <- function(
     metric_point_df <- metric_point_df[
       which(metric_point_df$date <= end_date),
     ]
-  }
+  } 
 
   # Month in english
   Sys.setlocale("LC_TIME", "en_US.UTF-8")
   # withdraw events that are not extreme:
-  one_place_filtered <- one_place %>%
-    dplyr::filter(daily_category != "No extreme event") %>%
+  one_place_filtered <- one_place |> 
+    dplyr::filter(daily_category != "No extreme event") |> 
     dplyr::mutate(
       # date fictive pour aligner tous les mois sur une même année
       month_day = as.Date(paste0("2000-", format(date, "%m-%d"))),
@@ -131,10 +131,10 @@ BEE.plot.cumulative_anomaly <- function(
 
   # Second plot to compare cumulative anomalies profiles:
   ## prepare data
-  one_place_filtered <- one_place %>%
-    dplyr::filter(daily_category != "No extreme event") %>%
-    dplyr::arrange(ID, date) %>%
-    dplyr::group_by(ID) %>%
+  one_place_filtered <- one_place |> 
+    dplyr::filter(daily_category != "No extreme event") |> 
+    dplyr::arrange(ID, date) |> 
+    dplyr::group_by(ID) |> 
     dplyr::mutate(event_day = row_number() - 1)
 
   # Grap
