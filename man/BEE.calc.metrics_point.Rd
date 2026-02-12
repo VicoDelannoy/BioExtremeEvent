@@ -6,7 +6,7 @@
 \usage{
 BEE.calc.metrics_point(
   Events_corrected,
-  Values,
+  YourSpatraster,
   GPS,
   start_date = NULL,
   end_date = NULL,
@@ -22,7 +22,7 @@ bee_calc_true_event (the second element of the output). For each pixel, it
 contains a data.table with dates in the rows and a column indicating whether
 it is a day belonging to a heatwave (1) or not (0).}
 
-\item{Values}{is the spatraster with the values of the studded parameter,
+\item{YourSpatraster}{is the spatraster with the values of the studded parameter,
 through time and space.}
 
 \item{GPS}{is a data frame containing the positions for which you want to
@@ -39,7 +39,7 @@ evolution rate and variance of the studdied parameter.}
 \item{baseline_qt}{Spatraster of the 90th percentile baseline (or the 10th
 percentile baseline)}
 
-\item{baseline_mean}{Spatraster of the 90mean value baseline.}
+\item{baseline_mean}{Spatraster of the mean value baseline.}
 
 \item{group_by_event}{Whether you want an output summarise by extreme event
 or not. If not, you just get daily metrics.}
@@ -54,6 +54,55 @@ etc. Categories are defined in Hobday et al. 2018.
 Compute metrics through time for specific locations.
 }
 \examples{
-# To be added
+# Prepare function arguments:
+file_name_1 <- system.file(file.path("extdata", 
+                                     "copernicus_data_celsius.tiff"),
+                                     package = "BioExtremeEvent")
+copernicus_data_celsius <- terra::rast(file_name_1)
+file_name_2 <- system.file(file.path("extdata", 
+                                     "binarized_corrected_df.rds"),
+                                     package = "BioExtremeEvent")
+binarized_corrected_df <- readRDS(file_name_2)
+file_name_3 <- system.file(file.path("extdata", 
+                                     "baseline_qt90_smth_15.tiff"),
+                                     package = "BioExtremeEvent")
+baseline_qt90_smth_15 <- terra::rast(file_name_3)
+file_name_4 <- system.file(file.path("extdata", 
+                                     "baseline_mean_smth_15.tiff"),
+                                     package = "BioExtremeEvent")
+baseline_mean_smth_15 <- terra::rast(file_name_4)
+GPS <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
+                  y = c(43.3786,43.4279))
+
+# Get daily value (required for BEE.merge() and BEE.summarise()):
+metrics_points_day <- BEE.calc.metrics_point(
+ Events_corrected = binarized_corrected_df,
+ YourSpatraster = copernicus_data_celsius,
+ GPS = GPS,
+ start_date = NULL,
+ end_date = NULL,
+ time_lapse_vector = NULL, 
+# number of time unit on which to compute the warming rates and cooling rates, 
+#  NULL means it will not be computated
+ baseline_qt = baseline_qt90_smth_15,
+ baseline_mean = baseline_mean_smth_15,
+ group_by_event = FALSE
+)
+
+# Get mean, min, max, sd and median per event (extreme event and btw extreme
+# events):
+metrics_points_ee <- BEE.calc.metrics_point(
+ Events_corrected = binarized_corrected_df,
+ YourSpatraster = copernicus_data_celsius,
+ GPS = GPS,
+ start_date = NULL,
+ end_date = NULL,
+ time_lapse_vector = NULL, 
+# number of time unit on which to compute the warming rates and cooling rates, 
+#  NULL means it will not be computated
+ baseline_qt = baseline_qt90_smth_15,
+ baseline_mean = baseline_mean_smth_15,
+ group_by_event = TRUE
+)
 
 }

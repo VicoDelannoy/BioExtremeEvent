@@ -102,3 +102,9 @@ in this tutorial. The following arguments are used in all the graphs below:
 ```{r, echo = FALSE, fig.cap = "Baseline values according combinaisons of *time_window* and *smoothing_window*", fig.align = 'center'}
 knitr::include_graphics("baseline_vignette.png")
 ```
+
+## How to save output:
+
+```{r, eval = FALSE}
+terra::writeRaster(baseline_qt90_smth_15, "your_path/data/baseline_qt90_smth_15.tiff")
+```

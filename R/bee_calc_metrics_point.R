@@ -6,7 +6,7 @@
 #' bee_calc_true_event (the second element of the output). For each pixel, it
 #' contains a data.table with dates in the rows and a column indicating whether
 #' it is a day belonging to a heatwave (1) or not (0).
-#' @param Values is the spatraster with the values of the studded parameter,
+#' @param YourSpatraster is the spatraster with the values of the studded parameter,
 #'  through time and space.
 #' @param GPS is a data frame containing the positions for which you want to
 #' compute metrics. It must contain columns labelled 'x' and 'y', which should
@@ -15,7 +15,7 @@
 #' @param end_date Last day on which you want to start computing metrics.
 #' @param baseline_qt Spatraster of the 90th percentile baseline (or the 10th
 #'  percentile baseline)
-#' @param baseline_mean Spatraster of the 90mean value baseline.
+#' @param baseline_mean Spatraster of the mean value baseline.
 #' @param time_lapse_vector a vector of time laps on which to compute mean
 #' evolution rate and variance of the studdied parameter.
 #' @param group_by_event Whether you want an output summarise by extreme event
@@ -27,19 +27,68 @@
 #' etc. Categories are defined in Hobday et al. 2018.
 #'
 #' @examples
-#' # To be added
+#' # Prepare function arguments:
+#' file_name_1 <- system.file(file.path("extdata",
+#'                                      "copernicus_data_celsius.tiff"),
+#'                                      package = "BioExtremeEvent")
+#' copernicus_data_celsius <- terra::rast(file_name_1)
+#' file_name_2 <- system.file(file.path("extdata",
+#'                                      "binarized_corrected_df.rds"),
+#'                                      package = "BioExtremeEvent")
+#' binarized_corrected_df <- readRDS(file_name_2)
+#' file_name_3 <- system.file(file.path("extdata",
+#'                                      "baseline_qt90_smth_15.tiff"),
+#'                                      package = "BioExtremeEvent")
+#' baseline_qt90_smth_15 <- terra::rast(file_name_3)
+#' file_name_4 <- system.file(file.path("extdata",
+#'                                      "baseline_mean_smth_15.tiff"),
+#'                                      package = "BioExtremeEvent")
+#' baseline_mean_smth_15 <- terra::rast(file_name_4)
+#' GPS <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
+#'                   y = c(43.3786,43.4279))
+#'
+#' # Get daily value (required for BEE.merge() and BEE.summarise()):
+#' metrics_points_day <- BEE.calc.metrics_point(
+#'  Events_corrected = binarized_corrected_df,
+#'  YourSpatraster = copernicus_data_celsius,
+#'  GPS = GPS,
+#'  start_date = NULL,
+#'  end_date = NULL,
+#'  time_lapse_vector = NULL,
+#' # number of time unit on which to compute the warming rates and cooling rates,
+#' #  NULL means it will not be computated
+#'  baseline_qt = baseline_qt90_smth_15,
+#'  baseline_mean = baseline_mean_smth_15,
+#'  group_by_event = FALSE
+#')
+#'
+#' # Get mean, min, max, sd and median per event (extreme event and btw extreme
+#' # events):
+#' metrics_points_ee <- BEE.calc.metrics_point(
+#'  Events_corrected = binarized_corrected_df,
+#'  YourSpatraster = copernicus_data_celsius,
+#'  GPS = GPS,
+#'  start_date = NULL,
+#'  end_date = NULL,
+#'  time_lapse_vector = NULL,
+#' # number of time unit on which to compute the warming rates and cooling rates,
+#' #  NULL means it will not be computated
+#'  baseline_qt = baseline_qt90_smth_15,
+#'  baseline_mean = baseline_mean_smth_15,
+#'  group_by_event = TRUE
+#')
 #'
 #' @export
 #'
 
 #-------------------------------------------------------------------------------
-# start_date <- "2024-06-01" ; end_date <- "2024-10-31" ; Values <- ds ; p <- 1;
+# start_date <- "2024-06-01" ; end_date <- "2024-10-31" ; YourSpatraster <- ds ; p <- 1;
 # GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781));
 # group_by_event = TRUE; time_lapse_vector = c(1,3,5,7,14,21) ;
 # baseline_qt = baseline_qt90
 BEE.calc.metrics_point <- function(
   Events_corrected,
-  Values,
+  YourSpatraster,
   GPS,
   start_date = NULL,
   end_date = NULL,
@@ -48,37 +97,37 @@ BEE.calc.metrics_point <- function(
   baseline_mean = baseline_mean,
   group_by_event = FALSE
 ) {
-  terra::set.names(Values, as.Date(terra::time(Values)))
+  terra::set.names(YourSpatraster, as.Date(terra::time(YourSpatraster)))
 
   ############################### WARNINGS #####################################
   if (is.null(start_date) | is.null(end_date)) {
-    warning(
+    message(
       "You didn't specify a begining date and a ending date (see argument 
       'start_date' and 'end_date'), the first date and last date in your time 
-      Values SpatRaster will be used."
+      YourSpatraster will be used."
     )
-    start_date <- min(as.Date.character(terra::names(Values)))
-    end_date <- max(as.Date.character(terra::names(Values)))
+    start_date <- min(as.Date.character(terra::names(YourSpatraster)))
+    end_date <- max(as.Date.character(terra::names(YourSpatraster)))
   }
   #Check that start date and end_date are within the SpatRasters provided
   if (
-    !(start_date %in% terra::names(Values)) |
-      !(end_date %in% terra::names(Values))
+    !(start_date %in% terra::names(YourSpatraster)) |
+      !(end_date %in% terra::names(YourSpatraster))
   ) {
     warning(
       "One or both of the specified layers is/are not present in the SpatRaster 
       containing the corrected binarised extreme event. The provided dates may
       be outside the SpatRaster timeframe or in the wrong format. Please check 
-      terra::time(Values) to see in which format start_date and end_date must be
+      terra::time(values) to see in which format start_date and end_date must be
       provided in."
     )
   }
-  Values_extent <- terra::ext(Values)
-  #Check that all GPS points are within Values and period_of_interest extent
+  YourSpatraster_extent <- terra::ext(YourSpatraster)
+  #Check that all GPS points are within YourSpatraster and period_of_interest extent
   if (
     !all(
-      abs(GPS[1]) <= abs(Values_extent$xmax) &
-        abs(GPS[1]) >= abs(Values_extent$xmin)
+      abs(GPS[1]) <= abs(YourSpatraster_extent$xmax) &
+        abs(GPS[1]) >= abs(YourSpatraster_extent$xmin)
     )
   ) {
     warning(
@@ -89,8 +138,8 @@ BEE.calc.metrics_point <- function(
   }
   if (
     !all(
-      abs(GPS[2]) <= abs(Values_extent$ymax) &
-        abs(GPS[2]) >= abs(Values_extent$ymin)
+      abs(GPS[2]) <= abs(YourSpatraster_extent$ymax) &
+        abs(GPS[2]) >= abs(YourSpatraster_extent$ymin)
     )
   ) {
     warning(
@@ -105,7 +154,7 @@ BEE.calc.metrics_point <- function(
   ## List of pixel that are always NA:
   NA_pixels <- which(vapply(Events_corrected, is.null, logical(1)))
   ## Identify the pixels corresponding to the GPS position provided:
-  GPS$pixel <- terra::cellFromXY(Values, GPS)
+  GPS$pixel <- terra::cellFromXY(YourSpatraster, GPS)
   if (any(GPS$pixel %in% NA_pixels)) {
     wrong_position <- which(GPS$pixel %in% NA_pixels)
     warning(
@@ -124,26 +173,26 @@ BEE.calc.metrics_point <- function(
   }
 
   ############################### CODE #########################################
-  #Extract values for the given GPS position
+  #Extract YourSpatraster for the given GPS position
   df_list <- lapply(GPS$pixel, function(p) {
     Events_corrected[[p]]
   }) # on df per points/pixel
-  Values <- t(terra::extract(Values, GPS[, 3]))
+  YourSpatraster <- t(terra::extract(YourSpatraster, GPS[, 3]))
 
   # Subset both dataset so they match the timeframe provided with 'start_date'
   # and 'end_date'.
-  Date <- rownames(Values)
-  Values <- Values[
+  Date <- rownames(YourSpatraster)
+  YourSpatraster <- YourSpatraster[
     which(
-      as.Date(rownames(Values)) >= as.Date(start_date) &
-        as.Date(rownames(Values)) <= as.Date(end_date)
+      as.Date(rownames(YourSpatraster)) >= as.Date(start_date) &
+        as.Date(rownames(YourSpatraster)) <= as.Date(end_date)
     ),
   ]
-  Values <- as.matrix(Values)
+  YourSpatraster <- as.matrix(YourSpatraster)
   df_list <- Map(
     function(df, col_idx) {
       df <- df[df$date >= start_date & df$date <= end_date, ]
-      df$value <- Values[, col_idx] #Merge df_list and Values  # Ad to each
+      df$value <- YourSpatraster[, col_idx] #Merge df_list and YourSpatraster  # Ad to each
       # dataframe the corresponding column of pixel value
       return(df)
     },
@@ -191,11 +240,7 @@ BEE.calc.metrics_point <- function(
       )
     }
     if (
-      sub(
-        ".?\\d{3}_\\d{4}-\\d{2}-\\d{2}_(\\d{4}-\\d{2}-\\d{2}).*",
-        "\\1",
-        df$ID[nrow(df)]
-      ) >
+      sub(".*_(\\d{4}-\\d{2}-\\d{2})_.*", "\\1", df$ID[nrow(df)]) >
         df$date[nrow(df)]
     ) {
       warnings(
@@ -218,13 +263,7 @@ BEE.calc.metrics_point <- function(
         }
       }
     }
-    if (is.null(time_lapse_vector)) {
-      col_name <- paste0("evolution_rate_lag_", 1)
-      df[[col_name]] <- NA_real_
-      for (r in seq(1 + 1, nrow(df))) {
-        df[[col_name]][r] <- (df$value[r] - df$value[r - 1]) / 1
-      }
-    }
+
     ## Variance during the given time laps
     if (!is.null(time_lapse_vector)) {
       for (lag in time_lapse_vector) {
@@ -233,13 +272,6 @@ BEE.calc.metrics_point <- function(
         for (r in seq(lag + 1, nrow(df))) {
           df[[col_name]][r] <- stats::var(df$value[(r - lag):r])
         }
-      }
-    }
-    if (is.null(time_lapse_vector)) {
-      col_name <- paste0("variance_value_lag_", 1)
-      df[[col_name]] <- NA_real_
-      for (r in seq(1 + 1, nrow(df))) {
-        df[[col_name]][r] <- stats::var(df$value[(r - 1):r])
       }
     }
 
@@ -399,6 +431,7 @@ BEE.calc.metrics_point <- function(
           -anomaly_unit,
           -cumulative_anomaly_qt,
           -daily_category,
+          -daily_rates,
           -date,
           -daily_category,
           -row_num,
@@ -426,12 +459,3 @@ BEE.calc.metrics_point <- function(
 # OTHER PART TO DEVELOP :
 # For each pixels :
 # - anomalie cumulée par événements
-
-#The categorie of each event are determined according according Hobday et al.
-# 2018 definition
-
-#Category I : btw the 90th percentile and twice the value of the anomalies
-# between mean value end 90th percentile. Category II : btw twice and 3 times
-# the anomalie Category III : btw 3 times and four time the anomaly
-# Category IV : observed value are higher than four times the anomaly btw mean
-# and 90th percentile + the mean value.

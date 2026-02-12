@@ -73,10 +73,8 @@ learn more about the package:
 
 Please cite `BioExtremeEvent` as:
 
-> Delannoy Victoria, Loiseau Nicolas, Villéger Sébastien, Cabrol Nicolas, Fièvre
-Céleste (`r format(Sys.Date(), "%Y")`) BioExtremeEvent: An R package
-to **characterise extreme event**. R package version 0.0.900. 
-<https://github.com/VicoMarbec/BioExtremeEvent/>
+> Delannoy Victoria, Cabrol Nicolas, Fièvre Céleste, Casajus Nicolas, Villéger Sébastien*,Loiseau Nicolas* (r format(Sys.Date(), "%Y")) ioExtremeEvent: An R package to characterise extreme event. R package version 0.0.900. https://github.com/VicoMarbec/BioExtremeEvent/
+
 
 ## Contributing
 
@@ -95,7 +93,7 @@ By contributing to this project, you agree to abide by its terms.
 
 ## References
 
-The dataset used in the exemple comes from :
+The dataset used in the example comes from :
 Embury, O., Merchant, C.J., Good, S.A., Rayner, N.A., Høyer, J.L., Atkinson, C.,
 Block, T., Alerskans, E., Pearson, K.J., Worsfold, M., McCarroll, N.,
 Donlon, C., (2024). Satellite-based time-series of sea-surface temperature since
