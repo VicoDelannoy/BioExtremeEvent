@@ -157,7 +157,7 @@ saveRDS(metrics_points_day, file = "your_path/data/metrics_points_day.rds")
 # Plots
 
 ## Plot parameters values against the baseline, and the colours indicate the extremes according to the categories:
-```{r, fig.width = 20, fig.height =5}
+```{r, fig.width = 20, fig.height =5, warning = FALSE}
 # get metrics for on GPS position
 one_place <- metrics_points_day[[2]]
 
@@ -178,7 +178,21 @@ BEE.plot.categories(metric_point_df = one_place,
 ```
 
 ## Plot mean value and variance of extreme event:
-
 ```{r}
+# get metrics for on GPS position
+one_place <- metrics_points_day[[2]]
 
+#plot
+BEE.plot.cumulative_anomaly(metric_point_df = one_place, 
+                    start_date = NULL, 
+                    end_date = NULL,
+                    # facultative arguments to customise graph:
+                    ... = ggplot2::theme(  
+                              axis.text.x = ggplot2::element_text(size = 14),
+                              axis.text.y = ggplot2::element_text(size = 14),
+                              axis.title.x = ggplot2::element_text(size = 16),
+                              axis.title.y = ggplot2::element_text(size = 16),
+                              legend.title =  ggplot2::element_text(size = 16),
+                              legend.text  =  ggplot2::element_text(size = 14)
+    ))
 ```

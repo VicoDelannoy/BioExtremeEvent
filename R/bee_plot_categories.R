@@ -136,12 +136,12 @@ BEE.plot.categories <- function(
     ggplot2::geom_line(
       ggplot2::aes(y = baseline_qt, color = "Baseline (quantile)"),
       linetype = "dashed",
-      linewidth = 2
+      linewidth = 1.5
     ) +
     ggplot2::geom_line(
       ggplot2::aes(y = baseline_mean, color = "Baseline (mean)"),
       linetype = "dashed",
-      linewidth = 2
+      linewidth = 1.5
     ) +
     ggplot2::scale_fill_manual(
       name = "Event categories",
@@ -153,6 +153,7 @@ BEE.plot.categories <- function(
       )
     ) +
     ggplot2::scale_color_manual(
+      name = "Lines",
       values = c(
         "Parameter value" = "#41383aff",
         "Baseline (quantile)" = "darkred",
