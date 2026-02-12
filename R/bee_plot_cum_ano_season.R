@@ -127,4 +127,37 @@ BEE.plot.cumulative_anomaly <- function(
     plot <- Reduce(`+`, c(list(plot), extras))
   }
   print(plot)
+  Sys.sleep(1)
+
+  # Second plot to compare cumulative anomalies profiles:
+  ## prepare data
+  one_place_filtered <- one_place %>%
+    dplyr::filter(daily_category != "No extreme event") %>%
+    dplyr::arrange(ID, date) %>%
+    dplyr::group_by(ID) %>%
+    dplyr::mutate(event_day = row_number() - 1)
+
+  # Grap
+  plot2 <- ggplot2::ggplot(
+    one_place_filtered,
+    ggplot2::aes(
+      x = event_day,
+      y = cumulative_anomaly_qt,
+      group = ID,
+      color = factor(ID)
+    )
+  ) +
+    ggplot2::geom_line(size = 1) +
+    ggplot2::labs(
+      x = "Duration of event (days)",
+      y = "Cumulative anomaly (quantile)",
+      color = "ID"
+    ) +
+    ggplot2::theme_minimal()
+
+  extras <- list(...)
+  if (length(extras) > 0) {
+    plot2 <- Reduce(`+`, c(list(plot2), extras))
+  }
+  print(plot2)
 }
