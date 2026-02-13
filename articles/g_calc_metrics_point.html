@@ -121,12 +121,12 @@ variance of the parameter, <em>etc.</em></p>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
-<p><strong>Events_corrected</strong>: Is the list of data tables
+<p><strong>events_corrected</strong>: Is the list of data tables
 produced by: bee_calc_true_event (the second element of the output). For
 each pixel, it contains a data.table with dates in the rows and a column
 indicating whether it is a day belonging to a heatwave (1) or not
-(0).<br><strong>YourSpatraster</strong>: is the spatraster with the values of
-the studded parameter, through time and space.<br><strong>GPS</strong>: is a data frame containing the positions for which
+(0).<br><strong>yourspatraster</strong>: is the spatraster with the values of
+the studded parameter, through time and space.<br><strong>gps</strong>: is a data frame containing the positions for which
 you want to compute metrics. It must contain columns labelled ‘x’ and
 ‘y’, which should contain longitudes and latitudes, respectively.<br><strong>start_date</strong>: First day on which you want to start
 computing metrics.<br><strong>end_date</strong>: Last day on which you want to start computing
@@ -143,11 +143,11 @@ extreme event or not. If not, you just get daily metrics.</p>
 <p>You will receive a warning if :</p>
 <ul>
 <li>the layer associated to <em>“start_date”</em> and/or
-<em>“end_date”</em> is not found in <em>“YourSpatraster”</em>. different
+<em>“end_date”</em> is not found in <em>“yourspatraster”</em>. different
 layers have different units.</li>
-<li>at least one of the GPS point in “<em>GPS</em>” argument falls
-outside of the <em>“YourSpatraster”</em>.</li>
-<li>a GPS point is on a pixel that is always ‘NA’.</li>
+<li>at least one of the gps point in “<em>gps</em>” argument falls
+outside of the <em>“yourspatraster”</em>.</li>
+<li>a gps point is on a pixel that is always ‘NA’.</li>
 </ul>
 </div>
 <div class="section level3">
@@ -161,7 +161,7 @@ a message will indicate the default <em>“start_date”</em> and
 <div class="section level3">
 <h3 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a>
 </h3>
-<p>A list of dataframe (one per GPS point), each dataframe contains
+<p>A list of dataframe (one per gps point), each dataframe contains
 informations on the date of the extrem events, mean, median, max and min
 values, peak day, onset-rate, off-set rate, mean anomaly, maximum
 category <em>etc.</em> Categories are defined in Hobday <em>et al.</em>
@@ -192,7 +192,7 @@ category <em>etc.</em> Categories are defined in Hobday <em>et al.</em>
 <span>                                      <span class="st">"baseline_mean_smth_15.tiff"</span><span class="op">)</span>,</span>
 <span>                                      package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
 <span> <span class="va">baseline_mean_smth_15</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name_4</span><span class="op">)</span></span>
-<span> <span class="va">GPS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3.6883</span>,<span class="fl">4.4268</span><span class="op">)</span>, <span class="co"># Sète, Saintes-Marie-de-la-Mer</span></span>
+<span> <span class="va">gps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3.6883</span>,<span class="fl">4.4268</span><span class="op">)</span>, <span class="co"># Sète, Saintes-Marie-de-la-Mer</span></span>
 <span>                   y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">43.3786</span>,<span class="fl">43.4279</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -204,9 +204,9 @@ merge sevral types of metrics) and <em>BEE.data.summarise()</em> (to
 summarise metrics per extreme event or over different time period).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">metrics_points_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
-<span>  Events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
-<span>  YourSpatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
-<span>  GPS <span class="op">=</span> <span class="va">GPS</span>,</span>
+<span>  events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
+<span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
+<span>  gps <span class="op">=</span> <span class="va">gps</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_lapse_vector <span class="op">=</span> <span class="cn">NULL</span>, </span>
@@ -216,16 +216,16 @@ summarise metrics per extreme event or over different time period).</p>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## You didn't specify a begining date and a ending date (see argument </span></span>
 <span><span class="co">##       'start_date' and 'end_date'), the first date and last date in your time </span></span>
-<span><span class="co">##       YourSpatraster will be used.</span></span></code></pre>
+<span><span class="co">##       yourspatraster will be used.</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="get-daily-values-for-each-metrics-1">Get daily values for each metrics:<a class="anchor" aria-label="anchor" href="#get-daily-values-for-each-metrics-1"></a>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">metrics_points_ee</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
-<span>  Events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
-<span>  YourSpatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
-<span>  GPS <span class="op">=</span> <span class="va">GPS</span>,</span>
+<span>  events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
+<span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
+<span>  gps <span class="op">=</span> <span class="va">gps</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_lapse_vector <span class="op">=</span> <span class="cn">NULL</span>, </span>
@@ -235,7 +235,7 @@ summarise metrics per extreme event or over different time period).</p>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## You didn't specify a begining date and a ending date (see argument </span></span>
 <span><span class="co">##       'start_date' and 'end_date'), the first date and last date in your time </span></span>
-<span><span class="co">##       YourSpatraster will be used.</span></span></code></pre>
+<span><span class="co">##       yourspatraster will be used.</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="get-information-on-the-mean-and-variance-of-the-studdied-parameters-over-different-lag-time">Get information on the mean and variance of the studdied parameters
@@ -249,9 +249,9 @@ to NULL and <em>“group_by_event”</em> set to FALSE and to later use
 <em>BEE.data.merge()</em> and <em>BEE.data.summarise()</em>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">metrics_point_lag</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
-<span>  Events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
-<span>  YourSpatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
-<span>  GPS <span class="op">=</span> <span class="va">GPS</span>,</span>
+<span>  events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
+<span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
+<span>  gps <span class="op">=</span> <span class="va">gps</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_lapse_vector <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">5</span>,<span class="fl">7</span><span class="op">)</span>,  <span class="co"># The moving time windows are 3,5 and 7 days long.</span></span>
@@ -261,14 +261,14 @@ to NULL and <em>“group_by_event”</em> set to FALSE and to later use
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## You didn't specify a begining date and a ending date (see argument </span></span>
 <span><span class="co">##       'start_date' and 'end_date'), the first date and last date in your time </span></span>
-<span><span class="co">##       YourSpatraster will be used.</span></span></code></pre>
+<span><span class="co">##       yourspatraster will be used.</span></span></code></pre>
 </div>
 <div class="section level3">
-<h3 id="compute-metrics-for-every-pixels-in-yourspatraster">Compute metrics for every pixels in YourSpatraster:<a class="anchor" aria-label="anchor" href="#compute-metrics-for-every-pixels-in-yourspatraster"></a>
+<h3 id="compute-metrics-for-every-pixels-in-yourspatraster">Compute metrics for every pixels in yourspatraster:<a class="anchor" aria-label="anchor" href="#compute-metrics-for-every-pixels-in-yourspatraster"></a>
 </h3>
-<p>To do so, you need to provide a <em>“GPS”</em> argument containing
-all the pixel positions in YourSpatraster. This considerably increases
-computation time, so we advise against providing GPS positions that
+<p>To do so, you need to provide a <em>“gps”</em> argument containing
+all the pixel positions in yourspatraster. This considerably increases
+computation time, so we advise against providing gps positions that
 refer to pixels that are always NA.</p>
 <p>Get all the pixel coordinates:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -282,9 +282,9 @@ refer to pixels that are always NA.</p>
 <p>Apply function:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">metrics_points_day_all_pix</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
-<span>  Events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
-<span>  YourSpatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
-<span>  GPS <span class="op">=</span> <span class="va">coords</span>,</span>
+<span>  events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
+<span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
+<span>  gps <span class="op">=</span> <span class="va">coords</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_lapse_vector <span class="op">=</span> <span class="cn">NULL</span>, </span>
@@ -294,12 +294,12 @@ refer to pixels that are always NA.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## You didn't specify a begining date and a ending date (see argument </span></span>
 <span><span class="co">##       'start_date' and 'end_date'), the first date and last date in your time </span></span>
-<span><span class="co">##       YourSpatraster will be used.</span></span></code></pre>
+<span><span class="co">##       yourspatraster will be used.</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="how-to-save-the-ouputs">How to save the ouputs:<a class="anchor" aria-label="anchor" href="#how-to-save-the-ouputs"></a>
 </h3>
-<p>Outputs are list of dataframe (on dataframe per pixel in GPS), list
+<p>Outputs are list of dataframe (on dataframe per pixel in gps), list
 can be saved in .rds :</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/serialize.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">metrics_points_day</span>, file <span class="op">=</span> <span class="st">"your_path/data/metrics_points_day.rds"</span><span class="op">)</span></span></code></pre></div>
@@ -313,7 +313,7 @@ can be saved in .rds :</p>
 indicate the extremes according to the categories:<a class="anchor" aria-label="anchor" href="#plot-parameters-values-against-the-baseline-and-the-colours-indicate-the-extremes-according-to-the-categories"></a>
 </h3>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># get metrics for on GPS position</span></span>
+<code class="sourceCode R"><span><span class="co"># get metrics for on gps position</span></span>
 <span><span class="va">one_place</span> <span class="op">&lt;-</span> <span class="va">metrics_points_day</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co">#plot</span></span>
@@ -336,7 +336,7 @@ indicate the extremes according to the categories:<a class="anchor" aria-label="
 <h3 id="plot-mean-value-and-variance-of-extreme-event">Plot mean value and variance of extreme event:<a class="anchor" aria-label="anchor" href="#plot-mean-value-and-variance-of-extreme-event"></a>
 </h3>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># get metrics for on GPS position</span></span>
+<code class="sourceCode R"><span><span class="co"># get metrics for on gps position</span></span>
 <span><span class="va">one_place</span> <span class="op">&lt;-</span> <span class="va">metrics_points_day</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co">#plot</span></span>

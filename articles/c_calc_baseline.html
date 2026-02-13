@@ -160,13 +160,13 @@ data to Celsius</em>.</p>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
-<p><strong>YourSpatraster</strong>: is a spatraster with one layer per
+<p><strong>yourspatraster</strong>: is a spatraster with one layer per
 day. Each layer covers the same area, and the time series must encompass
 the start_date and end_date provided as argument.<br><strong>start_date</strong> and <strong>end_date</strong>: are the
 limits of the time period you want to consider has the reference value
 to compute the baseline. Please ensure that the date format matches that
 of the provided spatraster. You can check the format using
-terra::time(YourSpatraster).<br><strong>threshold</strong>: is the argument specifying whether you want
+terra::time(yourspatraster).<br><strong>threshold</strong>: is the argument specifying whether you want
 to compute a percentile value of the time serie or the mean value.
 Arguments accepted are:<br>
 - <em>“qt”</em> (quantile), to calculate a percentile. -
@@ -224,7 +224,7 @@ over a 15 days period centred on the d day:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VicoMarbec/BioExtremeEvent" class="external-link">BioExtremeEvent</a></span><span class="op">)</span></span>
 <span><span class="co">#### Smoothing over 15 days: # 18s to run</span></span>
-<span><span class="va">baseline_qt90_smth_15</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.baseline.html">BEE.calc.baseline</a></span><span class="op">(</span>YourSpatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
+<span><span class="va">baseline_qt90_smth_15</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.baseline.html">BEE.calc.baseline</a></span><span class="op">(</span>yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
 <span>                                    start_date <span class="op">=</span> <span class="st">"2023-01-01"</span>,</span>
 <span>                                    end_date <span class="op">=</span> <span class="st">"2025-12-31"</span>,</span>
 <span>                                    threshold <span class="op">=</span> <span class="st">"qt"</span>,</span>

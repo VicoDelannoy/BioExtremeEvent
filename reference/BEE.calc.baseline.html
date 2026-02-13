@@ -84,7 +84,7 @@ timeserie.</p>
 
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.calc.baseline</span><span class="op">(</span></span>
-<span>  <span class="va">YourSpatraster</span>,</span>
+<span>  <span class="va">yourspatraster</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">threshold</span>,</span>
@@ -98,7 +98,7 @@ timeserie.</p>
     <h2>Arguments</h2>
 
 
-<dl><dt id="arg-yourspatraster">YourSpatraster<a class="anchor" aria-label="anchor" href="#arg-yourspatraster"></a></dt>
+<dl><dt id="arg-yourspatraster">yourspatraster<a class="anchor" aria-label="anchor" href="#arg-yourspatraster"></a></dt>
 <dd><p>:
 The SpatRaster that contains the values to be used to calculate the baseline
 (your reference time serie). Each layer must have a date and there must be
@@ -110,6 +110,12 @@ The SpatRaster that contains the values to be used to calculate the baseline
 The date to use as the first day of your reference period. It must be in the
 format <strong>YYYY-MM-DD</strong>. (Note that the provided dataset can cover a longer
 time period than the one you want to use as a reference.)</p></dd>
+
+
+<dt id="arg-end-date">end_date<a class="anchor" aria-label="anchor" href="#arg-end-date"></a></dt>
+<dd><p>:
+The date to use as the first day of your reference period. It must be in the
+format <strong>YYYY-MM-DD</strong>.</p></dd>
 
 
 <dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
@@ -147,11 +153,6 @@ For example, if <em>"smooth_window"</em> is set to 10 days, the final value on
 day 'd' will be the mean of the baseline/thershold values calculated for
 days: d - 10 to d + 10 (eleven values).</p></dd>
 
-
-<dt id="arg-end-date-">end_date:<a class="anchor" aria-label="anchor" href="#arg-end-date-"></a></dt>
-<dd><p>The date to use as the first day of your reference period. It must be in the
-format <strong>YYYY-MM-DD</strong>.</p></dd>
-
 </dl></div>
     <div id="value">
     <h2>Value</h2>
@@ -172,7 +173,7 @@ pixel contains the threshold value at which an extreme event is identified
 <span class="r-in"><span><span class="co"># accross all years of the reference time period are bellow the baseline</span></span></span>
 <span class="r-in"><span><span class="co"># value.</span></span></span>
 <span class="r-in"><span><span class="co">#### No smoothing: # 16s to run</span></span></span>
-<span class="r-in"><span><span class="va">baseline_qt90_smth_0</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.baseline</span><span class="op">(</span>YourSpatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span></span>
+<span class="r-in"><span><span class="va">baseline_qt90_smth_0</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.baseline</span><span class="op">(</span>yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span></span>
 <span class="r-in"><span>                                   start_date <span class="op">=</span> <span class="st">"2023-01-01"</span>,</span></span>
 <span class="r-in"><span>                                   end_date <span class="op">=</span> <span class="st">"2025-12-31"</span>,</span></span>
 <span class="r-in"><span>                                   threshold <span class="op">=</span> <span class="st">"qt"</span>,</span></span>
@@ -180,7 +181,7 @@ pixel contains the threshold value at which an extreme event is identified
 <span class="r-in"><span>                                   time_window <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>                                   smooth_window <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co">#### Smoothing over 15 days: # 18s to run</span></span></span>
-<span class="r-in"><span><span class="va">baseline_qt90_smth_15</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.baseline</span><span class="op">(</span>YourSpatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span></span>
+<span class="r-in"><span><span class="va">baseline_qt90_smth_15</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.baseline</span><span class="op">(</span>yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span></span>
 <span class="r-in"><span>                                   start_date <span class="op">=</span> <span class="st">"2023-01-01"</span>,</span></span>
 <span class="r-in"><span>                                   end_date <span class="op">=</span> <span class="st">"2025-12-31"</span>,</span></span>
 <span class="r-in"><span>                                   threshold <span class="op">=</span> <span class="st">"qt"</span>,</span></span>
@@ -188,7 +189,7 @@ pixel contains the threshold value at which an extreme event is identified
 <span class="r-in"><span>                                   time_window <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>                                   smooth_window <span class="op">=</span> <span class="fl">7</span><span class="op">)</span> <span class="co">#7+1+7=15</span></span></span>
 <span class="r-in"><span><span class="co">###**Mean value threshold:**</span></span></span>
-<span class="r-in"><span><span class="va">baseline_mean</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.baseline</span><span class="op">(</span>YourSpatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span></span>
+<span class="r-in"><span><span class="va">baseline_mean</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.baseline</span><span class="op">(</span>yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span></span>
 <span class="r-in"><span>                                   start_date <span class="op">=</span> <span class="st">"2023-01-01"</span>,</span></span>
 <span class="r-in"><span>                                   end_date <span class="op">=</span> <span class="st">"2025-12-31"</span>,</span></span>
 <span class="r-in"><span>                                   threshold <span class="op">=</span> <span class="st">"mean"</span>,</span></span>

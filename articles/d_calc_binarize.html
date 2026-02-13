@@ -146,11 +146,11 @@ examples.</p>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
-<p><strong>YourSpatraster</strong>: is a spatraster with one layer per
+<p><strong>yourspatraster</strong>: is a spatraster with one layer per
 day. Each layer covers the same area and time is continuous (no layers
 are missing). If you are not using a fixed threshold, the baseline
 spatraster computed using BEE.calc.baseline() must be computed using the
-same dataset as YourSpatraster for comparison without bias.
+same dataset as yourspatraster for comparison without bias.
 <strong>baseline</strong>: a spatraster computed with
 BEE.calc.baseline() or a numerical value representing a fixed threshold.
 <strong>direction</strong>: Only two options are accepted
@@ -166,7 +166,7 @@ quantile and used <em>direction = “below”</em>.</p>
 </h3>
 <p>No warning implemented. ## Messages: No warning implemented. ##
 Output The output is a spartaster with the same properties as
-YourSpatraster but it only contains binerized value (1 or 0), ‘1’ if the
+yourspatraster but it only contains binerized value (1 or 0), ‘1’ if the
 pixel values was more extreme than the baseline on the day corresponding
 to the layer. ‘0’ if it was less extreme. Pixel that were NA stays NA.
 This SpatRaster contains binarised extreme <strong>days</strong>. The
@@ -207,7 +207,7 @@ baseline:<a class="anchor" aria-label="anchor" href="#identify-the-days-on-which
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Identify the days on which the values are higher than the baseline for the</span></span>
 <span><span class="co"># 90th percentile.:</span></span>
-<span><span class="va">binarized</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.id.extreme_days.html">BEE.id.extreme_days</a></span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
+<span><span class="va">binarized</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.id.extreme_days.html">BEE.id.extreme_days</a></span><span class="op">(</span>yourspatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
 <span>                                   baseline<span class="op">=</span><span class="va">baseline_qt90</span>,</span>
 <span>                                   direction <span class="op">=</span> <span class="st">"above"</span><span class="op">)</span></span></code></pre></div>
 <p>Plot parameter values, baseline value and comparison obtained
@@ -270,7 +270,7 @@ than the baseline value for this day.</em></p>
 </h3>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Identify days on which the value is lower than a fixed threshold.</span></span>
-<span><span class="va">binarized_fixed_threshold</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.id.extreme_days.html">BEE.id.extreme_days</a></span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
+<span><span class="va">binarized_fixed_threshold</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.id.extreme_days.html">BEE.id.extreme_days</a></span><span class="op">(</span>yourspatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
 <span>                                   baseline<span class="op">=</span> <span class="fl">12.5</span>,</span>
 <span>                                   direction <span class="op">=</span> <span class="st">"below"</span><span class="op">)</span></span></code></pre></div>
 <p>Plot parameter values, baseline value and comparison obtained

@@ -131,7 +131,7 @@ events.</p>
 per day. Each layer covers the same area and time is continuous (no
 layers are missing). If you are not using a fixed threshold, the
 baseline spatraster computed using BEE.calc.baseline() must be computed
-using the same dataset as YourSpatraster for comparison without
+using the same dataset as yourspatraster for comparison without
 bias.<br><strong>n</strong>: The minimum number of consecutive days above the
 baseline/threshol required for a series of days more extrem than the
 baseline to be considered as an extreme event (≥).<br><strong>d</strong>: The maximum number of days for which two series of
@@ -168,7 +168,7 @@ isolated extreme days. These events are used in the next function of the
 pipeline.<br>
 The second element is called <strong>“Event_corrected”</strong>. This is
 a list with one data.table per pixel. Each data.table has a date for
-each row (and as many dates as there are layers in YourSpatraster).</p>
+each row (and as many dates as there are layers in yourspatraster).</p>
 <p>COLUMNS MEANNINGS :<br>
 The “original_value” column gives the value of the raw binarisation
 before applying this function.<br>

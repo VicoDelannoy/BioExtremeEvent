@@ -87,14 +87,14 @@ to 0. The process works in reverse when "direction" = below.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.id.extreme_days</span><span class="op">(</span><span class="va">YourSpatraster</span>, <span class="va">baseline</span>, <span class="va">direction</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.id.extreme_days</span><span class="op">(</span><span class="va">yourspatraster</span>, <span class="va">baseline</span>, <span class="va">direction</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
 
 
-<dl><dt id="arg-yourspatraster">YourSpatraster<a class="anchor" aria-label="anchor" href="#arg-yourspatraster"></a></dt>
+<dl><dt id="arg-yourspatraster">yourspatraster<a class="anchor" aria-label="anchor" href="#arg-yourspatraster"></a></dt>
 <dd><p>:
 The Spatraster containing the values of the studied parameter, with one
 layer for each timestep.</p></dd>
@@ -121,14 +121,14 @@ considered as extreme events.</p></dd>
 typical year, providing a total of 366 Spatrasters, with one layer per year.
 The first element of the list contains the rasters for all the first of
 January included in the provided time series. These rasters have the same
-properties as 'YourSpatraster', but the values have been replaced with 1 if
+properties as 'yourspatraster', but the values have been replaced with 1 if
 the pixel value was more extreme than the baseline, and with 0 if it was
 not.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
     <p>For computational purposes in the next stages of the pipeline, the
-order of the layers differs from that in 'YourSpatraster'.
+order of the layers differs from that in 'yourspatraster'.
 BEE.id.extreme_days is not designed to work with 4D data (3D in space and
 time). To do so, please refer to BEE.calc.4thD.
 This function only identifies days more extreme than a baseline, extra
@@ -154,11 +154,11 @@ the BEE.id.extreme_events() function (next one in the framwork).</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Identify the days on which the values are higher than the baseline for the</span></span></span>
 <span class="r-in"><span><span class="co"># 90th percentile.:</span></span></span>
-<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.id.extreme_days</span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span></span>
+<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.id.extreme_days</span><span class="op">(</span>yourspatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span></span>
 <span class="r-in"><span>                                  baseline<span class="op">=</span><span class="va">baseline_qt90</span>,</span></span>
 <span class="r-in"><span>                                  direction <span class="op">=</span> <span class="st">"above"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Identify days on which the value is lower than a fixed threshold.</span></span></span>
-<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.id.extreme_days</span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span></span>
+<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.id.extreme_days</span><span class="op">(</span>yourspatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span></span>
 <span class="r-in"><span>                                  baseline<span class="op">=</span><span class="fl">12</span>,</span></span>
 <span class="r-in"><span>                                  direction <span class="op">=</span> <span class="st">"below"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
