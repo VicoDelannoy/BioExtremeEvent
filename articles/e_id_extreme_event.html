@@ -166,12 +166,11 @@ extreme days by applying pixel-wise temporal rules such as minimum event
 duration, merging of events that are close in time, and the removal of
 isolated extreme days. These events are used in the next function of the
 pipeline.<br>
-The second element is called <strong>“Event_corrected”</strong>. This is
-a list with one data.table per pixel. Each data.table has a date for
-each row (and as many dates as there are layers in yourspatraster).</p>
-<p>COLUMNS MEANNINGS :<br>
-The “original_value” column gives the value of the raw binarisation
-before applying this function.<br>
+The second element is called <strong>“extreme_event”</strong>. This is a
+list with one data.table per pixel. Each data.table has a date for each
+row (and as many dates as there are layers in yourspatraster).</p>
+<p>The dataframes The “original_value” column gives the value of the raw
+binarisation before applying this function.<br>
 “cleaned_value” provides the corrected values for each date.<br>
 “ID” is the identifier of the event, built using the pixel number, the
 first day of the event and the last day of the event and the event_id

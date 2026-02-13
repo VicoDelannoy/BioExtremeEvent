@@ -164,12 +164,16 @@ quantile and used <em>direction = “below”</em>.</p>
 <div class="section level3">
 <h3 id="warnings">Warnings:<a class="anchor" aria-label="anchor" href="#warnings"></a>
 </h3>
-<p>No warning implemented. ## Messages: No warning implemented. ##
-Output The output is a spartaster with the same properties as
-yourspatraster but it only contains binerized value (1 or 0), ‘1’ if the
-pixel values was more extreme than the baseline on the day corresponding
-to the layer. ‘0’ if it was less extreme. Pixel that were NA stays NA.
-This SpatRaster contains binarised extreme <strong>days</strong>. The
+<p>No warning implemented. ## Messages: No warning implemented.</p>
+</div>
+<div class="section level3">
+<h3 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a>
+</h3>
+<p>The output is a spartaster with the same properties as yourspatraster
+but it only contains binerized value (1 or 0), ‘1’ if the pixel values
+was more extreme than the baseline on the day corresponding to the
+layer. ‘0’ if it was less extreme. Pixel that were NA stays NA. This
+SpatRaster contains binarised extreme <strong>days</strong>. The
 function <em>BEE.calc.binarise()</em> only identifies, for each pixel,
 the days that are more extreme than the baseline according to the
 selected threshold. At this stage, no extreme events are defined yet;

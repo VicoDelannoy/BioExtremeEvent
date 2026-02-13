@@ -84,7 +84,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.calc.metrics_point</span><span class="op">(</span></span>
 <span>  <span class="va">events_corrected</span>,</span>
 <span>  <span class="va">yourspatraster</span>,</span>
-<span>  <span class="va">GPS</span>,</span>
+<span>  <span class="va">gps</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_lapse_vector <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -112,7 +112,7 @@ Is the spatraster with the values of the studded parameter, through time and
 space.</p></dd>
 
 
-<dt id="arg-gps">GPS<a class="anchor" aria-label="anchor" href="#arg-gps"></a></dt>
+<dt id="arg-gps">gps<a class="anchor" aria-label="anchor" href="#arg-gps"></a></dt>
 <dd><p>:
 Is a data frame containing the positions for which you want to compute
 metrics. It must contain columns labelled 'x' and 'y', which should contain
@@ -154,7 +154,7 @@ just get daily metrics.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list of dataframe (one per GPS point), each dataframe contains
+    <p>A list of dataframe (one per gps point), each dataframe contains
 informations on the date of the extrem events, mean, median, max and min
 values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
 <em>etc.</em> Categories are defined in Hobday <em>et al.</em> 2018.</p>
@@ -184,14 +184,14 @@ values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
 <span class="r-in"><span>                                     <span class="st">"baseline_mean_smth_15.tiff"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                                     package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">baseline_mean_smth_15</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name_4</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">GPS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3.6883</span>,<span class="fl">4.4268</span><span class="op">)</span>, <span class="co"># Sète, Saintes-Marie-de-la-Mer</span></span></span>
+<span class="r-in"><span><span class="va">gps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3.6883</span>,<span class="fl">4.4268</span><span class="op">)</span>, <span class="co"># Sète, Saintes-Marie-de-la-Mer</span></span></span>
 <span class="r-in"><span>                  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">43.3786</span>,<span class="fl">43.4279</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get daily value (required for BEE.merge() and BEE.summarise()):</span></span></span>
 <span class="r-in"><span><span class="va">metrics_points_day</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.metrics_point</span><span class="op">(</span></span></span>
 <span class="r-in"><span> events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span></span>
 <span class="r-in"><span> yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span></span>
-<span class="r-in"><span> GPS <span class="op">=</span> <span class="va">GPS</span>,</span></span>
+<span class="r-in"><span> gps <span class="op">=</span> <span class="va">gps</span>,</span></span>
 <span class="r-in"><span> start_date <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span> end_date <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span> time_lapse_vector <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
@@ -201,14 +201,16 @@ values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
 <span class="r-in"><span> baseline_mean <span class="op">=</span> <span class="va">baseline_mean_smth_15</span>,</span></span>
 <span class="r-in"><span> group_by_event <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in BEE.calc.metrics_point(events_corrected = binarized_corrected_df,     yourspatraster = copernicus_data_celsius, GPS = GPS, start_date = NULL,     end_date = NULL, time_lapse_vector = NULL, baseline_qt = baseline_qt90_smth_15,     baseline_mean = baseline_mean_smth_15, group_by_event = FALSE):</span> unused argument (GPS = GPS)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> You didn't specify a begining date and a ending date (see argument </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>       'start_date' and 'end_date'), the first date and last date in your time </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>       yourspatraster will be used.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get mean, min, max, sd and median per event (extreme event and btw extreme</span></span></span>
 <span class="r-in"><span><span class="co"># events):</span></span></span>
 <span class="r-in"><span><span class="va">metrics_points_ee</span> <span class="op">&lt;-</span> <span class="fu">BEE.calc.metrics_point</span><span class="op">(</span></span></span>
 <span class="r-in"><span> events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span></span>
 <span class="r-in"><span> yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span></span>
-<span class="r-in"><span> GPS <span class="op">=</span> <span class="va">GPS</span>,</span></span>
+<span class="r-in"><span> gps <span class="op">=</span> <span class="va">gps</span>,</span></span>
 <span class="r-in"><span> start_date <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span> end_date <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span> time_lapse_vector <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
@@ -218,7 +220,9 @@ values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
 <span class="r-in"><span> baseline_mean <span class="op">=</span> <span class="va">baseline_mean_smth_15</span>,</span></span>
 <span class="r-in"><span> group_by_event <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in BEE.calc.metrics_point(events_corrected = binarized_corrected_df,     yourspatraster = copernicus_data_celsius, GPS = GPS, start_date = NULL,     end_date = NULL, time_lapse_vector = NULL, baseline_qt = baseline_qt90_smth_15,     baseline_mean = baseline_mean_smth_15, group_by_event = TRUE):</span> unused argument (GPS = GPS)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> You didn't specify a begining date and a ending date (see argument </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>       'start_date' and 'end_date'), the first date and last date in your time </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>       yourspatraster will be used.</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
