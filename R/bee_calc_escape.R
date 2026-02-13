@@ -268,7 +268,7 @@ BEE.calc.escape <- function(
     if (length(pixels_from) == 0 & length(pixels_to) == 0) {
       warning(
         "There are no pixel of value 1 AND there are no pixel of value 0, 
-        the raster are probably not binarized (please see BEE.id.extreme_days
+        the raster are probably not binarized (please see BEE.id.extreme_day
         and BEE.id.extreme_events) or the raster is fully covered by NA."
       )
     }

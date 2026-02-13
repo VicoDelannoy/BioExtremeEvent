@@ -4,7 +4,7 @@
 #'  Identify the extreme event according to the set of constraints.
 #'
 #' @param binarized_spatraster :
-#'  A Spatraster built using the BEE.id.extreme_days()
+#'  A Spatraster built using the BEE.id.extreme_day()
 #'  function. It only contains 1 and 0.
 #' @param n :
 #'  The minimum number of consecutive days above the baseline/threshold

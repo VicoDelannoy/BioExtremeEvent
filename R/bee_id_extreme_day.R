@@ -31,7 +31,7 @@
 #' @details 
 #'  For computational purposes in the next stages of the pipeline, the
 #'  order of the layers differs from that in 'yourspatraster'.
-#'  BEE.id.extreme_days is not designed to work with 4D data (3D in space and
+#'  BEE.id.extreme_day is not designed to work with 4D data (3D in space and
 #'  time). To do so, please refer to BEE.calc.4thD.
 #'  This function only identifies days more extreme than a baseline, extra
 #'  criteria to identify extreme event (e.g. minimum duration) will be apply in
@@ -54,11 +54,11 @@
 #'
 #' # Identify the days on which the values are higher than the baseline for the
 #' # 90th percentile.:
-#' binarized_EE <- BEE.id.extreme_days(yourspatraster=copernicus_data,
+#' binarized_EE <- BEE.id.extreme_day(yourspatraster=copernicus_data,
 #'                                   baseline=baseline_qt90,
 #'                                   direction = "above")
 #' # Identify days on which the value is lower than a fixed threshold.
-#' binarized_EE <- BEE.id.extreme_days(yourspatraster=copernicus_data,
+#' binarized_EE <- BEE.id.extreme_day(yourspatraster=copernicus_data,
 #'                                   baseline=12,
 #'                                   direction = "below")
 #'
@@ -67,7 +67,7 @@
 #---------------------------------------------------------------------------
 # baseline <- baseline_qt90 ; direction <- "above"; yourspatraster <- ds
 
-BEE.id.extreme_days <- function(yourspatraster, baseline, direction) {
+BEE.id.extreme_day <- function(yourspatraster, baseline, direction) {
   if (class(baseline)[1] == "SpatRaster") {
     # Retrieve the extent of yourspatraster
     new_extent <- terra::ext(yourspatraster)

@@ -22,7 +22,7 @@
 #'  percentile of the observed values in the reference timeframe, or *"mean"*,
 #'  if you want to use the mean of the observed values as threshold.
 #'  If you want to use a fixed value as the threshold (e.g. biological optimum),
-#'  you can skip this step and use BEE.id.extreme_days() directly.
+#'  you can skip this step and use BEE.id.extreme_day() directly.
 #' @param quantile_value :
 #'  Indicates the desired percentile value. This must be between 0 and 1.
 #' @param time_window :

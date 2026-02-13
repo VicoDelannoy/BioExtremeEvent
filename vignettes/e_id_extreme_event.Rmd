@@ -10,7 +10,7 @@ vignette: >
 
 # Aims of the function *BEE.id.extreme_events()*
 Identify the extreme event according to a set of constraints (e.g. minimum duration, merging close events).
-*BEE.id.extreme_events()* transforms the extreme days identified with *BEE.id.extreme_days()* into coherent extreme events by applying temporal criteria such as minimum duration, merging events close in time, and removing isolated days.
+*BEE.id.extreme_events()* transforms the extreme days identified with *BEE.id.extreme_day()* into coherent extreme events by applying temporal criteria such as minimum duration, merging events close in time, and removing isolated days.
 The two functions are complementary: binarise detects when conditions are extreme, while true_event defines which sequences of extreme days constitute meaningful events.
 
 # Usage
@@ -48,7 +48,7 @@ The *BEE.calc.corrections()* function allows to check how many modifications you
 ## Load data:
 ```{r setup}
 library(BioExtremeEvent)
-#Binarized spatraster built using BEE.id.extreme_days()
+#Binarized spatraster built using BEE.id.extreme_day()
 file_name_1 <- system.file(file.path("extdata", "copernicus_binarized.tiff"),
                                    package = "BioExtremeEvent")
 binarized_data <- terra::rast(file_name_1)
