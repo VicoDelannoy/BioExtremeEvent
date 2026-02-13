@@ -1,21 +1,21 @@
 #' Calculate baseline value for each date and pixel.
-#' 
+#'
 #' @description
 #'  Calculate the daily baseline value using the mean or a quantile of a
 #'  timeserie.
-#' 
-#' @param YourSpatraster : 
+#'
+#' @param YourSpatraster :
 #'  The SpatRaster that contains the values to be used to calculate the baseline
 #'  (your reference time serie). Each layer must have a date and there must be
 #'  **no duplicates**.
-#' @param start_date : 
+#' @param start_date :
 #'  The date to use as the first day of your reference period. It must be in the
 #'  format **YYYY-MM-DD**. (Note that the provided dataset can cover a longer
 #'  time period than the one you want to use as a reference.)
-#' @param end_date : 
+#' @param end_date :
 #'  The date to use as the first day of your reference period. It must be in the
 #'  format **YYYY-MM-DD**.
-#' @param threshold : 
+#' @param threshold :
 #'  Specifies whether you want to use a percentile or the mean of the observed
 #'  values as the threshold.
 #'  The accepted arguments are *"qt"*, to specify that you want to compute a
@@ -23,16 +23,16 @@
 #'  if you want to use the mean of the observed values as threshold.
 #'  If you want to use a fixed value as the threshold (e.g. biological optimum),
 #'  you can skip this step and use BEE.id.extreme_days() directly.
-#' @param quantile_value : 
+#' @param quantile_value :
 #'  Indicates the desired percentile value. This must be between 0 and 1.
-#' @param time_window : 
+#' @param time_window :
 #'  Number of days on either side of day 'd' that are used to calculate the
 #'  threshold value associated for day 'd'.
 #'  For example, if *"time_window = 5"*, the thershold value for 'd' day will
 #'  be calculated using data from five days before day d, day d itself,
 #'  and the five days after day d, from all years between *"start_date"* and
 #'  *"end_date"*.
-#' @param smooth_window : 
+#' @param smooth_window :
 #'  Number of days on either side of day 'd' that are used to calculate the mean
 #'  value of the threshold assigned to the 'd' day. This allows your threshold
 #'  value to be smoothed across days.
@@ -40,7 +40,7 @@
 #'  day 'd' will be the mean of the baseline/thershold values calculated for
 #'  days: d - 10 to d + 10 (eleven values).
 #'
-#' @return 
+#' @return
 #'  A SpatRaster with one day of the year per layer (366 layers) that has
 #'  the same extent, pixel resolution and CRS as the provided SpatRaster. Each
 #'  pixel contains the threshold value at which an extreme event is identified
