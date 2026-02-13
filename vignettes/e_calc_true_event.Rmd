@@ -9,15 +9,16 @@ vignette: >
 ---
 
 # Aims of the function *BEE.calc.true_event()*
- Identify the extreme event according to a set of constraints (e.g. minimum
- duration, merging close events).
+Identify the extreme event according to a set of constraints (e.g. minimum duration, merging close events).
+*BEE.calc.true_event()* transforms the extreme days identified with *BEE.calc.binarize()* into coherent extreme events by applying temporal criteria such as minimum duration, merging events close in time, and removing isolated days.
+The two functions are complementary: binarise detects when conditions are extreme, while true_event defines which sequences of extreme days constitute meaningful events.
 
 # Usage
 ## Arguments:
-**binarized_spatraster:** is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.  
-**n:** The minimum number of consecutive days above the baseline/threshol required for a series of days more extrem than the baseline to be considered as an extreme event (≥).  
-**d:** The maximum number of days for which two series of values above the threshold/baseline, separated by some days below the threshold/baseline, can be considered a single extreme event (the maximum distance in days between the two events to be merged <=).  
-**nbis:** The minimum number of days in a series of 1 to allow merging with
+**binarized_spatraster**: is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.  
+**n**: The minimum number of consecutive days above the baseline/threshol required for a series of days more extrem than the baseline to be considered as an extreme event (≥).  
+**d**: The maximum number of days for which two series of values above the threshold/baseline, separated by some days below the threshold/baseline, can be considered a single extreme event (the maximum distance in days between the two events to be merged <=).  
+**nbis**: The minimum number of days in a series of 1 to allow merging with
 #' serie of 1 longer than *'n'* and distant from *'d'* days or fewer.
 #' /!\ *'nbis'* must be inferior or equal to *'n'*. This avoid extending an extreme event for only a few extreme day. For instance: 0000100111110010000 will be considere as an extreme event
 of duration 11 days when only using n = 5 and d= 2. However, if you set nbis=2, lonely extreme days will not be merged and the duration of the above event will be 5 days. It allows to be more or less precautionious on the temporal extent of the extreme event.
@@ -30,7 +31,7 @@ No messages implemented yet.
 
 ## Output
 Returns a list with 2 elements.  
-The first one is called **"binarized_spatraster_corrected"**. This is a Spatraster containing binarised values that have been corrected according to the definition used in the function. It is used in the next funciton of the pipeline.  
+The first one is called **"binarized_spatraster_corrected"**. This SpatRaster contains the identified extreme events. Based on the criteria specified in the function arguments, extreme events are derived from the binarised extreme days by applying pixel-wise temporal rules such as minimum event duration, merging of events that are close in time, and the removal of isolated extreme days. These events are used in the next function of the pipeline.  
 The second element is called **"Event_corrected"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in YourSpatraster). 
 
 COLUMNS MEANNINGS :  

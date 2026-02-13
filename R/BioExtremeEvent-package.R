@@ -46,7 +46,16 @@ globalVariables(
     "duration",
     "id", #BEE.data.summarise
     "summarise_by",
-    "cum_one_to_zero", # BEE.calc.corrections
-    "cum_zero_to_one"
+    "cum_one_to_zero", #BEE.calc.corrections
+    "cum_zero_to_one",
+    "lim1", #BEE.plot.categories
+    "lim2",
+    "lim3",
+    "lim4",
+    "baseline_mean",
+    "one_place", #BEE.plot.cumulative_anomaly
+    "month_day",
+    "year_num",
+    "event_day"
   )
 )

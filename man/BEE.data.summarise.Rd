@@ -11,29 +11,30 @@ BEE.data.summarise(
 )
 }
 \arguments{
-\item{data:}{the dataset containing the column you want to process (e.g. the
-ouput of BEE.data.merge(), as a list of data frame).}
+\item{data:}{The dataset containing the column you want to process (e.g. the ouput of
+\emph{BEE.data.merge()}, as a list of data frame).}
 
-\item{variable:}{the name of the column for which you want to compute mean,
-median etc. over a time window.}
+\item{variable:}{The name of the column for which you want to compute mean, median etc. over
+a time window.}
 
-\item{summarise_by:}{takes the following options:
+\item{summarise_by:}{Takes the following options:
 \itemize{
 \item "extreme_event" for each metric, the following will be computed for each
 extreme event: mean, median, variance or sd, minimum and maximum, sum, and
 the dates of the maximum and minimum values.
 \item a numeric value indicating the time step for which you want to compute the
 mean, median, etc.
+}}
 }
-
-#'@return a list of dataframes, with one dataframe per pixel, with the dates
-in the rows and the values summarised.}
+\value{
+A list of dataframes, with one dataframe per pixel, with the dates in the
+rows and the values summarised.
 }
 \description{
-To summarise one of the daily outputs of the
-following fonctions from BEE package : bee.calc.metrics_point() ;
-bee.calc.metrics_morpho() ; bee.calc.escape() ; bee.data.merge(). Metrics
-values can be summarised per extreme event or over a sliding time window.
+To summarise one of the daily outputs of the following fonctions from BEE
+package : \emph{bee.calc.metrics_point()} ; \emph{bee.calc.metrics_morpho()} ;
+\emph{bee.calc.escape()} ; \emph{bee.data.merge()}. Metrics values can be summarised
+per extreme event or over a sliding time window.
 }
 \details{
 In addition to the mean value, the function provides the median, standard

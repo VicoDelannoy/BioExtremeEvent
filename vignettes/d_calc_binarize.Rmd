@@ -9,8 +9,8 @@ vignette: >
 ---
 
 # Aims of the function *BEE.calc.binarize()*
-The function compares your timeseries (spatraster) with the baseline (spatraster created using BEE.calc.baseline) or a fixed threshold.  
-For most users, BEE.calc.binarize() serves only as an intermediate step in the pipeline, providing a required input for BEE.calc.true_event(). The output is exposed primarily for advanced users who need to implement highly specific or complex filtering procedures beyond the built-in options. For standard analyses, BEE.calc.true_event() addresses the vast majority of use cases for extreme-event identification, including common criteria such as minimum event duration and the merging of temporally close events.  
+The function compares your timeseries (spatraster) with the baseline (spatraster created using *BEE.calc.baseline()*) or a fixed threshold and flags, for each pixel, the days that exceed the baseline threshold, producing a binary time series of extreme versus non-extreme **days** without defining events.
+For most users, *BEE.calc.binarize()* serves only as an intermediate step in the pipeline, providing a required input for *BEE.calc.true_event()*. The output is exposed primarily for advanced users who need to implement highly specific or complex filtering procedures beyond the built-in options. For standard analyses, *BEE.calc.true_event()* addresses the vast majority of use cases for extreme-event identification, including common criteria such as minimum event duration and the merging of temporally close events.  
 
 
 # Data for this tutorial
@@ -21,9 +21,9 @@ Note: the baseline used here have been computed in a longer time serie than the 
 
 # Usage
 ## Arguments:
-**YourSpatraster:** is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.
-**baseline:** a spatraster computed with BEE.calc.baseline() or a numerical value representing a fixed threshold. 
-**direction:** Only two options are accepted *"above"* or *"below"*. It indicates whether extreme event are expected to have value higher *(above)* or lower *(below)* than the baseline.  
+**YourSpatraster**: is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.
+**baseline**: a spatraster computed with BEE.calc.baseline() or a numerical value representing a fixed threshold. 
+**direction**: Only two options are accepted *"above"* or *"below"*. It indicates whether extreme event are expected to have value higher *(above)* or lower *(below)* than the baseline.  
 For example, to identify cold spells, which are anormaly cold period, you will computed a baseline using BEE.calc.baseline() with a 10 % quantile and used *direction = "below"*.  
 
 ## Warnings:  
@@ -32,7 +32,8 @@ No warning implemented.
 No warning implemented.
 ## Output
 The output is a spartaster with the same properties as YourSpatraster but it
-only contains binerized value (1 or 0), '1' if the pixel values was more extreme than the baseline on the day corresponding to the layer. '0' if it was less extreme. Pixel that were NA stays NA. The fonction only identifies extreme days, to identifies extreme event, see *BEE.calc.true_event()*.
+only contains binerized value (1 or 0), '1' if the pixel values was more extreme than the baseline on the day corresponding to the layer. '0' if it was less extreme. Pixel that were NA stays NA. 
+This SpatRaster contains binarised extreme **days**. The function *BEE.calc.binarise()* only identifies, for each pixel, the days that are more extreme than the baseline according to the selected threshold. At this stage, no extreme events are defined yet; the output is simply a binary time series of extreme versus non-extreme days. to identifies extreme event, see *BEE.calc.true_event()*.
 
 # Examples
 ## Load data:
@@ -53,7 +54,7 @@ baseline_qt90 <- terra::rast(file_name_2)
 ```
 
 
-## Compare binarise against a seasonnal baseline:
+##  Identify the days on which the values are higher than the baseline:
 Binerise the Spatraster
 ```{r}
 # Identify the days on which the values are higher than the baseline for the

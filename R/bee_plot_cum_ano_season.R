@@ -1,28 +1,28 @@
 #' Cumulative anomaly against months of the years
 #'
-#' @description 
+#' @description
 #'  Allows to see at which time of the year a place is explosed to the bigest
 #'  anomalies.
-#' 
+#'
 #' @param metric_point_df:
 #'  The output of *BEE.calc.metric_point()* for a given location. Please note
-#'  that the output of BEE.calc.metric_point() is a list. You only need to 
+#'  that the output of BEE.calc.metric_point() is a list. You only need to
 #'  provide a dataframe from that list, not the whole list.
 #' @param color_theme:
-#'  A vector of four colour codes of your choice (the first one is for category 
+#'  A vector of four colour codes of your choice (the first one is for category
 #'  1 and the last one is for category 4), or 'red' to use an automatic palette
 #'  of red shades, or 'blue' for a colour-shaded palette.
 #' @param start_date:
-#'  = NULL by default or the date at which you want to start the plot. It must 
+#'  = NULL by default or the date at which you want to start the plot. It must
 #'  be in the same format than metric_point_df$date.
 #' @param end_date:
 #'  = NULL by default or the date at which you want to stop the plot. It must be
 #'  in the same format than metric_point_df$date.
 #' @param ...:
 #'  Customising the graph is possible by adding any general ggplot2 argument.
-#' 
-#' @return 
-#'  A 'ggplot2' with the months on the x-axis, the cumulative anomaly per 
+#'
+#' @return
+#'  A 'ggplot2' with the months on the x-axis, the cumulative anomaly per
 #'  extreme event of the studied parameter value on the y-axis.
 #'
 #'
@@ -69,7 +69,7 @@ BEE.plot.cumulative_anomaly <- function(
   # Month in english
   Sys.setlocale("LC_TIME", "en_US.UTF-8")
   # withdraw events that are not extreme:
-  one_place_filtered <- one_place |>
+  one_place_filtered <- metric_point_df |>
     dplyr::filter(daily_category != "No extreme event") |>
     dplyr::mutate(
       # date fictive pour aligner tous les mois sur une même année
@@ -139,11 +139,11 @@ BEE.plot.cumulative_anomaly <- function(
 
   # Second plot to compare cumulative anomalies profiles:
   ## prepare data
-  one_place_filtered <- one_place |>
+  one_place_filtered <- metric_point_df |>
     dplyr::filter(daily_category != "No extreme event") |>
     dplyr::arrange(ID, date) |>
     dplyr::group_by(ID) |>
-    dplyr::mutate(event_day = row_number() - 1)
+    dplyr::mutate(event_day = dplyr::row_number() - 1)
 
   # Grap
   plot2 <- ggplot2::ggplot(

@@ -22,63 +22,61 @@ BEE.data.load_copernicus(
 )
 }
 \arguments{
-\item{username:}{is your Copernicus account username, you can create an
+\item{username:}{Is your Copernicus account username, you can create an
 account here :
 https://data.marine.copernicus.eu/register?redirect=\%2Fproducts\%3Fdisc\%3Dnone}
 
-\item{password:}{is your Copernicus account password.}
+\item{password:}{Is your Copernicus account password.}
 
-\item{dataset_id:}{is available on the corpernicus page of your product, in
-"Data access" rubric, under the temporal resolution name. It is usually
-start by cmems_ ...}
+\item{dataset_id:}{Is available on the corpernicus page of your product, in "Data access"
+rubric, under the temporal resolution name. It is usually start by cmems_
+... Check vignette \emph{0.1 Download data from Copernicus.} for
+more informations.}
 
-\item{dataset_version:}{it the version of the dataset, you can found it in
-the "Product user manual" or as subtitle in the Marine Data Store, it is
-usually in capital letters.}
+\item{dataset_version:}{It the version of the dataset, you can found it in the "Product user manual"
+or as subtitle in the Marine Data Store, it is usually in capital letters.}
 
-\item{variables:}{is the variable you are interested in, you can only call
-one variable at a time. Variables name are visible in Marine Data Store :
-Product : Data access : From (bellow subset) : use the name in grey before
-square bracket}
+\item{variables:}{Is the variable you are interested in, you can only call one variable at a
+time. Variables name are visible in Marine Data Store > Product >
+Data access > From (bellow subset) > use the name in grey before square
+bracket. Check vignette \emph{0.1 Download data from Copernicus.} for
+more informations.}
 
 \item{minimum_longitude:}{You can use the "Draw on map" Copernicus tool to
-select an area of interest in Marine Data Store : Product : Data access
-: Form (bellow subset) and copy the values using "N" (north) as the maximum
-latitude and "W" (west) as the minimum longitude if working in the northwest
-hemisphere.}
+select an area of interest in Marine Data Store > Product > Data accessForm (bellow subset) and copy the values using "N" (north) as the maximumlatitude and "W" (west) as the minimum longitude if working in the northwesthemisphere.}
 
-\item{maximum_longitude:}{maximum longitude at which data will be extracted.}
+\item{maximum_longitude:}{Maximum longitude at which data will be extracted.}
 
-\item{minimum_latitude:}{minimum latitude at which data will be extracted.}
+\item{minimum_latitude:}{Minimum latitude at which data will be extracted.}
 
-\item{maximum_latitude:}{maximum latitude at which data will be extracted.}
+\item{maximum_latitude:}{Maximum latitude at which data will be extracted.}
 
-\item{start_datetime:}{First day wanted in the downloaded spatraster. Please
-make sure that the date is available on copernicus.}
+\item{start_datetime:}{First day wanted in the downloaded spatraster. Please make sure that the
+date is available on copernicus.}
 
-\item{end_datetime:}{Last day wanted in the downloaded spatraster. Please
-make sure that the date is available on copernicus.}
+\item{end_datetime:}{Last day wanted in the downloaded spatraster. Please make sure that the date
+is available on copernicus.}
 
-\item{coordinates_selection_method:}{= stric-inside" by default, extraction
-method, to see more info, check the python API help to get moer detail
+\item{coordinates_selection_method:}{= stric-inside" by default, extraction method, to see more info, check the
+python API help to get moer detail
 https://help.marine.copernicus.eu/en/articles/7949409-copernicus-marine-
 toolbox-introduction}
 
-\item{disable_progress_bar:}{allows to pot a progress bar of the downloading,
-by default it is set on 'FALSE'.}
+\item{disable_progress_bar:}{Allows to pot a progress bar of the downloading, by default it is set on
+'FALSE'.}
 
-\item{output_directory:}{where you want the data to be save, by default it
-goes to the "Data" file next to your script if there is one.}
+\item{output_directory:}{Where you want the data to be save, by default it goes to the "Data" file
+next to your script if there is one.}
 }
 \value{
 A SpatRaster subset from the
-Copernicus Marine Data Store](https://data.marine.copernicus.eu/products)
+\href{https://data.marine.copernicus.eu/products}{Copernicus Marine Data Store}
 according to the provided timeframe and spatial frame. The dataset will also
 be saved to your computer (see the 'output_directory' argument) into an .nc
 file.
 }
 \description{
-#' @description This function is a wrapper from the CopernicusMarine
+This function is a wrapper from the CopernicusMarine
 function from pyhton. A pyhton setup must be present in your computer, thus
 this function is testing if some pyhton is present and if not it offer to
 download it from R.

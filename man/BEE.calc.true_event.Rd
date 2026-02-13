@@ -50,17 +50,17 @@ Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL.}
 }
 \value{
 Returns a list with 2 elements. The first one is called
-\strong{"binarized_spatraster_corrected"}. This is a Spatraster containing binarised
-values that have been corrected according to the definition used in the
-function. It is used in the next funciton of the pipeline.
+\strong{"binarized_spatraster_corrected"}. This is a Spatraster containing
+binarised values that have been corrected according to the definition used
+in the function. It is used in the next funciton of the pipeline.
 The second element is called \strong{"Event_corrected"}. This is a list with one
 data.table per pixel.
 Each data.table has a date for each row (and as many dates as there are
-layers in YourSpatraster). The "original_value" column gives the value of the
-raw binarisation before applying this function. "cleaned_value" provides the
-corrected values for each date. "ID" is the identifier of the event, built
-using the pixel number, the first day of the event and the last day of the
-event. It is proper to each pixel. "Duration" indicates the duration (in
+layers in YourSpatraster). The "original_value" column gives the value of
+the raw binarisation before applying this function. "cleaned_value" provides
+the corrected values for each date. "ID" is the identifier of the event,
+built using the pixel number, the first day of the event and the last day of
+the event. It is proper to each pixel. "Duration" indicates the duration (in
 days) of the event. "Date" indicates the date corresponding to the row.
 }
 \description{
@@ -68,15 +68,15 @@ Identify the extreme event according to the set of constraints.
 }
 \details{
 Setting \emph{'nbis'} = 1, has the same effect as setting nbis= NULL. When
-\emph{'nbis'} = NULL any series of 1 distant from less than \emph{'d'} to a series of 1
-at least as long as \emph{'n'} days will be merged into one big series event, even
-if the serie last only one day. If you provide an argument for \emph{'nbis'}, only
-series at least as long as \emph{'nbis'} can be merge to serie as long as \emph{'n'} (
-if the two are distant from less than \emph{'d'} days).
+\emph{'nbis'} = NULL any series of 1 distant from less than \emph{'d'} to a series of
+1 at least as long as \emph{'n'} days will be merged into one big series event,
+even if the serie last only one day. If you provide an argument for
+\emph{'nbis'}, only series at least as long as \emph{'nbis'} can be merge to serie as
+long as \emph{'n'} (if the two are distant from less than \emph{'d'} days).
 Days above threshold that don't qualify has "extreme event" (e.g. to short
 series or to isolated) are transformed to 0. The second output of the
 function provided for each pixel a dataframe containning daily values before
-and after correctionq.
+and after corrections.
 \emph{"w"} and \emph{"p"} settings are not available yet. BEE.calc.true_event is not
 designed to work on 4D data (time + spatial 3D).
 }

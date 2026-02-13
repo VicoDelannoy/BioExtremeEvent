@@ -13,23 +13,23 @@ Compute daily metrics such as anomaly to the baseline, event category (according
 
 # Usage
 ## Arguments:
-**Events_corrected:** Is the list of data tables produced by:
+**Events_corrected**: Is the list of data tables produced by:
  bee_calc_true_event (the second element of the output). For each pixel, it
  contains a data.table with dates in the rows and a column indicating whether
  it is a day belonging to a heatwave (1) or not (0).  
- **YourSpatraster:** is the spatraster with the values of the studded parameter,
+ **YourSpatraster**: is the spatraster with the values of the studded parameter,
  through time and space.  
- **GPS:** is a data frame containing the positions for which you want to
+ **GPS**: is a data frame containing the positions for which you want to
  compute metrics. It must contain columns labelled 'x' and 'y', which should
  contain longitudes and latitudes, respectively.  
- **start_date:** First day on which you want to start computing metrics.  
- **end_date:** Last day on which you want to start computing metrics.  
- **baseline_qt:** Spatraster of the 90th percentile baseline (or the 10th
+ **start_date**: First day on which you want to start computing metrics.  
+ **end_date**: Last day on which you want to start computing metrics.  
+ **baseline_qt**: Spatraster of the 90th percentile baseline (or the 10th
   percentile baseline)  
-  **baseline_mean:** Spatraster of the mean value baseline.  
-  **time_lapse_vector:** a vector of time laps on which to compute mean
+  **baseline_mean**: Spatraster of the mean value baseline.  
+  **time_lapse_vector**: a vector of time laps on which to compute mean
  evolution rate and variance of the studdied parameter.  
- **group_by_event:** Whether you want an output summarise by extreme event
+ **group_by_event**: Whether you want an output summarise by extreme event
  or not. If not, you just get daily metrics.
 
 ## Warnings:

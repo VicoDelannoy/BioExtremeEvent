@@ -12,16 +12,16 @@ BEE.data.merge(
 )
 }
 \arguments{
-\item{data_metrics_point:}{the output of the BEE.calc.metrics_point computed
-using the argument group_by_event = FALSE.}
+\item{data_metrics_point:}{The output of the BEE.calc.metrics_point computed using the argument
+group_by_event = FALSE.}
 
-\item{data_metrics_morpho:}{the output of the BEE.calc.metrics_morpho computed
-using the argument per_pix = TRUE.}
+\item{data_metrics_morpho:}{The output of the BEE.calc.metrics_morpho computed using the argument
+per_pix = TRUE.}
 
-\item{data_escape:}{the output of the BEE.calc.escape computed
-using the argument only_days_EE = FALSE AND group_by_event = FALSE.}
+\item{data_escape:}{The output of the BEE.calc.escape computed using the argument
+only_days_EE = FALSE AND group_by_event = FALSE.}
 
-\item{crs:}{a METRICS crs that suits the studdied area.}
+\item{crs:}{A METRICS crs that suits the studdied area.}
 }
 \value{
 A list of dataframe (one df per pixel) with the metrics of all the
@@ -31,8 +31,8 @@ variables over the time step present in the data.
 }
 \description{
 To merge the daily outputs of at least two datasets of the
-following fonctions from BEE package : bee.calc.metrics_point() ;
-bee.calc.metrics_morpho() ; bee.calc.escape().
+following fonctions from BEE package : \emph{bee.calc.metrics_point()} ;
+\emph{bee.calc.metrics_morpho()} ; \emph{bee.calc.escape()}.
 }
 \details{
 The datasets provided must contain daily values with no gaps. This implies
