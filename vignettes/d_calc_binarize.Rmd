@@ -30,6 +30,7 @@ For example, to identify cold spells, which are anormaly cold period, you will c
 No warning implemented.
 ## Messages:
 No warning implemented.
+
 ## Output
 The output is a spartaster with the same properties as yourspatraster but it
 only contains binerized value (1 or 0), '1' if the pixel values was more extreme than the baseline on the day corresponding to the layer. '0' if it was less extreme. Pixel that were NA stays NA. 

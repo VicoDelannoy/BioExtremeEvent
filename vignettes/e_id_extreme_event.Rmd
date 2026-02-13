@@ -32,9 +32,9 @@ No messages implemented yet.
 ## Output
 Returns a list with 2 elements.  
 The first one is called **"binarized_spatraster_corrected"**. This SpatRaster contains the identified extreme events. Based on the criteria specified in the function arguments, extreme events are derived from the binarised extreme days by applying pixel-wise temporal rules such as minimum event duration, merging of events that are close in time, and the removal of isolated extreme days. These events are used in the next function of the pipeline.  
-The second element is called **"Event_corrected"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in yourspatraster). 
+The second element is called **"extreme_event"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in yourspatraster). 
 
-COLUMNS MEANNINGS :  
+The dataframes 
 The "original_value" column gives the value of the raw binarisation before applying this function.  
 "cleaned_value" provides the corrected values for each date.  
 "ID" is the identifier of the event, built using the pixel number, the first day of the event and the last day of the event and the event_id for that pixel. ID and event_id are proper to each pixel.  

@@ -47,8 +47,8 @@ time period or over a subset of that period.
 file_name_1 <- system.file(file.path("extdata", "metrics_points_day.rds"),
                                   package = "BioExtremeEvent")
 metrics_points_day <- readRDS(file_name_1)
-# Get data set for one GPS point
-metrics_points_day <- metrics_points_day[[1]] # first GPS point
+# Get data set for one gps point
+metrics_points_day <- metrics_points_day[[1]] # first gps point
 BEE.plot.categories(metric_point_df = metrics_points_day,
                     color_theme = "red",
                     start_date = NULL,

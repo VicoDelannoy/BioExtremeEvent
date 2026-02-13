@@ -62,6 +62,10 @@ You will receive a message if :
 
  - You have not provided a *"start_date"* and/or an *"end_date"*. The message will informed you about the dates used as default *"start_date"* and/or *"end_date"*.
 
+## Output
+
+A spatraster with one date of the year per layer (366 layers), each layers contains the daily baseline value of each pixel.
+
 # Examples  
 
 Calculate the baseline value for each day of a year using the 90^th percentile threshold and

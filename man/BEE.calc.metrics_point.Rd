@@ -7,7 +7,7 @@
 BEE.calc.metrics_point(
   events_corrected,
   yourspatraster,
-  GPS,
+  gps,
   start_date = NULL,
   end_date = NULL,
   time_lapse_vector = NULL,
@@ -27,7 +27,7 @@ it is a day belonging to a heatwave (1) or not (0).}
 Is the spatraster with the values of the studded parameter, through time and
 space.}
 
-\item{GPS}{:
+\item{gps}{:
 Is a data frame containing the positions for which you want to compute
 metrics. It must contain columns labelled 'x' and 'y', which should contain
 longitudes and latitudes, respectively.}
@@ -54,7 +54,7 @@ Whether you want an output summarise by extreme event or not. If not, you
 just get daily metrics.}
 }
 \value{
-A list of dataframe (one per GPS point), each dataframe contains
+A list of dataframe (one per gps point), each dataframe contains
 informations on the date of the extrem events, mean, median, max and min
 values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
 \emph{etc.} Categories are defined in Hobday \emph{et al.} 2018.
@@ -84,14 +84,14 @@ file_name_4 <- system.file(file.path("extdata",
                                      "baseline_mean_smth_15.tiff"),
                                      package = "BioExtremeEvent")
 baseline_mean_smth_15 <- terra::rast(file_name_4)
-GPS <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
+gps <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
                   y = c(43.3786,43.4279))
 
 # Get daily value (required for BEE.merge() and BEE.summarise()):
 metrics_points_day <- BEE.calc.metrics_point(
  events_corrected = binarized_corrected_df,
  yourspatraster = copernicus_data_celsius,
- GPS = GPS,
+ gps = gps,
  start_date = NULL,
  end_date = NULL,
  time_lapse_vector = NULL,
@@ -107,7 +107,7 @@ metrics_points_day <- BEE.calc.metrics_point(
 metrics_points_ee <- BEE.calc.metrics_point(
  events_corrected = binarized_corrected_df,
  yourspatraster = copernicus_data_celsius,
- GPS = GPS,
+ gps = gps,
  start_date = NULL,
  end_date = NULL,
  time_lapse_vector = NULL,

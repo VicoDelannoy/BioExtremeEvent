@@ -45,7 +45,7 @@
 #'  **"binarized_spatraster_corrected"**. This is a Spatraster containing 
 #'  binarised values that have been corrected according to the definition used
 #'  in the function. It is used in the next funciton of the pipeline.
-#'  The second element is called **"Event_corrected"**. This is a list with one
+#'  The second element is called **"extreme_event"**. This is a list with one
 #'  data.table per pixel.
 #'  Each data.table has a date for each row (and as many dates as there are 
 #'  layers in yourspatraster). The "original_value" column gives the value of
@@ -150,13 +150,13 @@ BEE.id.extreme_events <- function(
       is.null(w) &
       is.null(p)
   ) {
-    Event_corrected <- list()
+    extreme_event <- list()
     #We want to avoid processing a pixel that is always NA :
     indices_all_na <- which(rowSums(!is.na(pixel_time_series)) == 0)
     indices_to_do <- which(rowSums(!is.na(pixel_time_series)) != 0)
 
-    Event_corrected <- vector("list", length(indices_to_do))
-    Event_corrected <- lapply(indices_to_do, function(c) {
+    extreme_event <- vector("list", length(indices_to_do))
+    extreme_event <- lapply(indices_to_do, function(c) {
       correct_lowcomplexity_n_d(
         pixel_time_series,
         c,
@@ -174,13 +174,13 @@ BEE.id.extreme_events <- function(
       is.null(w) &
       is.null(p)
   ) {
-    Event_corrected <- list()
+    extreme_event <- list()
     #We want to avoid processing a pixel that is always NA :
     indices_all_na <- which(rowSums(!is.na(pixel_time_series)) == 0)
     indices_to_do <- which(rowSums(!is.na(pixel_time_series)) != 0)
 
-    Event_corrected <- vector("list", length(indices_to_do))
-    Event_corrected <- lapply(indices_to_do, function(c) {
+    extreme_event <- vector("list", length(indices_to_do))
+    extreme_event <- lapply(indices_to_do, function(c) {
       correct_mediumcomplexity_n_d_nbis(
         pixel_time_series,
         c,
@@ -201,7 +201,7 @@ BEE.id.extreme_events <- function(
     #here add code for high complexity
   }
   ### Modify the spatraster :
-  # Build a matrice pixel x time using cleanned_value column from Event_corrected
+  # Build a matrice pixel x time using cleanned_value column from extreme_event
   n_pixels <- terra::ncell(binarized_spatraster)
   n_dates <- length(all_dates)
   # empty matrice :
@@ -210,7 +210,7 @@ BEE.id.extreme_events <- function(
   for (p in seq(1, length(indices_to_do), 1)) {
     #1.4 s 419 MB
     # no correction needed for pixels that are always NA
-    mat[indices_to_do[p], ] <- Event_corrected[[p]]$cleanned_value
+    mat[indices_to_do[p], ] <- extreme_event[[p]]$cleanned_value
   }
   binarized_spatraster_corrected <- binarized_spatraster
   terra::values(binarized_spatraster_corrected) <- mat
@@ -224,7 +224,7 @@ BEE.id.extreme_events <- function(
   list_df[indices_to_do] <- lapply(
     seq(1, length(indices_to_do), 1),
     function(i) {
-      dt <- Event_corrected[[i]]
+      dt <- extreme_event[[i]]
       as.data.frame(dt)
     }
   )
@@ -232,7 +232,7 @@ BEE.id.extreme_events <- function(
   return(
     list(
       binarized_spatraster_corrected = binarized_spatraster_corrected,
-      Event_corrected = list_df
+      extreme_event = list_df
     )
   )
 }
@@ -431,16 +431,16 @@ correct_mediumcomplexity_n_d_nbis <- function(
 #'
 #' @noRd
 
-correct_raster <- function(raster, t, Event_corrected, indices_to_do) {
+correct_raster <- function(raster, t, extreme_event, indices_to_do) {
   # t=12625 ; raster <- binarized_spatraster[[t]]
 
   # get values of each layers (taking in account the NA pixels that are no
-  # longer in Event_corrected)
+  # longer in extreme_event)
   ## Create a vector full of NA
   n <- terra::ncell(raster)
   full_values <- rep(NA_real_, n)
   ## Get corrected values of non NA pixels
-  Matching_cleaning_values <- sapply(Event_corrected, function(event) {
+  Matching_cleaning_values <- sapply(extreme_event, function(event) {
     event[t]$cleanned_value
   })
   ## Add non NA pixels to the NA vector

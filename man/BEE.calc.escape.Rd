@@ -52,7 +52,7 @@ to an EE.}
 This function calculate the median distance, mean distance and standard
 deviation of distance to escape form an extreme event 'as the crow files'
 (but avoiding NA pixels, which are suppose to represent a place that cannot
-be crossed) through time for a given GPS position or for all pixels.
+be crossed) through time for a given gps position or for all pixels.
 }
 \note{
 All distance metrics are limited by the size of the Spatraster your
