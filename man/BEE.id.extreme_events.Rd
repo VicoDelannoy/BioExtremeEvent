@@ -15,7 +15,7 @@ BEE.id.extreme_events(
 }
 \arguments{
 \item{binarized_spatraster}{:
-A Spatraster built using the BEE.id.extreme_days()
+A Spatraster built using the BEE.id.extreme_day()
 function. It only contains 1 and 0.}
 
 \item{n}{:
