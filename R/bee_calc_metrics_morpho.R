@@ -7,7 +7,7 @@
 #' 
 #' @param Corrected_rasters :
 #'  The SpatRaster you want to analyse (first output of 
-#'  *BEE.calc.true_event()*).
+#'  *BEE.id.extreme_events()*).
 #' @param start_date :
 #'  Allows to perform the analysis on a specific  time_frame, this allows to 
 #'  save computation time.

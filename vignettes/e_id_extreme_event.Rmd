@@ -8,9 +8,9 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Aims of the function *BEE.calc.true_event()*
+# Aims of the function *BEE.id.extreme_events()*
 Identify the extreme event according to a set of constraints (e.g. minimum duration, merging close events).
-*BEE.calc.true_event()* transforms the extreme days identified with *BEE.calc.binarize()* into coherent extreme events by applying temporal criteria such as minimum duration, merging events close in time, and removing isolated days.
+*BEE.id.extreme_events()* transforms the extreme days identified with *BEE.id.extreme_days()* into coherent extreme events by applying temporal criteria such as minimum duration, merging events close in time, and removing isolated days.
 The two functions are complementary: binarise detects when conditions are extreme, while true_event defines which sequences of extreme days constitute meaningful events.
 
 # Usage
@@ -42,13 +42,13 @@ The "original_value" column gives the value of the raw binarisation before apply
 "Date" indicates the date corresponding to the row.
 
 # Note
-The *BEE.calc.corrections()* function allows to check how many modifications your choices of settings in BEE.calc.tru_event have induced compare to row binerized data. Please check *3.bis. Check the number of modifications induced by the BEE.calc.true_event() settings.*
+The *BEE.calc.corrections()* function allows to check how many modifications your choices of settings in BEE.calc.tru_event have induced compare to row binerized data. Please check *3.bis. Check the number of modifications induced by the BEE.id.extreme_events() settings.*
 
 # Examples
 ## Load data:
 ```{r setup}
 library(BioExtremeEvent)
-#Binarized spatraster built using BEE.calc.binarize()
+#Binarized spatraster built using BEE.id.extreme_days()
 file_name_1 <- system.file(file.path("extdata", "copernicus_binarized.tiff"),
                                    package = "BioExtremeEvent")
 binarized_data <- terra::rast(file_name_1)
@@ -56,7 +56,7 @@ binarized_data <- terra::rast(file_name_1)
 
 ## Apply filter:
 ```{r}
-binarized_EE <- BEE.calc.true_event(binarized_spatraster = binarized_data, n = 5, d = 2)
+binarized_EE <- BEE.id.extreme_events(binarized_spatraster = binarized_data, n = 5, d = 2)
 ```
 
 ## Spatraster output:

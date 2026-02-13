@@ -9,15 +9,15 @@ vignette: >
 ---
 
 # Aims of the function *BEE.calc.corrections()*.
-The function compares former binarized value to corrected binarized value. It takes as argument the two element of *BEE.calc.true_event()* output. It is a quick way of testing the implications of various settings in *BEE.calc.true_event()*.
+The function compares former binarized value to corrected binarized value. It takes as argument the two element of *BEE.id.extreme_events()* output. It is a quick way of testing the implications of various settings in *BEE.id.extreme_events()*.
 
 
 # Usage
 ## Arguments:
-**true_event_raster**: The first element of the *BEE.calc.true_event()*
+**true_event_raster**: The first element of the *BEE.id.extreme_events()*
 ouput, which is a spatraster binarized that inclued the corrections made by
-*BEE.calc.true_event()*.  
-**true_event_df**: The second element of the *BEE.calc.true_event()* ouput,
+*BEE.id.extreme_events()*.  
+**true_event_df**: The second element of the *BEE.id.extreme_events()* ouput,
 which is a list of data.table containing information about the value of each
 pixel before and after definition criteria are applied to distinguish
 isolated extreme days from extreme events.  
@@ -38,11 +38,11 @@ The second graph allows you to check whether the corrections are homogeneous acr
 ## Load data:
 ```{r setup}
 library(BioExtremeEvent)
-#Binarized spatraster corrected built using BEE.calc.true_event()
+#Binarized spatraster corrected built using BEE.id.extreme_events()
 file_name_1 <- system.file(file.path("extdata", "binarized_corrected_spatraster.tiff"),
                                    package = "BioExtremeEvent")
 binarized_corrected_spatraster <- terra::rast(file_name_1)
-#List of dataframe containning information about former and corrected binarised values, built using BEE.calc.true_event()
+#List of dataframe containning information about former and corrected binarised values, built using BEE.id.extreme_events()
 file_name_2 <- system.file(file.path("extdata", "binarized_corrected_df.rds"),
                                    package = "BioExtremeEvent")
 binarized_corrected_df <- readRDS(file_name_2)

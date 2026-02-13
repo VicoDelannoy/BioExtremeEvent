@@ -8,9 +8,9 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Aims of the function *BEE.calc.binarize()*
+# Aims of the function *BEE.id.extreme_days()*
 The function compares your timeseries (spatraster) with the baseline (spatraster created using *BEE.calc.baseline()*) or a fixed threshold and flags, for each pixel, the days that exceed the baseline threshold, producing a binary time series of extreme versus non-extreme **days** without defining events.
-For most users, *BEE.calc.binarize()* serves only as an intermediate step in the pipeline, providing a required input for *BEE.calc.true_event()*. The output is exposed primarily for advanced users who need to implement highly specific or complex filtering procedures beyond the built-in options. For standard analyses, *BEE.calc.true_event()* addresses the vast majority of use cases for extreme-event identification, including common criteria such as minimum event duration and the merging of temporally close events.  
+For most users, *BEE.id.extreme_days()* serves only as an intermediate step in the pipeline, providing a required input for *BEE.id.extreme_events()*. The output is exposed primarily for advanced users who need to implement highly specific or complex filtering procedures beyond the built-in options. For standard analyses, *BEE.id.extreme_events()* addresses the vast majority of use cases for extreme-event identification, including common criteria such as minimum event duration and the merging of temporally close events.  
 
 
 # Data for this tutorial
@@ -33,7 +33,7 @@ No warning implemented.
 ## Output
 The output is a spartaster with the same properties as YourSpatraster but it
 only contains binerized value (1 or 0), '1' if the pixel values was more extreme than the baseline on the day corresponding to the layer. '0' if it was less extreme. Pixel that were NA stays NA. 
-This SpatRaster contains binarised extreme **days**. The function *BEE.calc.binarise()* only identifies, for each pixel, the days that are more extreme than the baseline according to the selected threshold. At this stage, no extreme events are defined yet; the output is simply a binary time series of extreme versus non-extreme days. to identifies extreme event, see *BEE.calc.true_event()*.
+This SpatRaster contains binarised extreme **days**. The function *BEE.calc.binarise()* only identifies, for each pixel, the days that are more extreme than the baseline according to the selected threshold. At this stage, no extreme events are defined yet; the output is simply a binary time series of extreme versus non-extreme days. to identifies extreme event, see *BEE.id.extreme_events()*.
 
 # Examples
 ## Load data:
@@ -59,7 +59,7 @@ Binerise the Spatraster
 ```{r}
 # Identify the days on which the values are higher than the baseline for the
 # 90th percentile.:
-binarized <- BEE.calc.binarize(YourSpatraster=copernicus_data,
+binarized <- BEE.id.extreme_days(YourSpatraster=copernicus_data,
                                    baseline=baseline_qt90,
                                    direction = "above")
 ```
@@ -121,7 +121,7 @@ terra::plot(
 
 ```{r}
 # Identify days on which the value is lower than a fixed threshold.
-binarized_fixed_threshold <- BEE.calc.binarize(YourSpatraster=copernicus_data,
+binarized_fixed_threshold <- BEE.id.extreme_days(YourSpatraster=copernicus_data,
                                    baseline= 12.5,
                                    direction = "below")
 ```

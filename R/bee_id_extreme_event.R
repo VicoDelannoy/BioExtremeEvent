@@ -4,7 +4,7 @@
 #'  Identify the extreme event according to the set of constraints.
 #'
 #' @param binarized_spatraster :
-#'  A Spatraster built using the BEE.calc.binarize()
+#'  A Spatraster built using the BEE.id.extreme_days()
 #'  function. It only contains 1 and 0.
 #' @param n :
 #'  The minimum number of consecutive days above the baseline/threshold
@@ -66,7 +66,7 @@
 #'  series or to isolated) are transformed to 0. The second output of the
 #'  function provided for each pixel a dataframe containning daily values before
 #'  and after corrections.
-#'  *"w"* and *"p"* settings are not available yet. BEE.calc.true_event is not
+#'  *"w"* and *"p"* settings are not available yet. BEE.id.extreme_events is not
 #'  designed to work on 4D data (time + spatial 3D).
 #'
 #' @examples
@@ -89,7 +89,7 @@
 #'                                   package = "BioExtremeEvent")
 #' binarized <- terra::rast(file_name)
 #' ### Apply filter:
-#' binarized_EE <- BEE.calc.true_event(binarized_spatraster = binarized,
+#' binarized_EE <- BEE.id.extreme_events(binarized_spatraster = binarized,
 #' n = 5,
 #' d = 2)
 #'
@@ -108,7 +108,7 @@
 #'                                   package = "BioExtremeEvent")
 #' binarized <- terra::rast(file_name)
 #' ### Apply filter:
-#' binarized_EE <- BEE.calc.true_event(binarized_spatraster = binarized,
+#' binarized_EE <- BEE.id.extreme_events(binarized_spatraster = binarized,
 #' n = 5,
 #' d = 2,
 #' nbis = 3)
@@ -118,7 +118,7 @@
 #-------------------------------------------------------------------------------
 
 # n = 5; d= 3 ; nbis= 2 # for medium complexity
-BEE.calc.true_event <- function(
+BEE.id.extreme_events <- function(
   binarized_spatraster,
   n,
   d,

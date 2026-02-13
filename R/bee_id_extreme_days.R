@@ -1,4 +1,4 @@
-#' Binarise the spatraster
+#' Identifies days more extreme than the baseline.
 #'
 #' @description
 #'  The function binarise a Spatraster by comparing the observed value with the
@@ -31,11 +31,11 @@
 #' @details 
 #'  For computational purposes in the next stages of the pipeline, the
 #'  order of the layers differs from that in 'YourSpatraster'.
-#'  BEE.calc.binarize is not designed to work with 4D data (3D in space and
+#'  BEE.id.extreme_days is not designed to work with 4D data (3D in space and
 #'  time). To do so, please refer to BEE.calc.4thD.
 #'  This function only identifies days more extreme than a baseline, extra
 #'  criteria to identify extreme event (e.g. minimum duration) will be apply in
-#'  the BEE.calc.true_event() function (next one in the framwork).
+#'  the BEE.id.extreme_events() function (next one in the framwork).
 #'
 #' @examples
 #' # Load data:
@@ -54,11 +54,11 @@
 #'
 #' # Identify the days on which the values are higher than the baseline for the
 #' # 90th percentile.:
-#' binarized_EE <- BEE.calc.binarize(YourSpatraster=copernicus_data,
+#' binarized_EE <- BEE.id.extreme_days(YourSpatraster=copernicus_data,
 #'                                   baseline=baseline_qt90,
 #'                                   direction = "above")
 #' # Identify days on which the value is lower than a fixed threshold.
-#' binarized_EE <- BEE.calc.binarize(YourSpatraster=copernicus_data,
+#' binarized_EE <- BEE.id.extreme_days(YourSpatraster=copernicus_data,
 #'                                   baseline=12,
 #'                                   direction = "below")
 #'
@@ -67,7 +67,7 @@
 #---------------------------------------------------------------------------
 # baseline <- baseline_qt90 ; direction <- "above"; YourSpatraster <- ds
 
-BEE.calc.binarize <- function(YourSpatraster, baseline, direction) {
+BEE.id.extreme_days <- function(YourSpatraster, baseline, direction) {
   if (class(baseline)[1] == "SpatRaster") {
     # Retrieve the extent of YourSpatraster
     new_extent <- terra::ext(YourSpatraster)

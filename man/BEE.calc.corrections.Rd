@@ -8,16 +8,19 @@ of days of extreme event.}
 BEE.calc.corrections(true_event_raster, true_event_df_list, plot = TRUE)
 }
 \arguments{
-\item{true_event_raster:}{The first element of the \emph{BEE.calc.true_event()}
+\item{true_event_raster}{:
+The first element of the \emph{BEE.id.extreme_events()}
 ouput, which is a spatraster binarized that inclued the corrections by
-\emph{BEE.calc.true_event()}.}
+\emph{BEE.id.extreme_events()}.}
 
-\item{true_event_df_list:}{The second element of the \emph{BEE.calc.true_event()} ouput,
+\item{true_event_df_list}{:
+The second element of the \emph{BEE.id.extreme_events()} ouput,
 which is a list of data.table containing information about the value of each
 pixel before and after definition criteria are applied to distinguish
 isolated extreme days from extreme events.}
 
-\item{plot:}{Accepted values are TRUE of FALSE. Set to “FALSE” to not display
+\item{plot}{:
+Accepted values are TRUE of FALSE. Set to “FALSE” to not display
 the graphs.}
 }
 \value{
@@ -30,7 +33,7 @@ true_event_df_list.
 }
 \description{
 It computes the number of modifications between the raw binerised Spatraster
-and the Spartraster produced using the \emph{BEE.calc.true_event()}.
+and the Spartraster produced using the \emph{BEE.id.extreme_events()}.
 }
 \examples{
 # Prepare function arguments:

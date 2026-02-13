@@ -17,31 +17,40 @@ BEE.calc.metrics_point(
 )
 }
 \arguments{
-\item{Events_corrected:}{Is the list of data tables produced by:
+\item{Events_corrected}{:
+Is the list of data tables produced by:
 bee_calc_true_event (the second element of the output). For each pixel, it
 contains a data.table with dates in the rows and a column indicating whether
 it is a day belonging to a heatwave (1) or not (0).}
 
-\item{YourSpatraster:}{Is the spatraster with the values of the studded parameter, through time and
+\item{YourSpatraster}{:
+Is the spatraster with the values of the studded parameter, through time and
 space.}
 
-\item{GPS:}{Is a data frame containing the positions for which you want to compute
+\item{GPS}{:
+Is a data frame containing the positions for which you want to compute
 metrics. It must contain columns labelled 'x' and 'y', which should contain
 longitudes and latitudes, respectively.}
 
-\item{start_date:}{First day on which you want to start computing metrics.}
+\item{start_date}{:
+First day on which you want to start computing metrics.}
 
-\item{end_date:}{Last day on which you want to start computing metrics.}
+\item{end_date}{:
+Last day on which you want to start computing metrics.}
 
-\item{baseline_qt:}{Spatraster of the 90th percentile baseline (or the 10th percentile
-baseline).}
-
-\item{baseline_mean:}{Spatraster of the mean value baseline.}
-
-\item{time_lapse_vector:}{A vector of time laps on which to compute mean evolution rate and variance
+\item{time_lapse_vector}{:
+A vector of time laps on which to compute mean evolution rate and variance
 of the studdied parameter.}
 
-\item{group_by_event:}{Whether you want an output summarise by extreme event or not. If not, you
+\item{baseline_qt}{:
+Spatraster of the 90th percentile baseline (or the 10th percentile
+baseline).}
+
+\item{baseline_mean}{:
+Spatraster of the mean value baseline.}
+
+\item{group_by_event}{:
+Whether you want an output summarise by extreme event or not. If not, you
 just get daily metrics.}
 }
 \value{

@@ -10,8 +10,8 @@ vignette: >
 
 In this pipeline, an extreme event is identified in a given location if the value of the studied parameter exceeds a reference value. This reference value can be fixed over time, as with a biologically defined threshold or an absolute physical limit. Alternatively, it can be derived from the distribution of a historical time series. In this frequentist approach, the threshold is defined as a given percentile of the observed values. For example, if a 90\^th percentile thershold is used, a daily value will be considered as 'extreme' if it is higher than 90 % of the values observed for the same day of the years across all the years that are used as reference. This second approach is commonly used when there are no *a priori* hypotheses about what values constitues an extreme value for the studdied ecosystem, and when the hypothesis is that anything more intense than what the ecosystem is accoustomed to may induce unusual modifications. Alternatively, the mean value observed in the time series can be used to compute a daily baseline value. To proceed accroding to this method, the pipeline involves three steps :\
 - First, the baseline value is computed using the *BEE.calc.baseline()* function.\
-- Then, each day of the studied time period is compared to the baseline value, and days above (or below) the threshold are identified using *BEE.calc.binarize()*. If you are working with a fixed baseline, you can skip *BEE.calc.baseline()* and go straight to *BEE.calc.binarize()*.\
-- Finally, you can apply a filter to *BEE.calc.binarize()* output to add additional criteria to the 'extreme event' definition. This could be a minimum duration or a tolerance of a certain number of days below the baseline value within an extreme event. See *BEE.calc.true_event()*.
+- Then, each day of the studied time period is compared to the baseline value, and days above (or below) the threshold are identified using *BEE.id.extreme_days()*. If you are working with a fixed baseline, you can skip *BEE.calc.baseline()* and go straight to *BEE.id.extreme_days()*.\
+- Finally, you can apply a filter to *BEE.id.extreme_days()* output to add additional criteria to the 'extreme event' definition. This could be a minimum duration or a tolerance of a certain number of days below the baseline value within an extreme event. See *BEE.id.extreme_events()*.
 
 # Aims of the function *BEE.calc.baseline()*
 
@@ -40,7 +40,7 @@ For example, if *"time_window = 5"*, the thershold value for 'd' day will
 be calculated using data from five days before day d, day d itself,
 and the five days after day d, from all years between *"start_date"* and 
 *"end_date"*. See 'Examples' section below to see how it can affect baseline value.  
-Warning: this argument is not related to the minimum number of days required to distinguish an 'extreme day' from an 'extreme event'. This will be addressed later in the BEE.calc.true_event() function.
+Warning: this argument is not related to the minimum number of days required to distinguish an 'extreme day' from an 'extreme event'. This will be addressed later in the BEE.id.extreme_events() function.
 **smooth_window**: number of days on either side of day 'd' that are used
 to calculate the mean value of the threshold assigned to the 'd' day. 
 This allows your threshold value to be smoothed across days. 

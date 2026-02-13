@@ -13,18 +13,23 @@ BEE.calc.metrics_morpho(
 )
 }
 \arguments{
-\item{Corrected_rasters:}{The SpatRaster you want to analyse (first output of
-\emph{BEE.calc.true_event()}).}
+\item{Corrected_rasters}{:
+The SpatRaster you want to analyse (first output of
+\emph{BEE.id.extreme_events()}).}
 
-\item{start_date:}{Allows to perform the analysis on a specific  time_frame, this allows to
+\item{start_date}{:
+Allows to perform the analysis on a specific  time_frame, this allows to
 save computation time.}
 
-\item{end_date:}{Allows to perform the analysis on a specific  time_frame, this allows to
+\item{end_date}{:
+Allows to perform the analysis on a specific  time_frame, this allows to
 save computation time.}
 
-\item{per_pix:}{Use TRUE if you want a list with one dt per pixel as an output.}
+\item{per_pix}{:
+Use TRUE if you want a list with one dt per pixel as an output.}
 
-\item{crs:}{To get accurate length and area, data in longitude latitude must
+\item{crs}{:
+To get accurate length and area, data in longitude latitude must
 be converted into meters data that take in account earth sphericity, the
 conversion depend on studdied region, thus you must specify the one the most
 appropriated for your data. See help here to find a suitable EPSG you can

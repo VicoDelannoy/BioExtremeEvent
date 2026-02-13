@@ -15,32 +15,38 @@ BEE.calc.escape(
 )
 }
 \arguments{
-\item{true_event_output:}{Is the ouput of function BEE.calc.true_event().}
+\item{true_event_output}{:
+Is the ouput of function BEE.id.extreme_events().}
 
-\item{start_date:}{Defines the beginning of the timeframe during which you want to analyse
+\item{start_date}{:
+Defines the beginning of the timeframe during which you want to analyse
 distance to escape. If no dates are provided, computation will be done
 on all days_provided.}
 
-\item{end_date:}{Defines the endding of the timeframe during which you want to analyse
+\item{end_date}{:
+Defines the endding of the timeframe during which you want to analyse
 distance to escape. If no dates are provided, computation will be done
 on all days_provided}
 
-\item{only_days_EE:}{= 'TRUE' if you want to perform calculations using all the days.
+\item{pixel}{:
+Is a vector with x,y coordinates or a df of x,y coordinates or "all" if you
+want to compute distance metrics for all pixels in the raster provided
+through true_event_output.}
+
+\item{only_days_EE}{:
+= 'TRUE' if you want to perform calculations using all the days.
 Use account = 'FALSE' when you want to calculate only for the days when your
 reference point is experiencing an extreme event.
 By default, account_all_days is set on FALSE}
 
-\item{group_by_event:}{Allows to specify if you want your result by extreme event or for the whole
+\item{group_by_event}{:
+Allows to specify if you want your result by extreme event or for the whole
 time periode specified. "group_by_event" = TRUE : compute one mean distance
 per event. "group_by_event" = FALSE : mean distance will be based on
 distances from all days in the time frame (belonging to an extreme event or
 not), including all days belonging to this event event if they are a '0'
 day, TRUE : compute one mean distance accounting only for days that belong
 to an EE.}
-
-\item{pixel:}{Is a vector with x,y coordinates or a df of x,y coordinates or "all" if you
-want to compute distance metrics for all pixels in the raster provided
-through true_event_output.}
 }
 \description{
 This function calculate the median distance, mean distance and standard

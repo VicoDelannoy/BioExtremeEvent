@@ -8,7 +8,7 @@
 #'  be crossed) through time for a given GPS position or for all pixels.
 #'
 #' @param true_event_output : 
-#'  Is the ouput of function BEE.calc.true_event().
+#'  Is the ouput of function BEE.id.extreme_events().
 #' @param start_date : 
 #'  Defines the beginning of the timeframe during which you want to analyse
 #'  distance to escape. If no dates are provided, computation will be done
@@ -67,7 +67,7 @@ BEE.calc.escape <- function(
   if (length(data[[1]]$original_value) != terra::nlyr(shell)) {
     warning(
       "The two elements you provided as 'true_event_output don't cover the same
-      number of days, please use the output of BEE.calc.true_event."
+      number of days, please use the output of BEE.id.extreme_events."
     )
   }
   date_indices <- match(c(start_date, end_date), names(shell))
@@ -268,8 +268,8 @@ BEE.calc.escape <- function(
     if (length(pixels_from) == 0 & length(pixels_to) == 0) {
       warning(
         "There are no pixel of value 1 AND there are no pixel of value 0, 
-        the raster are probably not binarized (please see BEE.calc.binarized_EE
-        and BEE.calc.true_event) or the raster is fully covered by NA."
+        the raster are probably not binarized (please see BEE.id.extreme_days
+        and BEE.id.extreme_events) or the raster is fully covered by NA."
       )
     }
     # Make sure that when they are no reason to leave a pixel (distance = 0),
