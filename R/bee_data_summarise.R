@@ -1,35 +1,39 @@
 #' Summarise the outputs of the 'merge' function.
 #'
-#'@description
-#' To summarise one of the daily outputs of the
-#' following fonctions from BEE package : bee.calc.metrics_point() ;
-#' bee.calc.metrics_morpho() ; bee.calc.escape() ; bee.data.merge(). Metrics
-#' values can be summarised per extreme event or over a sliding time window.
+#' @description
+#'  To summarise one of the daily outputs of the following fonctions from BEE
+#'  package : *bee.calc.metrics_point()* ; *bee.calc.metrics_morpho()* ; 
+#'  *bee.calc.escape()* ; *bee.data.merge()*. Metrics values can be summarised
+#'  per extreme event or over a sliding time window.
 #'
 #' @details
-#' In addition to the mean value, the function provides the median, standard
-#' deviation, minimum and maximum values, sum, date of minimum and maximum
-#' values (within the time window), and date of minimum value (also within the
-#' time window).
+#'  In addition to the mean value, the function provides the median, standard
+#'  deviation, minimum and maximum values, sum, date of minimum and maximum
+#'  values (within the time window), and date of minimum value (also within the
+#'  time window).
 #'
-#'@param data the dataset containing the column you want to process (e.g. the
-#' ouput of BEE.data.merge(), as a list of data frame).
-#'@param variable the name of the column for which you want to compute mean,
-#' median etc. over a time window.
-#'@param summarise_by takes the following options:
-#' - "extreme_event" for each metric, the following will be computed for each
-#' extreme event: mean, median, variance or sd, minimum and maximum, sum, and
-#' the dates of the maximum and minimum values.
-#' - a numeric value indicating the time step for which you want to compute the
-#' mean, median, etc.
+#' @param data:
+#'  The dataset containing the column you want to process (e.g. the ouput of 
+#'  *BEE.data.merge()*, as a list of data frame).
+#' @param variable:
+#'  The name of the column for which you want to compute mean, median etc. over
+#'  a time window.
+#' @param summarise_by:
+#'  Takes the following options:
+#'  - "extreme_event" for each metric, the following will be computed for each
+#'  extreme event: mean, median, variance or sd, minimum and maximum, sum, and
+#'  the dates of the maximum and minimum values.
+#'  - a numeric value indicating the time step for which you want to compute the
+#'  mean, median, etc.
 #'
-#' #'@return a list of dataframes, with one dataframe per pixel, with the dates
-#' in the rows and the values summarised.
+#' @return 
+#'  A list of dataframes, with one dataframe per pixel, with the dates in the 
+#'  rows and the values summarised.
 #'
-#'@examples
+#' @examples
 #' # TO BE ADDED
 #'
-#'@export
+#' @export
 #'
 #-------------------------------------------------------------------------------
 # data = merged_output ; variable = "perim_pixel_ratio" ;

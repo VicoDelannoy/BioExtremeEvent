@@ -1,27 +1,33 @@
 #' Identify the extreme event
 #'
-#' @description Identify the extreme event according to the set of constraints.
+#' @description 
+#'  Identify the extreme event according to the set of constraints.
 #'
-#' @param binarized_spatraster A Spatraster built using the BEE.calc.binarize()
+#' @param binarized_spatraster:
+#'  A Spatraster built using the BEE.calc.binarize()
 #'  function. It only contains 1 and 0.
-#' @param n The minimum number of consecutive days above the baseline/threshold
-#' required for a series of days more extrem than the baseline to be considered
-#' as an extreme event (≥).
-#' @param d The maximum number of days for which two series of values above the
-#' threshold/baseline, separated by some days below the threshold/baseline, can
-#' be considered a single extreme event (the maximum distance in days between
-#' the two events to be merged <=).
-#' @param nbis The minimum number of days in a series of 1 to allow merging with
-#' serie of 1 longer than *'n'* and distant from *'d'* days or fewer.
-#' /!\ *'nbis'* must be inferior or equal to *'n'*.
-#' Example :
-#' If you set *'nbis'* to 3, a short series of 1 (<*'n'*) can be merged with a
-#' long series of 1 (≥*'n'*) if the two series are separated by no more than
-#' *'d'* days, and that the shorter of the two series contains at least *'nbis'*
-#' days above the threshold.
-#' Default: NULL
+#' @param n:
+#'  The minimum number of consecutive days above the baseline/threshold
+#'  required for a series of days more extrem than the baseline to be considered
+#'  as an extreme event (≥).
+#' @param d:
+#'  The maximum number of days for which two series of values above the
+#'  threshold/baseline, separated by some days below the threshold/baseline, can
+#'  be considered a single extreme event (the maximum distance in days between
+#'  the two events to be merged <=).
+#' @param nbis:
+#'  The minimum number of days in a series of 1 to allow merging with
+#'  serie of 1 longer than *'n'* and distant from *'d'* days or fewer.
+#'  /!\ *'nbis'* must be inferior or equal to *'n'*.
+#'  Example :
+#'  If you set *'nbis'* to 3, a short series of 1 (<*'n'*) can be merged with a
+#'  long series of 1 (≥*'n'*) if the two series are separated by no more than
+#'  *'d'* days, and that the shorter of the two series contains at least *'nbis'*
+#'  days above the threshold.
+#'  Default: NULL
 #'
-#' @param w NOT AVAILBALE YET Window w between to event in which you
+#' @param w:
+#'  NOT AVAILBALE YET Window w between to event in which you
 #'  allow a certain proportion p of days (within the window) to be bellow the
 #'  threshold, windows is bordered by series of consecutive days above
 #'  threshold. w and p replace d. If w is an odd number, the minimum number of
@@ -31,34 +37,36 @@
 #'  least 4 days are above threshold (wp = 7*0.5 = 3.5 rounded to 4).
 #'  Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL.
 #'
-#' @param p NOT AVAILBALE YET, see "w" explanations. Default: NULL
+#' @param p:
+#'  NOT AVAILBALE YET, see "w" explanations. Default: NULL
 #'
-#' @return Returns a list with 2 elements. The first one is called
-#' **"binarized_spatraster_corrected"**. This is a Spatraster containing binarised
-#' values that have been corrected according to the definition used in the
-#' function. It is used in the next funciton of the pipeline.
-#' The second element is called **"Event_corrected"**. This is a list with one
-#' data.table per pixel.
-#' Each data.table has a date for each row (and as many dates as there are
-#' layers in YourSpatraster). The "original_value" column gives the value of the
-#' raw binarisation before applying this function. "cleaned_value" provides the
-#' corrected values for each date. "ID" is the identifier of the event, built
-#' using the pixel number, the first day of the event and the last day of the
-#' event. It is proper to each pixel. "Duration" indicates the duration (in
-#' days) of the event. "Date" indicates the date corresponding to the row.
+#' @return 
+#'  Returns a list with 2 elements. The first one is called
+#'  **"binarized_spatraster_corrected"**. This is a Spatraster containing 
+#'  binarised values that have been corrected according to the definition used
+#'  in the function. It is used in the next funciton of the pipeline.
+#'  The second element is called **"Event_corrected"**. This is a list with one
+#'  data.table per pixel.
+#'  Each data.table has a date for each row (and as many dates as there are 
+#'  layers in YourSpatraster). The "original_value" column gives the value of
+#'  the raw binarisation before applying this function. "cleaned_value" provides
+#'  the corrected values for each date. "ID" is the identifier of the event,
+#'  built using the pixel number, the first day of the event and the last day of
+#'  the event. It is proper to each pixel. "Duration" indicates the duration (in
+#'  days) of the event. "Date" indicates the date corresponding to the row.
 #'
 #' @details
-#' Setting *'nbis'* = 1, has the same effect as setting nbis= NULL. When
-#' *'nbis'* = NULL any series of 1 distant from less than *'d'* to a series of 1
-#' at least as long as *'n'* days will be merged into one big series event, even
-#' if the serie last only one day. If you provide an argument for *'nbis'*, only
-#' series at least as long as *'nbis'* can be merge to serie as long as *'n'* (
-#' if the two are distant from less than *'d'* days).
-#' Days above threshold that don't qualify has "extreme event" (e.g. to short
-#' series or to isolated) are transformed to 0. The second output of the
-#' function provided for each pixel a dataframe containning daily values before
-#' and after correctionq.
-#' *"w"* and *"p"* settings are not available yet. BEE.calc.true_event is not
+#'  Setting *'nbis'* = 1, has the same effect as setting nbis= NULL. When
+#'  *'nbis'* = NULL any series of 1 distant from less than *'d'* to a series of
+#'  1 at least as long as *'n'* days will be merged into one big series event,
+#'  even if the serie last only one day. If you provide an argument for 
+#'  *'nbis'*, only series at least as long as *'nbis'* can be merge to serie as
+#'  long as *'n'* (if the two are distant from less than *'d'* days).
+#'  Days above threshold that don't qualify has "extreme event" (e.g. to short
+#'  series or to isolated) are transformed to 0. The second output of the
+#'  function provided for each pixel a dataframe containning daily values before
+#'  and after corrections.
+#'  *"w"* and *"p"* settings are not available yet. BEE.calc.true_event is not
 #'  designed to work on 4D data (time + spatial 3D).
 #'
 #' @examples

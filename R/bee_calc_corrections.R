@@ -1,29 +1,47 @@
 #' Compute the impact of the selected definition of extreme events on the number
 #' of days of extreme event.
 #'
-#' @description It computes the number of modifications between the raw
-#' binerised Spatraster and the Spartraster produced using the
-#' *BEE.calc.true_event()*.
+#' @description
+#'  It computes the number of modifications between the raw binerised Spatraster
+#'  and the Spartraster produced using the *BEE.calc.true_event()*.
 #'
-#' @param true_event_raster The first element of the *BEE.calc.true_event()*
-#' ouput, which is a spatraster binarized that inclued the corrections by
-#' *BEE.calc.true_event()*.
-#' @param true_event_df_list The second element of the *BEE.calc.true_event()* ouput,
-#' which is a list of data.table containing information about the value of each
-#' pixel before and after definition criteria are applied to distinguish
-#' isolated extreme days from extreme events.
-#' @param plot Accepted values are TRUE of FALSE. Set to “FALSE” to not display
-#' the graphs.
+#' @param true_event_raster:
+#'  The first element of the *BEE.calc.true_event()*
+#'  ouput, which is a spatraster binarized that inclued the corrections by
+#'  *BEE.calc.true_event()*.
+#' @param true_event_df_list:
+#'  The second element of the *BEE.calc.true_event()* ouput,
+#'  which is a list of data.table containing information about the value of each
+#'  pixel before and after definition criteria are applied to distinguish
+#'  isolated extreme days from extreme events.
+#' @param plot:
+#'  Accepted values are TRUE of FALSE. Set to “FALSE” to not display
+#'  the graphs.
 #'
-#' @returns In R consol it returns a message with the number of 1 corrected to 0
-#' and the number of 0 corrected to 1. If plot=TURE it shows the cumulative
-#' percentage of changes through time.
-#' The object return if a dataframe with one line percombinaison of date and
-#' pixel_id. The dataframe has the same structure than the ones in
-#' true_event_df_list.
+#' @returns
+#'  In R consol it returns a message with the number of 1 corrected to 0
+#'  and the number of 0 corrected to 1. If plot=TURE it shows the cumulative
+#'  percentage of changes through time.
+#'  The object return if a dataframe with one line percombinaison of date and
+#'  pixel_id. The dataframe has the same structure than the ones in
+#'  true_event_df_list.
 #'
 #' @examples
-#' # to be added
+#' # Prepare function arguments:
+#' file_name_1 <- system.file(file.path("extdata",
+#'                                      "binarized_corrected_spatraster.tiff"),
+#'                                      package = "BioExtremeEvent")
+#' binarized_corrected_spatraster <- terra::rast(file_name_1)
+#' file_name_2 <- system.file(file.path("extdata",
+#'                                      "binarized_corrected_df.rds"),
+#'                                      package = "BioExtremeEvent")
+#' binarized_corrected_df <- readRDS(file_name_2)
+#' # Run function
+#' df_bonus <- BEE.calc.corrections(
+#'  true_event_raster = binarized_corrected_spatraster,
+#'  true_event_df_list = binarized_corrected_df,
+#'  plot = TRUE
+#' )
 #'
 #' @export
 #'

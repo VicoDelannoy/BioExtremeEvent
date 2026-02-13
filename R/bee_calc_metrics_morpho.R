@@ -1,22 +1,31 @@
 #'Compute metrics spatial features of the extreme event (only in surface, 2D)
 #'
-#'@description This function give the morphological metrics for an extreme
-#' event, Corrected_rasters is the SpatRaster you want to analyze (it needs to be
-#' binarise with the mhw function)
-#' @param Corrected_rasters the SpatRaster you want to analyse
-#' @param start_date allows to perform the analysis on a
-#' specific  time_frame, this allows to save computation time.
-#' @param end_date allows to perform the analysis on a
-#' specific  time_frame, this allows to save computation time.
-#' @param per_pix use TRUE if you want a list with one dt per pixel as an output
-#' @param crs to get accurate length and area, data in longitude latitude must
-#' be converted into meters data that take in account earth sphericity, the
-#' conversion depend on studdied region, thus you must specify the one the most
-#' appropriated for your data. See help here to find a suitable EPSG you can
-#' check on https://epsg.io/
-#'@note Your SpatRaster need to be binarised with the mhw function before you
-#' put it in this function
-#' BEE.calc.metrics_morpho is not designed to work on 4D data (time+spatial 3D).
+#' @description 
+#'  This function give the morphological metrics for an extreme event, 
+#'  Corrected_rasters is the SpatRaster you want to analyze (it needs to be
+#'  binarise with the mhw function)
+#' 
+#' @param Corrected_rasters:
+#'  The SpatRaster you want to analyse (first output of 
+#'  *BEE.calc.true_event()*).
+#' @param start_date:
+#'  Allows to perform the analysis on a specific  time_frame, this allows to 
+#'  save computation time.
+#' @param end_date:
+#'  Allows to perform the analysis on a specific  time_frame, this allows to 
+#'  save computation time.
+#' @param per_pix:
+#'  Use TRUE if you want a list with one dt per pixel as an output.
+#' @param crs:
+#'  To get accurate length and area, data in longitude latitude must
+#'  be converted into meters data that take in account earth sphericity, the
+#'  conversion depend on studdied region, thus you must specify the one the most
+#'  appropriated for your data. See help here to find a suitable EPSG you can
+#'  check on https://epsg.io/ .
+#' 
+#' @note 
+#'  BEE.calc.metrics_morpho is not designed to work on 4D data 
+#'  (time+spatial 3D).
 #'
 #' @export
 #'

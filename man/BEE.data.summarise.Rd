@@ -11,13 +11,13 @@ BEE.data.summarise(
 )
 }
 \arguments{
-\item{data}{the dataset containing the column you want to process (e.g. the
+\item{data:}{the dataset containing the column you want to process (e.g. the
 ouput of BEE.data.merge(), as a list of data frame).}
 
-\item{variable}{the name of the column for which you want to compute mean,
+\item{variable:}{the name of the column for which you want to compute mean,
 median etc. over a time window.}
 
-\item{summarise_by}{takes the following options:
+\item{summarise_by:}{takes the following options:
 \itemize{
 \item "extreme_event" for each metric, the following will be computed for each
 extreme event: mean, median, variance or sd, minimum and maximum, sum, and

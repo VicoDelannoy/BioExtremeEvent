@@ -15,38 +15,37 @@ BEE.calc.baseline(
 )
 }
 \arguments{
-\item{YourSpatraster}{the SpatRaster that contains the values to be used to
-calculate the baseline (your reference time serie). Each layer must have a
-date and there must be \strong{no duplicates}.}
+\item{YourSpatraster:}{The SpatRaster that contains the values to be used to calculate the baseline
+(your reference time serie). Each layer must have a date and there must be
+\strong{no duplicates}.}
 
-\item{start_date}{the date to use as the first day of your reference period.
-It must be in the format \strong{YYYY-MM-DD}. (Note that the provided dataset
-can cover a longer time period than the one you want to use as a reference.)}
+\item{start_date:}{The date to use as the first day of your reference period. It must be in the
+format \strong{YYYY-MM-DD}. (Note that the provided dataset can cover a longer
+time period than the one you want to use as a reference.)}
 
-\item{end_date}{the date to use as the first day of your reference period.
-It must be in the format \strong{YYYY-MM-DD}.}
+\item{end_date:}{The date to use as the first day of your reference period. It must be in the
+format \strong{YYYY-MM-DD}.}
 
-\item{threshold}{specifies whether you want to use a percentile or the mean
-of the observed values as the threshold.
+\item{threshold:}{Specifies whether you want to use a percentile or the mean of the observed
+values as the threshold.
 The accepted arguments are \emph{"qt"}, to specify that you want to compute a
 percentile of the observed values in the reference timeframe, or \emph{"mean"},
 if you want to use the mean of the observed values as threshold.
 If you want to use a fixed value as the threshold (e.g. biological optimum),
 you can skip this step and use BEE.calc.binarize() directly.}
 
-\item{quantile_value}{indicates the desired percentile value. This must be
-between 0 and 1.}
+\item{quantile_value:}{Indicates the desired percentile value. This must be between 0 and 1.}
 
-\item{time_window}{number of days on either side of day 'd' that are used to
-calculate the threshold value associated for day 'd'.
+\item{time_window:}{Number of days on either side of day 'd' that are used to calculate the
+threshold value associated for day 'd'.
 For example, if \emph{"time_window = 5"}, the thershold value for 'd' day will
 be calculated using data from five days before day d, day d itself,
 and the five days after day d, from all years between \emph{"start_date"} and
 \emph{"end_date"}.}
 
-\item{smooth_window}{number of days on either side of day 'd' that are used
-to calculate the mean value of the threshold assigned to the 'd' day.
-This allows your threshold value to be smoothed across days.
+\item{smooth_window:}{Number of days on either side of day 'd' that are used to calculate the mean
+value of the threshold assigned to the 'd' day. This allows your threshold
+value to be smoothed across days.
 For example, if \emph{"smooth_window"} is set to 10 days, the final value on
 day 'd' will be the mean of the baseline/thershold values calculated for
 days: d - 10 to d + 10 (eleven values).}
@@ -58,7 +57,8 @@ pixel contains the threshold value at which an extreme event is identified
 (the baseline value).
 }
 \description{
-Calculate baseline value for each date and pixel.
+Calculate the daily baseline value using the mean or a quantile of a
+timeserie.
 }
 \examples{
 ### Load the example dataset in R environement :

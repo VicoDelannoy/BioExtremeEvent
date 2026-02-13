@@ -22,52 +22,52 @@ BEE.data.load_copernicus(
 )
 }
 \arguments{
-\item{username}{is your Copernicus account username, you can create an
+\item{username:}{is your Copernicus account username, you can create an
 account here :
 https://data.marine.copernicus.eu/register?redirect=\%2Fproducts\%3Fdisc\%3Dnone}
 
-\item{password}{is your Copernicus account password.}
+\item{password:}{is your Copernicus account password.}
 
-\item{dataset_id}{is available on the corpernicus page of your product, in
+\item{dataset_id:}{is available on the corpernicus page of your product, in
 "Data access" rubric, under the temporal resolution name. It is usually
 start by cmems_ ...}
 
-\item{dataset_version}{it the version of the dataset, you can found it in
+\item{dataset_version:}{it the version of the dataset, you can found it in
 the "Product user manual" or as subtitle in the Marine Data Store, it is
 usually in capital letters.}
 
-\item{variables}{is the variable you are interested in, you can only call
+\item{variables:}{is the variable you are interested in, you can only call
 one variable at a time. Variables name are visible in Marine Data Store :
 Product : Data access : From (bellow subset) : use the name in grey before
 square bracket}
 
-\item{minimum_longitude}{You can use the "Draw on map" Copernicus tool to
+\item{minimum_longitude:}{You can use the "Draw on map" Copernicus tool to
 select an area of interest in Marine Data Store : Product : Data access
 : Form (bellow subset) and copy the values using "N" (north) as the maximum
 latitude and "W" (west) as the minimum longitude if working in the northwest
 hemisphere.}
 
-\item{maximum_longitude}{maximum longitude at which data will be extracted.}
+\item{maximum_longitude:}{maximum longitude at which data will be extracted.}
 
-\item{minimum_latitude}{minimum latitude at which data will be extracted.}
+\item{minimum_latitude:}{minimum latitude at which data will be extracted.}
 
-\item{maximum_latitude}{maximum latitude at which data will be extracted.}
+\item{maximum_latitude:}{maximum latitude at which data will be extracted.}
 
-\item{start_datetime}{First day wanted in the downloaded spatraster. Please
+\item{start_datetime:}{First day wanted in the downloaded spatraster. Please
 make sure that the date is available on copernicus.}
 
-\item{end_datetime}{Last day wanted in the downloaded spatraster. Please
+\item{end_datetime:}{Last day wanted in the downloaded spatraster. Please
 make sure that the date is available on copernicus.}
 
-\item{coordinates_selection_method}{= stric-inside" by default, extraction
+\item{coordinates_selection_method:}{= stric-inside" by default, extraction
 method, to see more info, check the python API help to get moer detail
 https://help.marine.copernicus.eu/en/articles/7949409-copernicus-marine-
 toolbox-introduction}
 
-\item{disable_progress_bar}{allows to pot a progress bar of the downloading,
+\item{disable_progress_bar:}{allows to pot a progress bar of the downloading,
 by default it is set on 'FALSE'.}
 
-\item{output_directory}{where you want the data to be save, by default it
+\item{output_directory:}{where you want the data to be save, by default it
 goes to the "Data" file next to your script if there is one.}
 }
 \value{

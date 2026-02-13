@@ -7,17 +7,17 @@
 BEE.calc.binarize(YourSpatraster, baseline, direction)
 }
 \arguments{
-\item{YourSpatraster}{The Spatraster containing the values of the studied
-parameter, with one layer for each timestep.}
+\item{YourSpatraster:}{The Spatraster containing the values of the studied parameter, with one
+layer for each timestep.}
 
-\item{baseline}{A Spatraster built using the BEE.calc.baseline function,
-which contains the baseline value for each pixel on a given day of the year
-(with 366 layers), \strong{or} a fixed threshold that you want to use as the baseline.
-The fixed threshold must be a number.}
+\item{baseline:}{A Spatraster built using the BEE.calc.baseline function, which contains the
+baseline value for each pixel on a given day of the year (with 366 layers),
+\strong{or} a fixed threshold that you want to use as the baseline. The fixed
+threshold must be a number.}
 
-\item{direction}{The accepted values for this argument are \emph{"above"} or
-\emph{"below"}. This tells the function whether it values above baseline or below
-baseline are to be considered as extreme events.}
+\item{direction:}{The accepted values for this argument are \emph{"above"} or \emph{"below"}. This tells
+the function whether it values above baseline or below baseline are to be
+considered as extreme events.}
 }
 \value{
 The function returns a list containing a Spatraster for each day of a
@@ -31,8 +31,8 @@ not.
 \description{
 The function binarise a Spatraster by comparing the observed value with the
 baseline. If "direction" argument is "above", the values above the baseline
-will be converted to 1, and the value bellow baseline will be converted to 0.
-The process works in reverse when "direction" = below.
+will be converted to 1, and the value bellow baseline will be converted
+to 0. The process works in reverse when "direction" = below.
 }
 \details{
 For computational purposes in the next stages of the pipeline, the

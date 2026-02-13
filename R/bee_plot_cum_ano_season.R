@@ -1,21 +1,29 @@
 #' Cumulative anomaly against months of the years
 #'
-#' @description allows to see at which time of the year a place is explosed to
-#' the bigest anomalies.
-#' #' @param metric_point_df the output of *BEE.calc.metric_point()* for a given
-#' location. Please note that the output of BEE.calc.metric_point() is a list.
-#' You only need to provide a dataframe from that list, not the whole list.
-#' @param color_theme A vector of four colour codes of your choice (the first
-#' one is for category 1 and the last one is for category 4), or 'red' to use an
-#' automatic palette of red shades, or 'blue' for a colour-shaded palette.
-#' @param start_date = NULL by default or the date at which you want to start
-#' the plot. It mus be in the same format than metric_point_df$date.
-#' @param end_date = NULL by default or the date at which you want to stop
-#' the plot. It mus be in the same format than metric_point_df$date.
-#' @param ... Customising the graph is possible by adding any general ggplot2
-#' argument.
-#' @return A 'ggplot2' with the months on the x-axis, the cumulative anomaly per
-#' extreme event of the studied parameter value on the y-axis.
+#' @description 
+#'  Allows to see at which time of the year a place is explosed to the bigest
+#'  anomalies.
+#' 
+#' @param metric_point_df:
+#'  The output of *BEE.calc.metric_point()* for a given location. Please note
+#'  that the output of BEE.calc.metric_point() is a list. You only need to 
+#'  provide a dataframe from that list, not the whole list.
+#' @param color_theme:
+#'  A vector of four colour codes of your choice (the first one is for category 
+#'  1 and the last one is for category 4), or 'red' to use an automatic palette
+#'  of red shades, or 'blue' for a colour-shaded palette.
+#' @param start_date:
+#'  = NULL by default or the date at which you want to start the plot. It must 
+#'  be in the same format than metric_point_df$date.
+#' @param end_date:
+#'  = NULL by default or the date at which you want to stop the plot. It must be
+#'  in the same format than metric_point_df$date.
+#' @param ...:
+#'  Customising the graph is possible by adding any general ggplot2 argument.
+#' 
+#' @return 
+#'  A 'ggplot2' with the months on the x-axis, the cumulative anomaly per 
+#'  extreme event of the studied parameter value on the y-axis.
 #'
 #'
 #' @examples
@@ -56,13 +64,13 @@ BEE.plot.cumulative_anomaly <- function(
     metric_point_df <- metric_point_df[
       which(metric_point_df$date <= end_date),
     ]
-  } 
+  }
 
   # Month in english
   Sys.setlocale("LC_TIME", "en_US.UTF-8")
   # withdraw events that are not extreme:
-  one_place_filtered <- one_place |> 
-    dplyr::filter(daily_category != "No extreme event") |> 
+  one_place_filtered <- one_place |>
+    dplyr::filter(daily_category != "No extreme event") |>
     dplyr::mutate(
       # date fictive pour aligner tous les mois sur une même année
       month_day = as.Date(paste0("2000-", format(date, "%m-%d"))),
@@ -94,12 +102,12 @@ BEE.plot.cumulative_anomaly <- function(
   ) +
     ggplot2::geom_ribbon(
       ggplot2::aes(ymin = 0, ymax = cumulative_anomaly_qt),
-      alpha = 1 / length(unique(one_place_filtered$year_num)) + 0.1,
+      alpha = 1 / length(unique(one_place_filtered$year_num)) + 0.05,
       color = NA
     ) +
     ggplot2::geom_line(
       size = 1,
-      alpha = 1 / length(unique(one_place_filtered$year_num)) + 0.1
+      alpha = 1 / length(unique(one_place_filtered$year_num)) + 0.05
     ) +
     ggplot2::scale_color_gradientn(
       colors = c("darkblue", "turquoise", "green", "yellow", "orange", "red"),
@@ -131,10 +139,10 @@ BEE.plot.cumulative_anomaly <- function(
 
   # Second plot to compare cumulative anomalies profiles:
   ## prepare data
-  one_place_filtered <- one_place |> 
-    dplyr::filter(daily_category != "No extreme event") |> 
-    dplyr::arrange(ID, date) |> 
-    dplyr::group_by(ID) |> 
+  one_place_filtered <- one_place |>
+    dplyr::filter(daily_category != "No extreme event") |>
+    dplyr::arrange(ID, date) |>
+    dplyr::group_by(ID) |>
     dplyr::mutate(event_day = row_number() - 1)
 
   # Grap

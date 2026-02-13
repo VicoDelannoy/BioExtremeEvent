@@ -1,16 +1,19 @@
 #'Convert temperature data to Celsius
 #'
-#'@description
-#' Function that detects the unit of measurement of a pixel value in a
-#' SpatRaster (Celsius, Kelvin or Fahrenheit) and converts it to the
-#' international unit 'Celsius' if necessary.
-#'@param YourSpatRaster
-#' "YourSpatRaster" is the SpatRaster containing temperature data, for which you
-#'  want to check the units and convert the values to Celsius.
-#'@return YourSpatRaster
-#' Your SpatRaster with values corrected to celsius and 'unit' metadata updated
-#' to 'Celsisus'.
-#'@examples
+#' @description
+#'  Function that detects the unit of measurement of a pixel value in a 
+#'  SpatRaster (Celsius, Kelvin or Fahrenheit) and converts it to the
+#'  international unit 'Celsius' if necessary.
+#' 
+#' @param YourSpatRaster:
+#'  It is the SpatRaster containing temperature data, for which you want to
+#'  check the units and convert the values to Celsius.
+#' 
+#' @return 
+#'  YourSpatRaster with values corrected to celsius and 'unit' metadata updated
+#'  to 'Celsisus'.
+#' 
+#' @examples
 #'
 #'### Load the example dataset in R environement :
 #' file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"),

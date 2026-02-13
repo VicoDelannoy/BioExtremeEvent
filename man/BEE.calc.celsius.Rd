@@ -7,12 +7,11 @@
 BEE.calc.celsius(YourSpatRaster)
 }
 \arguments{
-\item{YourSpatRaster}{"YourSpatRaster" is the SpatRaster containing temperature data, for which you
-want to check the units and convert the values to Celsius.}
+\item{YourSpatRaster:}{It is the SpatRaster containing temperature data, for which you want to
+check the units and convert the values to Celsius.}
 }
 \value{
-YourSpatRaster
-Your SpatRaster with values corrected to celsius and 'unit' metadata updated
+YourSpatRaster with values corrected to celsius and 'unit' metadata updated
 to 'Celsisus'.
 }
 \description{

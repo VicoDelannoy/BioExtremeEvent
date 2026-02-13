@@ -8,16 +8,16 @@ of days of extreme event.}
 BEE.calc.corrections(true_event_raster, true_event_df_list, plot = TRUE)
 }
 \arguments{
-\item{true_event_raster}{The first element of the \emph{BEE.calc.true_event()}
+\item{true_event_raster:}{The first element of the \emph{BEE.calc.true_event()}
 ouput, which is a spatraster binarized that inclued the corrections by
 \emph{BEE.calc.true_event()}.}
 
-\item{true_event_df_list}{The second element of the \emph{BEE.calc.true_event()} ouput,
+\item{true_event_df_list:}{The second element of the \emph{BEE.calc.true_event()} ouput,
 which is a list of data.table containing information about the value of each
 pixel before and after definition criteria are applied to distinguish
 isolated extreme days from extreme events.}
 
-\item{plot}{Accepted values are TRUE of FALSE. Set to “FALSE” to not display
+\item{plot:}{Accepted values are TRUE of FALSE. Set to “FALSE” to not display
 the graphs.}
 }
 \value{
@@ -29,11 +29,24 @@ pixel_id. The dataframe has the same structure than the ones in
 true_event_df_list.
 }
 \description{
-It computes the number of modifications between the raw
-binerised Spatraster and the Spartraster produced using the
-\emph{BEE.calc.true_event()}.
+It computes the number of modifications between the raw binerised Spatraster
+and the Spartraster produced using the \emph{BEE.calc.true_event()}.
 }
 \examples{
-# to be added
+# Prepare function arguments:
+file_name_1 <- system.file(file.path("extdata",
+                                     "binarized_corrected_spatraster.tiff"),
+                                     package = "BioExtremeEvent")
+binarized_corrected_spatraster <- terra::rast(file_name_1)
+file_name_2 <- system.file(file.path("extdata",
+                                     "binarized_corrected_df.rds"),
+                                     package = "BioExtremeEvent")
+binarized_corrected_df <- readRDS(file_name_2)
+# Run function
+df_bonus <- BEE.calc.corrections(
+ true_event_raster = binarized_corrected_spatraster,
+ true_event_df_list = binarized_corrected_df,
+ plot = TRUE
+)
 
 }

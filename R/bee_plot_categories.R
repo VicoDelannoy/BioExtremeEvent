@@ -2,27 +2,32 @@
 #'
 #' @description
 #'  Use *BEE.calc.metric_point()* to plot extreme event categorie over the all
-#' time period or over a subset of that period.
+#'  time period or over a subset of that period.
 #'
-#' @param metric_point_df the output of *BEE.calc.metric_point()* for a given
-#' location. Please note that the output of BEE.calc.metric_point() is a list.
-#' You only need to provide a dataframe from that list, not the whole list.
-#' @param color_theme A vector of four colour codes of your choice (the first
-#' one is for category 1 and the last one is for category 4), or 'red' to use an
-#' automatic palette of red shades, or 'blue' for a colour-shaded palette.
-#' @param start_date = NULL by default or the date at which you want to start
-#' the plot. It mus be in the same format than metric_point_df$date.
-#' @param end_date = NULL by default or the date at which you want to stop
-#' the plot. It mus be in the same format than metric_point_df$date.
-#' @param ... Customising the graph is possible by adding any general ggplot2
-#' argument.
+#' @param metric_point_df:
+#'  The output of *BEE.calc.metric_point()* for a given location. Please note 
+#'  that the output of BEE.calc.metric_point() is a list. You only need to 
+#'  provide a dataframe from that list, not the whole list.
+#' @param color_theme:
+#'  A vector of four colour codes of your choice (the first one is for category
+#'  1 and the last one is for category 4), or 'red' to use an automatic palette
+#'  of red shades, or 'blue' for a colour-shaded palette.
+#' @param start_date:
+#'  = NULL by default or the date at which you want to start the plot. It must
+#'  be in the same format than metric_point_df$date.
+#' @param end_date:
+#'  = NULL by default or the date at which you want to stop the plot. It must be
+#'  in the same format than metric_point_df$date.
+#' @param ...:
+#'  Customising the graph is possible by adding any general ggplot2 argument.
 #'
-#' @return A 'ggplot2' with the date on the x-axis, the studied parameter value
-#' on the y-axis, and the extreme events coloured according to their category.
+#' @return 
+#'  A 'ggplot2' with the date on the x-axis, the studied parameter value on the
+#'  y-axis, and the extreme events coloured according to their category.
 #'
 #'
 #' @examples
-#' # Load data:
+#'  # Load data:
 #' file_name_1 <- system.file(file.path("extdata", "metrics_points_day.rds"),
 #'                                   package = "BioExtremeEvent")
 #' metrics_points_day <- readRDS(file_name_1)

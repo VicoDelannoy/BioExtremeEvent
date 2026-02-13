@@ -12,16 +12,16 @@ BEE.data.merge(
 )
 }
 \arguments{
-\item{data_metrics_point}{the output of the BEE.calc.metrics_point computed
+\item{data_metrics_point:}{the output of the BEE.calc.metrics_point computed
 using the argument group_by_event = FALSE.}
 
-\item{data_metrics_morpho}{the output of the BEE.calc.metrics_morpho computed
+\item{data_metrics_morpho:}{the output of the BEE.calc.metrics_morpho computed
 using the argument per_pix = TRUE.}
 
-\item{data_escape}{the output of the BEE.calc.escape computed
+\item{data_escape:}{the output of the BEE.calc.escape computed
 using the argument only_days_EE = FALSE AND group_by_event = FALSE.}
 
-\item{crs}{a METRICS crs that suits the studdied area.}
+\item{crs:}{a METRICS crs that suits the studdied area.}
 }
 \value{
 A list of dataframe (one df per pixel) with the metrics of all the

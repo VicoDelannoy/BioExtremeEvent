@@ -2,21 +2,25 @@
 #'
 #' @description
 #'  The function binarise a Spatraster by comparing the observed value with the
-#' baseline. If "direction" argument is "above", the values above the baseline
-#' will be converted to 1, and the value bellow baseline will be converted to 0.
-#' The process works in reverse when "direction" = below.
+#'  baseline. If "direction" argument is "above", the values above the baseline
+#'  will be converted to 1, and the value bellow baseline will be converted 
+#'  to 0. The process works in reverse when "direction" = below.
 #'
-#' @param YourSpatraster The Spatraster containing the values of the studied
-#' parameter, with one layer for each timestep.
-#' @param baseline A Spatraster built using the BEE.calc.baseline function,
-#' which contains the baseline value for each pixel on a given day of the year
-#' (with 366 layers), **or** a fixed threshold that you want to use as the baseline.
-#' The fixed threshold must be a number.
-#' @param direction The accepted values for this argument are *"above"* or
-#'  *"below"*. This tells the function whether it values above baseline or below
-#'   baseline are to be considered as extreme events.
+#' @param YourSpatraster: 
+#'  The Spatraster containing the values of the studied parameter, with one 
+#'  layer for each timestep.
+#' @param baseline: 
+#'  A Spatraster built using the BEE.calc.baseline function, which contains the
+#'  baseline value for each pixel on a given day of the year (with 366 layers),
+#'  **or** a fixed threshold that you want to use as the baseline. The fixed 
+#'  threshold must be a number.
+#' @param direction: 
+#'  The accepted values for this argument are *"above"* or *"below"*. This tells
+#'  the function whether it values above baseline or below baseline are to be 
+#'  considered as extreme events.
 #'
-#' @return The function returns a list containing a Spatraster for each day of a
+#' @return 
+#'  The function returns a list containing a Spatraster for each day of a
 #'  typical year, providing a total of 366 Spatrasters, with one layer per year.
 #'  The first element of the list contains the rasters for all the first of
 #'  January included in the provided time series. These rasters have the same
@@ -24,7 +28,8 @@
 #'  the pixel value was more extreme than the baseline, and with 0 if it was
 #'  not.
 #'
-#' @details For computational purposes in the next stages of the pipeline, the
+#' @details 
+#'  For computational purposes in the next stages of the pipeline, the
 #'  order of the layers differs from that in 'YourSpatraster'.
 #'  BEE.calc.binarize is not designed to work with 4D data (3D in space and
 #'  time). To do so, please refer to BEE.calc.4thD.

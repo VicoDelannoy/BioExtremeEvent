@@ -21,9 +21,9 @@ Note: the baseline used here have been computed in a longer time serie than the 
 
 # Usage
 ## Arguments:
-**YourSpatraster** is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.
-**baseline** a spatraster computed with BEE.calc.baseline() or a numerical value representing a fixed threshold. 
-**direction** Only two options are accepted *"above"* or *"below"*. It indicates whether extreme event are expected to have value higher *(above)* or lower *(below)* than the baseline.  
+**YourSpatraster:** is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.
+**baseline:** a spatraster computed with BEE.calc.baseline() or a numerical value representing a fixed threshold. 
+**direction:** Only two options are accepted *"above"* or *"below"*. It indicates whether extreme event are expected to have value higher *(above)* or lower *(below)* than the baseline.  
 For example, to identify cold spells, which are anormaly cold period, you will computed a baseline using BEE.calc.baseline() with a 10 % quantile and used *direction = "below"*.  
 
 ## Warnings:  

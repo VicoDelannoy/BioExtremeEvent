@@ -14,19 +14,19 @@ BEE.calc.true_event(
 )
 }
 \arguments{
-\item{binarized_spatraster}{A Spatraster built using the BEE.calc.binarize()
+\item{binarized_spatraster:}{A Spatraster built using the BEE.calc.binarize()
 function. It only contains 1 and 0.}
 
-\item{n}{The minimum number of consecutive days above the baseline/threshold
+\item{n:}{The minimum number of consecutive days above the baseline/threshold
 required for a series of days more extrem than the baseline to be considered
 as an extreme event (≥).}
 
-\item{d}{The maximum number of days for which two series of values above the
+\item{d:}{The maximum number of days for which two series of values above the
 threshold/baseline, separated by some days below the threshold/baseline, can
 be considered a single extreme event (the maximum distance in days between
 the two events to be merged <=).}
 
-\item{nbis}{The minimum number of days in a series of 1 to allow merging with
+\item{nbis:}{The minimum number of days in a series of 1 to allow merging with
 serie of 1 longer than \emph{'n'} and distant from \emph{'d'} days or fewer.
 /!\ \emph{'nbis'} must be inferior or equal to \emph{'n'}.
 Example :
@@ -36,7 +36,7 @@ long series of 1 (≥*'n'*) if the two series are separated by no more than
 days above the threshold.
 Default: NULL}
 
-\item{w}{NOT AVAILBALE YET Window w between to event in which you
+\item{w:}{NOT AVAILBALE YET Window w between to event in which you
 allow a certain proportion p of days (within the window) to be bellow the
 threshold, windows is bordered by series of consecutive days above
 threshold. w and p replace d. If w is an odd number, the minimum number of
@@ -46,7 +46,7 @@ to event of n consecutive days will not create two distinct event if at
 least 4 days are above threshold (wp = 7*0.5 = 3.5 rounded to 4).
 Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL.}
 
-\item{p}{NOT AVAILBALE YET, see "w" explanations. Default: NULL}
+\item{p:}{NOT AVAILBALE YET, see "w" explanations. Default: NULL}
 }
 \value{
 Returns a list with 2 elements. The first one is called
