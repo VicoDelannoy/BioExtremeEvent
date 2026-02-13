@@ -34,12 +34,21 @@ Returns a list with 2 elements.
 The first one is called **"binarized_spatraster_corrected"**. This SpatRaster contains the identified extreme events. Based on the criteria specified in the function arguments, extreme events are derived from the binarised extreme days by applying pixel-wise temporal rules such as minimum event duration, merging of events that are close in time, and the removal of isolated extreme days. These events are used in the next function of the pipeline.  
 The second element is called **"extreme_event"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in yourspatraster). 
 
-The dataframes 
-The "original_value" column gives the value of the raw binarisation before applying this function.  
-"cleaned_value" provides the corrected values for each date.  
-"ID" is the identifier of the event, built using the pixel number, the first day of the event and the last day of the event and the event_id for that pixel. ID and event_id are proper to each pixel.  
-"Duration" indicates the duration (in days) of the event.  
-"Date" indicates the date corresponding to the row.
+The dataframes in the output list "extreme_event" contains the followings collumns :
+
+|   Column name  |             Description            |   Type    |  Unit   |
+|:--------------:|:----------------------------------:|:---------:|:-------:|
+| original_value | Day more extreme than baseline = 1 | binary    |         |
+|                | Day less extreme than baseline = 0 |           |         |
+| cleaned_value  | Day belong to an exteme event = 1  | binary    |         |
+|                | Day outside of an extreme event = 0|           |         |
+| ID             | Identifier of the extreme event \* |character  |         |
+| duration       | Duration of the period (extreme    |numerical  | days    |   
+|                | event or in between 2 events)      |           |         |   
+| date           | Date associated to the observation |date       |         |  
+
+
+\* built using the pixel number, the first day of the event and the last day of the event and the event_id for that pixel. ID and event_id are proper to each pixel.  
 
 # Note
 The *BEE.calc.corrections()* function allows to check how many modifications your choices of settings in BEE.calc.tru_event have induced compare to row binerized data. Please check *3.bis. Check the number of modifications induced by the BEE.id.extreme_events() settings.*
