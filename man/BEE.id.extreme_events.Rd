@@ -59,7 +59,7 @@ Returns a list with 2 elements. The first one is called
 \strong{"binarized_spatraster_corrected"}. This is a Spatraster containing
 binarised values that have been corrected according to the definition used
 in the function. It is used in the next funciton of the pipeline.
-The second element is called \strong{"Event_corrected"}. This is a list with one
+The second element is called \strong{"extreme_event"}. This is a list with one
 data.table per pixel.
 Each data.table has a date for each row (and as many dates as there are
 layers in yourspatraster). The "original_value" column gives the value of
