@@ -35,10 +35,10 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/a_data_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
+      <a href="../articles/a_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
     </li>
     <li>
-      <a href="../articles/b_calc_celsius.html">0.2 Convert temperature data to Celsius</a>
+      <a href="../articles/b_convert_celsius.html">0.2 Convert temperature data to Celsius</a>
     </li>
     <li>
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
@@ -47,7 +47,7 @@
       <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
-      <a href="../articles/e_calc_true_event.html">3.1 Identify extreme event according specific constraints</a>
+      <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
     </li>
     <li>
       <a href="../articles/f_calc_corrections.html">3.2 Check how much corrected extreme events differ from raw extreme days.</a>
@@ -83,14 +83,6 @@
         </td>
         <td><p>Calculate baseline value for each date and pixel.</p></td>
       </tr><tr><td>
-          <p><code><a href="BEE.calc.binarize.html">BEE.calc.binarize()</a></code> </p>
-        </td>
-        <td><p>Binarise the spatraster</p></td>
-      </tr><tr><td>
-          <p><code><a href="BEE.calc.celsius.html">BEE.calc.celsius()</a></code> </p>
-        </td>
-        <td><p>Convert temperature data to Celsius</p></td>
-      </tr><tr><td>
           <p><code><a href="BEE.calc.corrections.html">BEE.calc.corrections()</a></code> </p>
         </td>
         <td><p>Compute the impact of the selected definition of extreme events on the number of days of extreme event.</p></td>
@@ -107,13 +99,9 @@
         </td>
         <td><p>Compute metrics through time for specific locations.</p></td>
       </tr><tr><td>
-          <p><code><a href="BEE.calc.true_event.html">BEE.calc.true_event()</a></code> </p>
+          <p><code><a href="BEE.convert.celsius.html">BEE.convert.celsius()</a></code> </p>
         </td>
-        <td><p>Identify the extreme event</p></td>
-      </tr><tr><td>
-          <p><code><a href="BEE.data.load_copernicus.html">BEE.data.load_copernicus()</a></code> </p>
-        </td>
-        <td><p>Download spataraster from Copernicus to your local memory.</p></td>
+        <td><p>Convert temperature data to Celsius</p></td>
       </tr><tr><td>
           <p><code><a href="BEE.data.merge.html">BEE.data.merge()</a></code> </p>
         </td>
@@ -123,9 +111,25 @@
         </td>
         <td><p>Summarise the outputs of the 'merge' function.</p></td>
       </tr><tr><td>
+          <p><code><a href="BEE.id.extreme_days.html">BEE.id.extreme_days()</a></code> </p>
+        </td>
+        <td><p>Identifies days more extreme than the baseline.</p></td>
+      </tr><tr><td>
+          <p><code><a href="BEE.id.extreme_events.html">BEE.id.extreme_events()</a></code> </p>
+        </td>
+        <td><p>Identify the extreme event</p></td>
+      </tr><tr><td>
+          <p><code><a href="BEE.load.copernicus.html">BEE.load.copernicus()</a></code> </p>
+        </td>
+        <td><p>Download spataraster from Copernicus to your local memory.</p></td>
+      </tr><tr><td>
           <p><code><a href="BEE.plot.categories.html">BEE.plot.categories()</a></code> </p>
         </td>
         <td><p>Plot event categories</p></td>
+      </tr><tr><td>
+          <p><code><a href="BEE.plot.cumulative_anomaly.html">BEE.plot.cumulative_anomaly()</a></code> </p>
+        </td>
+        <td><p>Cumulative anomaly against months of the years</p></td>
       </tr></tbody></table></div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

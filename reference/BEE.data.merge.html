@@ -37,10 +37,10 @@ bee.calc.metrics_morpho() ; bee.calc.escape()."><!-- mathjax --><script src="htt
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/a_data_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
+      <a href="../articles/a_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
     </li>
     <li>
-      <a href="../articles/b_calc_celsius.html">0.2 Convert temperature data to Celsius</a>
+      <a href="../articles/b_convert_celsius.html">0.2 Convert temperature data to Celsius</a>
     </li>
     <li>
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
@@ -49,7 +49,7 @@ bee.calc.metrics_morpho() ; bee.calc.escape()."><!-- mathjax --><script src="htt
       <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
-      <a href="../articles/e_calc_true_event.html">3.1 Identify extreme event according specific constraints</a>
+      <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
     </li>
     <li>
       <a href="../articles/f_calc_corrections.html">3.2 Check how much corrected extreme events differ from raw extreme days.</a>
@@ -80,8 +80,8 @@ bee.calc.metrics_morpho() ; bee.calc.escape()."><!-- mathjax --><script src="htt
 
     <div class="ref-description">
     <p>To merge the daily outputs of at least two datasets of the
-following fonctions from BEE package : bee.calc.metrics_point() ;
-bee.calc.metrics_morpho() ; bee.calc.escape().</p>
+following fonctions from BEE package : <em>bee.calc.metrics_point()</em> ;
+<em>bee.calc.metrics_morpho()</em> ; <em>bee.calc.escape()</em>.</p>
     </div>
 
     <div id="ref-usage">
@@ -98,22 +98,26 @@ bee.calc.metrics_morpho() ; bee.calc.escape().</p>
 
 
 <dl><dt id="arg-data-metrics-point">data_metrics_point<a class="anchor" aria-label="anchor" href="#arg-data-metrics-point"></a></dt>
-<dd><p>the output of the BEE.calc.metrics_point computed
-using the argument group_by_event = FALSE.</p></dd>
+<dd><p>:
+The output of the BEE.calc.metrics_point computed using the argument
+group_by_event = FALSE.</p></dd>
 
 
 <dt id="arg-data-metrics-morpho">data_metrics_morpho<a class="anchor" aria-label="anchor" href="#arg-data-metrics-morpho"></a></dt>
-<dd><p>the output of the BEE.calc.metrics_morpho computed
-using the argument per_pix = TRUE.</p></dd>
+<dd><p>:
+The output of the BEE.calc.metrics_morpho computed using the argument
+per_pix = TRUE.</p></dd>
 
 
 <dt id="arg-data-escape">data_escape<a class="anchor" aria-label="anchor" href="#arg-data-escape"></a></dt>
-<dd><p>the output of the BEE.calc.escape computed
-using the argument only_days_EE = FALSE AND group_by_event = FALSE.</p></dd>
+<dd><p>:
+The output of the BEE.calc.escape computed using the argument
+only_days_EE = FALSE AND group_by_event = FALSE.</p></dd>
 
 
 <dt id="arg-crs">crs<a class="anchor" aria-label="anchor" href="#arg-crs"></a></dt>
-<dd><p>a METRICS crs that suits the studdied area.</p></dd>
+<dd><p>:
+A METRICS crs that suits the studdied area.</p></dd>
 
 </dl></div>
     <div id="value">

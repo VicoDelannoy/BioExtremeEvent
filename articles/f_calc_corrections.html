@@ -52,10 +52,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/a_data_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
+      <a href="../articles/a_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
     </li>
     <li>
-      <a href="../articles/b_calc_celsius.html">0.2 Convert temperature data to Celsius</a>
+      <a href="../articles/b_convert_celsius.html">0.2 Convert temperature data to Celsius</a>
     </li>
     <li>
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
@@ -64,7 +64,7 @@
       <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
-      <a href="../articles/e_calc_true_event.html">3.1 Identify extreme event according specific constraints</a>
+      <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
     </li>
     <li>
       <a href="../articles/f_calc_corrections.html">3.2 Check how much corrected extreme events differ from raw extreme days.</a>
@@ -113,8 +113,9 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
 </h2>
 <p>The function compares former binarized value to corrected binarized
 value. It takes as argument the two element of
-<em>BEE.calc.true_event()</em> output. It is a quick way of testing the
-implications of various settings in <em>BEE.calc.true_event()</em>.</p>
+<em>BEE.id.extreme_events()</em> output. It is a quick way of testing
+the implications of various settings in
+<em>BEE.id.extreme_events()</em>.</p>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
@@ -122,14 +123,14 @@ implications of various settings in <em>BEE.calc.true_event()</em>.</p>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
-<p><strong>true_event_raster</strong> The first element of the
-<em>BEE.calc.true_event()</em> ouput, which is a spatraster binarized
+<p><strong>true_event_raster</strong>: The first element of the
+<em>BEE.id.extreme_events()</em> ouput, which is a spatraster binarized
 that inclued the corrections made by
-<em>BEE.calc.true_event()</em>.<br><strong>true_event_df</strong> The second element of the
-<em>BEE.calc.true_event()</em> ouput, which is a list of data.table
+<em>BEE.id.extreme_events()</em>.<br><strong>true_event_df</strong>: The second element of the
+<em>BEE.id.extreme_events()</em> ouput, which is a list of data.table
 containing information about the value of each pixel before and after
 definition criteria are applied to distinguish isolated extreme days
-from extreme events.<br><strong>plot</strong> Accepted values are TRUE of FALSE. Set to “FALSE”
+from extreme events.<br><strong>plot</strong>: Accepted values are TRUE of FALSE. Set to “FALSE”
 to not display the graphs.</p>
 </div>
 <div class="section level3">
@@ -170,11 +171,11 @@ extreme days have been removed than added for that pixel.</p>
 </h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VicoMarbec/BioExtremeEvent" class="external-link">BioExtremeEvent</a></span><span class="op">)</span></span>
-<span><span class="co">#Binarized spatraster corrected built using BEE.calc.true_event()</span></span>
+<span><span class="co">#Binarized spatraster corrected built using BEE.id.extreme_events()</span></span>
 <span><span class="va">file_name_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"binarized_corrected_spatraster.tiff"</span><span class="op">)</span>,</span>
 <span>                                   package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
 <span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name_1</span><span class="op">)</span></span>
-<span><span class="co">#List of dataframe containning information about former and corrected binarised values, built using BEE.calc.true_event()</span></span>
+<span><span class="co">#List of dataframe containning information about former and corrected binarised values, built using BEE.id.extreme_events()</span></span>
 <span><span class="va">file_name_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"binarized_corrected_df.rds"</span><span class="op">)</span>,</span>
 <span>                                   package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
 <span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/serialize.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">file_name_2</span><span class="op">)</span></span></code></pre></div>

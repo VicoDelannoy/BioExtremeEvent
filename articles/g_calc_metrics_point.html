@@ -52,10 +52,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/a_data_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
+      <a href="../articles/a_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
     </li>
     <li>
-      <a href="../articles/b_calc_celsius.html">0.2 Convert temperature data to Celsius</a>
+      <a href="../articles/b_convert_celsius.html">0.2 Convert temperature data to Celsius</a>
     </li>
     <li>
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
@@ -64,7 +64,7 @@
       <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
-      <a href="../articles/e_calc_true_event.html">3.1 Identify extreme event according specific constraints</a>
+      <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
     </li>
     <li>
       <a href="../articles/f_calc_corrections.html">3.2 Check how much corrected extreme events differ from raw extreme days.</a>
@@ -121,20 +121,20 @@ variance of the parameter, <em>etc.</em></p>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
-<p><strong>Events_corrected</strong> Is the list of data tables produced
-by: bee_calc_true_event (the second element of the output). For each
-pixel, it contains a data.table with dates in the rows and a column
+<p><strong>Events_corrected</strong>: Is the list of data tables
+produced by: bee_calc_true_event (the second element of the output). For
+each pixel, it contains a data.table with dates in the rows and a column
 indicating whether it is a day belonging to a heatwave (1) or not
-(0).<br><strong>YourSpatraster</strong> is the spatraster with the values of the
-studded parameter, through time and space.<br><strong>GPS</strong> is a data frame containing the positions for which
+(0).<br><strong>YourSpatraster</strong>: is the spatraster with the values of
+the studded parameter, through time and space.<br><strong>GPS</strong>: is a data frame containing the positions for which
 you want to compute metrics. It must contain columns labelled ‘x’ and
-‘y’, which should contain longitudes and latitudes, respectively.<br><strong>start_date</strong> First day on which you want to start
-computing metrics.<br><strong>end_date</strong> Last day on which you want to start computing
-metrics.<br><strong>baseline_qt</strong> Spatraster of the 90th percentile baseline
-(or the 10th percentile baseline)<br><strong>baseline_mean</strong> Spatraster of the mean value
-baseline.<br><strong>time_lapse_vector</strong> a vector of time laps on which to
+‘y’, which should contain longitudes and latitudes, respectively.<br><strong>start_date</strong>: First day on which you want to start
+computing metrics.<br><strong>end_date</strong>: Last day on which you want to start computing
+metrics.<br><strong>baseline_qt</strong>: Spatraster of the 90th percentile baseline
+(or the 10th percentile baseline)<br><strong>baseline_mean</strong>: Spatraster of the mean value
+baseline.<br><strong>time_lapse_vector</strong>: a vector of time laps on which to
 compute mean evolution rate and variance of the studdied
-parameter.<br><strong>group_by_event</strong> Whether you want an output summarise by
+parameter.<br><strong>group_by_event</strong>: Whether you want an output summarise by
 extreme event or not. If not, you just get daily metrics.</p>
 </div>
 <div class="section level3">
@@ -330,19 +330,37 @@ indicate the extremes according to the categories:<a class="anchor" aria-label="
 <span>                              legend.title <span class="op">=</span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span>,</span>
 <span>                              legend.text  <span class="op">=</span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span>
 <span>    <span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: Removed 492 rows containing missing values or values outside the scale range</span></span>
-<span><span class="co">## (`geom_ribbon()`).</span></span>
-<span><span class="co">## Removed 492 rows containing missing values or values outside the scale range</span></span>
-<span><span class="co">## (`geom_ribbon()`).</span></span>
-<span><span class="co">## Removed 492 rows containing missing values or values outside the scale range</span></span>
-<span><span class="co">## (`geom_ribbon()`).</span></span>
-<span><span class="co">## Removed 492 rows containing missing values or values outside the scale range</span></span>
-<span><span class="co">## (`geom_ribbon()`).</span></span></code></pre>
 <p><img src="g_calc_metrics_point_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="1920"></p>
 </div>
 <div class="section level3">
 <h3 id="plot-mean-value-and-variance-of-extreme-event">Plot mean value and variance of extreme event:<a class="anchor" aria-label="anchor" href="#plot-mean-value-and-variance-of-extreme-event"></a>
 </h3>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># get metrics for on GPS position</span></span>
+<span><span class="va">one_place</span> <span class="op">&lt;-</span> <span class="va">metrics_points_day</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co">#plot</span></span>
+<span><span class="fu"><a href="../reference/BEE.plot.cumulative_anomaly.html">BEE.plot.cumulative_anomaly</a></span><span class="op">(</span>metric_point_df <span class="op">=</span> <span class="va">one_place</span>, </span>
+<span>                    start_date <span class="op">=</span> <span class="cn">NULL</span>, </span>
+<span>                    end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>                    <span class="co"># facultative arguments to customise graph:</span></span>
+<span>                    ... <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>  </span>
+<span>                              axis.text.x <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span>,</span>
+<span>                              axis.text.y <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span>,</span>
+<span>                              axis.title.x <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span>,</span>
+<span>                              axis.title.y <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span>,</span>
+<span>                              legend.title <span class="op">=</span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span>,</span>
+<span>                              legend.text  <span class="op">=</span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span>
+<span>    <span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.</span></span>
+<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Please use `linewidth` instead.</span></span>
+<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">BioExtremeEvent</span> package.</span></span>
+<span><span class="co">##   Please report the issue at</span></span>
+<span><span class="co">##   <span style="color: #0000BB; font-style: italic;">&lt;https://github.com/VicoMarbec/BioExtremeEvent/issues&gt;</span>.</span></span>
+<span><span class="co">## <span style="color: #555555;">This warning is displayed once per session.</span></span></span>
+<span><span class="co">## <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
+<span><span class="co">## <span style="color: #555555;">generated.</span></span></span></code></pre>
+<p><img src="g_calc_metrics_point_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="700"><img src="g_calc_metrics_point_files/figure-html/unnamed-chunk-8-2.png" class="r-plt" alt="" width="700"></p>
 </div>
 </div>
   </div>

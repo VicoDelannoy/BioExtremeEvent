@@ -52,10 +52,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/a_data_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
+      <a href="../articles/a_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
     </li>
     <li>
-      <a href="../articles/b_calc_celsius.html">0.2 Convert temperature data to Celsius</a>
+      <a href="../articles/b_convert_celsius.html">0.2 Convert temperature data to Celsius</a>
     </li>
     <li>
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
@@ -64,7 +64,7 @@
       <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
-      <a href="../articles/e_calc_true_event.html">3.1 Identify extreme event according specific constraints</a>
+      <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
     </li>
     <li>
       <a href="../articles/f_calc_corrections.html">3.2 Check how much corrected extreme events differ from raw extreme days.</a>
@@ -109,18 +109,22 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
     
     
 <div class="section level2">
-<h2 id="aims-of-the-function-bee-calc-binarize">Aims of the function <em>BEE.calc.binarize()</em><a class="anchor" aria-label="anchor" href="#aims-of-the-function-bee-calc-binarize"></a>
+<h2 id="aims-of-the-function-bee-id-extreme_days">Aims of the function <em>BEE.id.extreme_days()</em><a class="anchor" aria-label="anchor" href="#aims-of-the-function-bee-id-extreme_days"></a>
 </h2>
 <p>The function compares your timeseries (spatraster) with the baseline
-(spatraster created using BEE.calc.baseline) or a fixed threshold.<br>
-For most users, BEE.calc.binarize() serves only as an intermediate step
-in the pipeline, providing a required input for BEE.calc.true_event().
-The output is exposed primarily for advanced users who need to implement
-highly specific or complex filtering procedures beyond the built-in
-options. For standard analyses, BEE.calc.true_event() addresses the vast
-majority of use cases for extreme-event identification, including common
-criteria such as minimum event duration and the merging of temporally
-close events.</p>
+(spatraster created using <em>BEE.calc.baseline()</em>) or a fixed
+threshold and flags, for each pixel, the days that exceed the baseline
+threshold, producing a binary time series of extreme versus non-extreme
+<strong>days</strong> without defining events. For most users,
+<em>BEE.id.extreme_days()</em> serves only as an intermediate step in
+the pipeline, providing a required input for
+<em>BEE.id.extreme_events()</em>. The output is exposed primarily for
+advanced users who need to implement highly specific or complex
+filtering procedures beyond the built-in options. For standard analyses,
+<em>BEE.id.extreme_events()</em> addresses the vast majority of use
+cases for extreme-event identification, including common criteria such
+as minimum event duration and the merging of temporally close
+events.</p>
 </div>
 <div class="section level2">
 <h2 id="data-for-this-tutorial">Data for this tutorial<a class="anchor" aria-label="anchor" href="#data-for-this-tutorial"></a>
@@ -142,14 +146,14 @@ examples.</p>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
-<p><strong>YourSpatraster</strong> is a spatraster with one layer per
+<p><strong>YourSpatraster</strong>: is a spatraster with one layer per
 day. Each layer covers the same area and time is continuous (no layers
 are missing). If you are not using a fixed threshold, the baseline
 spatraster computed using BEE.calc.baseline() must be computed using the
 same dataset as YourSpatraster for comparison without bias.
-<strong>baseline</strong> a spatraster computed with BEE.calc.baseline()
-or a numerical value representing a fixed threshold.
-<strong>direction</strong> Only two options are accepted
+<strong>baseline</strong>: a spatraster computed with
+BEE.calc.baseline() or a numerical value representing a fixed threshold.
+<strong>direction</strong>: Only two options are accepted
 <em>“above”</em> or <em>“below”</em>. It indicates whether extreme event
 are expected to have value higher <em>(above)</em> or lower
 <em>(below)</em> than the baseline.<br>
@@ -165,8 +169,13 @@ Output The output is a spartaster with the same properties as
 YourSpatraster but it only contains binerized value (1 or 0), ‘1’ if the
 pixel values was more extreme than the baseline on the day corresponding
 to the layer. ‘0’ if it was less extreme. Pixel that were NA stays NA.
-The fonction only identifies extreme days, to identifies extreme event,
-see <em>BEE.calc.true_event()</em>.</p>
+This SpatRaster contains binarised extreme <strong>days</strong>. The
+function <em>BEE.calc.binarise()</em> only identifies, for each pixel,
+the days that are more extreme than the baseline according to the
+selected threshold. At this stage, no extreme events are defined yet;
+the output is simply a binary time series of extreme versus non-extreme
+days. to identifies extreme event, see
+<em>BEE.id.extreme_events()</em>.</p>
 </div>
 </div>
 <div class="section level2">
@@ -191,13 +200,14 @@ see <em>BEE.calc.true_event()</em>.</p>
 <span><span class="va">baseline_qt90</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name_2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="compare-binarise-against-a-seasonnal-baseline">Compare binarise against a seasonnal baseline:<a class="anchor" aria-label="anchor" href="#compare-binarise-against-a-seasonnal-baseline"></a>
+<h3 id="identify-the-days-on-which-the-values-are-higher-than-the-baseline">Identify the days on which the values are higher than the
+baseline:<a class="anchor" aria-label="anchor" href="#identify-the-days-on-which-the-values-are-higher-than-the-baseline"></a>
 </h3>
 <p>Binerise the Spatraster</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Identify the days on which the values are higher than the baseline for the</span></span>
 <span><span class="co"># 90th percentile.:</span></span>
-<span><span class="va">binarized</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.binarize.html">BEE.calc.binarize</a></span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
+<span><span class="va">binarized</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.id.extreme_days.html">BEE.id.extreme_days</a></span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
 <span>                                   baseline<span class="op">=</span><span class="va">baseline_qt90</span>,</span>
 <span>                                   direction <span class="op">=</span> <span class="st">"above"</span><span class="op">)</span></span></code></pre></div>
 <p>Plot parameter values, baseline value and comparison obtained
@@ -260,7 +270,7 @@ than the baseline value for this day.</em></p>
 </h3>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Identify days on which the value is lower than a fixed threshold.</span></span>
-<span><span class="va">binarized_fixed_threshold</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.binarize.html">BEE.calc.binarize</a></span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
+<span><span class="va">binarized_fixed_threshold</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.id.extreme_days.html">BEE.id.extreme_days</a></span><span class="op">(</span>YourSpatraster<span class="op">=</span><span class="va">copernicus_data</span>,</span>
 <span>                                   baseline<span class="op">=</span> <span class="fl">12.5</span>,</span>
 <span>                                   direction <span class="op">=</span> <span class="st">"below"</span><span class="op">)</span></span></code></pre></div>
 <p>Plot parameter values, baseline value and comparison obtained

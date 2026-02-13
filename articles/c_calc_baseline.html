@@ -52,10 +52,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/a_data_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
+      <a href="../articles/a_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
     </li>
     <li>
-      <a href="../articles/b_calc_celsius.html">0.2 Convert temperature data to Celsius</a>
+      <a href="../articles/b_convert_celsius.html">0.2 Convert temperature data to Celsius</a>
     </li>
     <li>
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
@@ -64,7 +64,7 @@
       <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
-      <a href="../articles/e_calc_true_event.html">3.1 Identify extreme event according specific constraints</a>
+      <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
     </li>
     <li>
       <a href="../articles/f_calc_corrections.html">3.2 Check how much corrected extreme events differ from raw extreme days.</a>
@@ -128,14 +128,14 @@ involves three steps :<br>
 <em>BEE.calc.baseline()</em> function.<br>
 - Then, each day of the studied time period is compared to the baseline
 value, and days above (or below) the threshold are identified using
-<em>BEE.calc.binarize()</em>. If you are working with a fixed baseline,
-you can skip <em>BEE.calc.baseline()</em> and go straight to
-<em>BEE.calc.binarize()</em>.<br>
-- Finally, you can apply a filter to <em>BEE.calc.binarize()</em> output
-to add additional criteria to the ‘extreme event’ definition. This could
-be a minimum duration or a tolerance of a certain number of days below
-the baseline value within an extreme event. See
-<em>BEE.calc.true_event()</em>.</p>
+<em>BEE.id.extreme_days()</em>. If you are working with a fixed
+baseline, you can skip <em>BEE.calc.baseline()</em> and go straight to
+<em>BEE.id.extreme_days()</em>.<br>
+- Finally, you can apply a filter to <em>BEE.id.extreme_days()</em>
+output to add additional criteria to the ‘extreme event’ definition.
+This could be a minimum duration or a tolerance of a certain number of
+days below the baseline value within an extreme event. See
+<em>BEE.id.extreme_events()</em>.</p>
 <div class="section level2">
 <h2 id="aims-of-the-function-bee-calc-baseline">Aims of the function <em>BEE.calc.baseline()</em><a class="anchor" aria-label="anchor" href="#aims-of-the-function-bee-calc-baseline"></a>
 </h2>
@@ -148,7 +148,7 @@ extreme event and compute some metrics about the extreme event.</p>
 <h2 id="data-for-this-tutorial">Data for this tutorial<a class="anchor" aria-label="anchor" href="#data-for-this-tutorial"></a>
 </h2>
 <p>copernicus_data_celsius is a spatraster form copernicus, converted
-from Kelvin to celsius using BEE.calc.celsius(). It has one layer per
+from Kelvin to celsius using BEE.convert.celsius(). It has one layer per
 day between 2023-01-01 and 2025-12-31 and cover around 10 000 km² in the
 corner of the gulf of lion. See article <em>0. Download data from
 Copernicus</em> for more informations and <em>0.bis. Convert tempreature
@@ -160,20 +160,20 @@ data to Celsius</em>.</p>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
-<p><strong>YourSpatraster</strong> is a spatraster with one layer per
+<p><strong>YourSpatraster</strong>: is a spatraster with one layer per
 day. Each layer covers the same area, and the time series must encompass
-the start_date and end_date provided as argument.<br><strong>start_date</strong> and <strong>end_date</strong> are the limits
-of the time period you want to consider has the reference value to
-compute the baseline. Please ensure that the date format matches that of
-the provided spatraster. You can check the format using
-terra::time(YourSpatraster).<br><strong>threshold</strong> is the argument specifying whether you want
+the start_date and end_date provided as argument.<br><strong>start_date</strong> and <strong>end_date</strong>: are the
+limits of the time period you want to consider has the reference value
+to compute the baseline. Please ensure that the date format matches that
+of the provided spatraster. You can check the format using
+terra::time(YourSpatraster).<br><strong>threshold</strong>: is the argument specifying whether you want
 to compute a percentile value of the time serie or the mean value.
 Arguments accepted are:<br>
 - <em>“qt”</em> (quantile), to calculate a percentile. -
 <em>“mean”</em>, to calculate the mean value across the time
-serie.<br><strong>quantile_value</strong> is a numerical argument to specify the
+serie.<br><strong>quantile_value</strong>: is a numerical argument to specify the
 value of the quantile you want to compute. If threshold = “mean”, the
-quantile_value argument will be ignored.<br><strong>time_window</strong> number of days on either side of day ‘d’
+quantile_value argument will be ignored.<br><strong>time_window</strong>: number of days on either side of day ‘d’
 that are used to calculate the threshold value associated for day ‘d’.
 For example, if <em>“time_window = 5”</em>, the thershold value for ‘d’
 day will be calculated using data from five days before day d, day d
@@ -182,8 +182,8 @@ itself, and the five days after day d, from all years between
 below to see how it can affect baseline value.<br>
 Warning: this argument is not related to the minimum number of days
 required to distinguish an ‘extreme day’ from an ‘extreme event’. This
-will be addressed later in the BEE.calc.true_event() function.
-<strong>smooth_window</strong> number of days on either side of day ‘d’
+will be addressed later in the BEE.id.extreme_events() function.
+<strong>smooth_window</strong>: number of days on either side of day ‘d’
 that are used to calculate the mean value of the threshold assigned to
 the ‘d’ day. This allows your threshold value to be smoothed across
 days. For example, if <em>“smooth_window”</em> is set to 10 days, the
