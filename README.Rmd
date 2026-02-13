@@ -67,7 +67,7 @@ For an overview of the main features of `BioExtremeEvent`, please read the [Get 
 Please cite `BioExtremeEvent` as:
 
 > Delannoy Victoria, Cabrol Nicolas, Casajus Nicolas, Fièvre Céleste, 
-Loiseau Nicolas*, Villéger Sébastien*,  (`r format(Sys.Date(), "%Y")`) 
+Loiseau Nicolas\*, Villéger Sébastien\*,  (`r format(Sys.Date(), "%Y")`) 
 BioExtremeEvent: An R package to **characterise extreme event**. R package 
 version 0.0.900. <https://github.com/VicoMarbec/BioExtremeEvent/>
 

@@ -4,10 +4,10 @@
 \alias{BEE.id.extreme_days}
 \title{Identifies days more extreme than the baseline.}
 \usage{
-BEE.id.extreme_days(YourSpatraster, baseline, direction)
+BEE.id.extreme_days(yourspatraster, baseline, direction)
 }
 \arguments{
-\item{YourSpatraster}{:
+\item{yourspatraster}{:
 The Spatraster containing the values of the studied parameter, with one
 layer for each timestep.}
 
@@ -27,7 +27,7 @@ The function returns a list containing a Spatraster for each day of a
 typical year, providing a total of 366 Spatrasters, with one layer per year.
 The first element of the list contains the rasters for all the first of
 January included in the provided time series. These rasters have the same
-properties as 'YourSpatraster', but the values have been replaced with 1 if
+properties as 'yourspatraster', but the values have been replaced with 1 if
 the pixel value was more extreme than the baseline, and with 0 if it was
 not.
 }
@@ -39,7 +39,7 @@ to 0. The process works in reverse when "direction" = below.
 }
 \details{
 For computational purposes in the next stages of the pipeline, the
-order of the layers differs from that in 'YourSpatraster'.
+order of the layers differs from that in 'yourspatraster'.
 BEE.id.extreme_days is not designed to work with 4D data (3D in space and
 time). To do so, please refer to BEE.calc.4thD.
 This function only identifies days more extreme than a baseline, extra
@@ -63,11 +63,11 @@ baseline_qt90 <- terra::rast(file_name_2)
 
 # Identify the days on which the values are higher than the baseline for the
 # 90th percentile.:
-binarized_EE <- BEE.id.extreme_days(YourSpatraster=copernicus_data,
+binarized_EE <- BEE.id.extreme_days(yourspatraster=copernicus_data,
                                   baseline=baseline_qt90,
                                   direction = "above")
 # Identify days on which the value is lower than a fixed threshold.
-binarized_EE <- BEE.id.extreme_days(YourSpatraster=copernicus_data,
+binarized_EE <- BEE.id.extreme_days(yourspatraster=copernicus_data,
                                   baseline=12,
                                   direction = "below")
 

@@ -27,8 +27,8 @@
 #' file_name_1 <- system.file(file.path("extdata", "metrics_points_day.rds"),
 #'                                   package = "BioExtremeEvent")
 #' metrics_points_day <- readRDS(file_name_1)
-#' # Get data set for one GPS point
-#' metrics_points_day <- metrics_points_day[[1]] # first GPS point
+#' # Get data set for one gps point
+#' metrics_points_day <- metrics_points_day[[1]] # first gps point
 #' BEE.plot.cumulative_anomaly(metric_point_df = metrics_points_day,
 #'                     start_date = NULL,
 #'                     end_date = NULL)

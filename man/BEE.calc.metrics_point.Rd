@@ -5,8 +5,8 @@
 \title{Compute metrics through time for specific locations.}
 \usage{
 BEE.calc.metrics_point(
-  Events_corrected,
-  YourSpatraster,
+  events_corrected,
+  yourspatraster,
   GPS,
   start_date = NULL,
   end_date = NULL,
@@ -17,13 +17,13 @@ BEE.calc.metrics_point(
 )
 }
 \arguments{
-\item{Events_corrected}{:
+\item{events_corrected}{:
 Is the list of data tables produced by:
 bee_calc_true_event (the second element of the output). For each pixel, it
 contains a data.table with dates in the rows and a column indicating whether
 it is a day belonging to a heatwave (1) or not (0).}
 
-\item{YourSpatraster}{:
+\item{yourspatraster}{:
 Is the spatraster with the values of the studded parameter, through time and
 space.}
 
@@ -89,8 +89,8 @@ GPS <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
 
 # Get daily value (required for BEE.merge() and BEE.summarise()):
 metrics_points_day <- BEE.calc.metrics_point(
- Events_corrected = binarized_corrected_df,
- YourSpatraster = copernicus_data_celsius,
+ events_corrected = binarized_corrected_df,
+ yourspatraster = copernicus_data_celsius,
  GPS = GPS,
  start_date = NULL,
  end_date = NULL,
@@ -105,8 +105,8 @@ metrics_points_day <- BEE.calc.metrics_point(
 # Get mean, min, max, sd and median per event (extreme event and btw extreme
 # events):
 metrics_points_ee <- BEE.calc.metrics_point(
- Events_corrected = binarized_corrected_df,
- YourSpatraster = copernicus_data_celsius,
+ events_corrected = binarized_corrected_df,
+ yourspatraster = copernicus_data_celsius,
  GPS = GPS,
  start_date = NULL,
  end_date = NULL,

@@ -4,7 +4,7 @@
 #'  Calculate the daily baseline value using the mean or a quantile of a
 #'  timeserie.
 #'
-#' @param YourSpatraster :
+#' @param yourspatraster :
 #'  The SpatRaster that contains the values to be used to calculate the baseline
 #'  (your reference time serie). Each layer must have a date and there must be
 #'  **no duplicates**.
@@ -56,7 +56,7 @@
 #' # accross all years of the reference time period are bellow the baseline
 #' # value.
 #' #### No smoothing: # 16s to run
-#' baseline_qt90_smth_0 <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
+#' baseline_qt90_smth_0 <- BEE.calc.baseline(yourspatraster = copernicus_data_celsius,
 #'                                    start_date = "2023-01-01",
 #'                                    end_date = "2025-12-31",
 #'                                    threshold = "qt",
@@ -64,7 +64,7 @@
 #'                                    time_window = 5,
 #'                                    smooth_window = 0)
 #' #### Smoothing over 15 days: # 18s to run
-#' baseline_qt90_smth_15 <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
+#' baseline_qt90_smth_15 <- BEE.calc.baseline(yourspatraster = copernicus_data_celsius,
 #'                                    start_date = "2023-01-01",
 #'                                    end_date = "2025-12-31",
 #'                                    threshold = "qt",
@@ -72,7 +72,7 @@
 #'                                    time_window = 5,
 #'                                    smooth_window = 7) #7+1+7=15
 #' ###**Mean value threshold:**
-#' baseline_mean <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
+#' baseline_mean <- BEE.calc.baseline(yourspatraster = copernicus_data_celsius,
 #'                                    start_date = "2023-01-01",
 #'                                    end_date = "2025-12-31",
 #'                                    threshold = "mean",
@@ -83,12 +83,12 @@
 #' @export
 #'
 #-------------------------------------------------------------------------------
-# For tests : YourSpatraster = ds; start_date = "1982-01-01"
+# For tests : yourspatraster = ds; start_date = "1982-01-01"
 # end_date = "2010-12-31"; threshold = "qt"; quantile_value = 0.9
 # time_window = 5; smooth_window = 7
 
 BEE.calc.baseline <- function(
-  YourSpatraster,
+  yourspatraster,
   start_date = NULL,
   end_date = NULL,
   threshold,
@@ -98,7 +98,7 @@ BEE.calc.baseline <- function(
 ) {
   # Subset the dataset to the chosen start_date and end-date if necessary
   if (is.null(start_date)) {
-    start_date <- terra::names(YourSpatraster)[1]
+    start_date <- terra::names(yourspatraster)[1]
     message(
       "You have provided an 'end_date' but no 'start_date', first ",
       "date of the dataset (",
@@ -108,7 +108,7 @@ BEE.calc.baseline <- function(
     )
   }
   if (is.null(end_date)) {
-    end_date <- terra::names(YourSpatraster)[terra::nlyr(YourSpatraster)]
+    end_date <- terra::names(yourspatraster)[terra::nlyr(yourspatraster)]
     message(
       "You have provided a 'start_date' but no 'end_date', last date of ",
       "the dataset (",
@@ -116,12 +116,12 @@ BEE.calc.baseline <- function(
       ") have been used as last day of the baseline."
     )
   }
-  # Cut YourSpatraster to only keep the part between start_date and end_date
-  dates <- as.Date(terra::time(YourSpatraster))
+  # Cut yourspatraster to only keep the part between start_date and end_date
+  dates <- as.Date(terra::time(yourspatraster))
   if (!is.null(start_date) & !is.null(end_date)) {
     if (!(start_date %in% dates) | !(end_date %in% dates)) {
       warnings(
-        "start_date and/or end_date are not among YourSpatraster dates.
+        "start_date and/or end_date are not among yourspatraster dates.
     The provided dates may not be within the specified time series or may be in
     a different format. Please ensure that the start_date and end_date fields on
     your Sparster account are in the same format and time period."
@@ -133,18 +133,18 @@ BEE.calc.baseline <- function(
     dates >= as.Date(start_date) &
       dates <= as.Date(end_date)
   )
-  YourSpatraster <- YourSpatraster[[to_keep]]
+  yourspatraster <- yourspatraster[[to_keep]]
   # Function to detect leap years
   is_leap_year <- function(years) {
     return((years %% 4 == 0 & years %% 100 != 0) | (years %% 400 == 0))
   }
-  dates <- as.Date(terra::time(YourSpatraster)) # Dates
+  dates <- as.Date(terra::time(yourspatraster)) # Dates
   years <- as.integer(format(dates, "%Y")) # Years
   # Build a dataframe with the layer number, the doy and the corrected doy
   # (366, 60 don't exist in non leap year)
   df <- data.frame(
     date = dates,
-    N_layer = seq(1, terra::nlyr(YourSpatraster), 1),
+    N_layer = seq(1, terra::nlyr(yourspatraster), 1),
     leap_year = is_leap_year((years)),
     doy = as.integer(format(dates, "%j"))
   ) #day of the year (with correction taking in account leapyear)
@@ -168,7 +168,7 @@ BEE.calc.baseline <- function(
   # Calculate baseline according the chosen methodology
   if (threshold == "qt") {
     baseline <- lapply(1:366, function(d) {
-      terra::app(YourSpatraster[[doy_indices[[d]]]], fun = function(v) {
+      terra::app(yourspatraster[[doy_indices[[d]]]], fun = function(v) {
         stats::quantile(v, probs = quantile_value, na.rm = TRUE)
       })
     })
@@ -176,7 +176,7 @@ BEE.calc.baseline <- function(
     # if the baseline chosen is a mean value
     baseline <- lapply(1:366, function(d) {
       terra::app(
-        YourSpatraster[[doy_indices[[d]]]],
+        yourspatraster[[doy_indices[[d]]]],
         fun = function(v) {
           mean(v, na.rm = TRUE)
         }

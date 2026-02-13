@@ -5,7 +5,7 @@
 #'  This function calculate the median distance, mean distance and standard
 #'  deviation of distance to escape form an extreme event 'as the crow files'
 #'  (but avoiding NA pixels, which are suppose to represent a place that cannot
-#'  be crossed) through time for a given GPS position or for all pixels.
+#'  be crossed) through time for a given gps position or for all pixels.
 #'
 #' @param true_event_output : 
 #'  Is the ouput of function BEE.id.extreme_events().
@@ -45,7 +45,7 @@
 
 # BEE.calc.escape is not designed to work on 4D data (time + spatial 3D).
 # true_event_output <- result ; start_date = "2024-08-01";
-# end_date = "2024-08-20" ; pixel = GPS ; only_days_EE = FALSE ;
+# end_date = "2024-08-20" ; pixel = gps ; only_days_EE = FALSE ;
 # group_by_event = FALSE
 
 BEE.calc.escape <- function(
@@ -56,7 +56,7 @@ BEE.calc.escape <- function(
   only_days_EE = FALSE,
   group_by_event = FALSE
 ) {
-  ### Recreate a Spatraster using Events_corrected. In this list, there are one
+  ### Recreate a Spatraster using events_corrected. In this list, there are one
   # df per pixel and one raw per dates
   ## Get data and shell
   data <- true_event_output[[2]]

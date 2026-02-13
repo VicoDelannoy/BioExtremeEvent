@@ -27,11 +27,6 @@ in the same format than metric_point_df$date.}
 
 \item{...}{:
 Customising the graph is possible by adding any general ggplot2 argument.}
-
-\item{color_theme}{:
-A vector of four colour codes of your choice (the first one is for category
-1 and the last one is for category 4), or 'red' to use an automatic palette
-of red shades, or 'blue' for a colour-shaded palette.}
 }
 \value{
 A 'ggplot2' with the months on the x-axis, the cumulative anomaly per

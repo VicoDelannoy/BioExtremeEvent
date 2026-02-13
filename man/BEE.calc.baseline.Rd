@@ -5,7 +5,7 @@
 \title{Calculate baseline value for each date and pixel.}
 \usage{
 BEE.calc.baseline(
-  YourSpatraster,
+  yourspatraster,
   start_date = NULL,
   end_date = NULL,
   threshold,
@@ -15,7 +15,7 @@ BEE.calc.baseline(
 )
 }
 \arguments{
-\item{YourSpatraster}{:
+\item{yourspatraster}{:
 The SpatRaster that contains the values to be used to calculate the baseline
 (your reference time serie). Each layer must have a date and there must be
 \strong{no duplicates}.}
@@ -24,6 +24,10 @@ The SpatRaster that contains the values to be used to calculate the baseline
 The date to use as the first day of your reference period. It must be in the
 format \strong{YYYY-MM-DD}. (Note that the provided dataset can cover a longer
 time period than the one you want to use as a reference.)}
+
+\item{end_date}{:
+The date to use as the first day of your reference period. It must be in the
+format \strong{YYYY-MM-DD}.}
 
 \item{threshold}{:
 Specifies whether you want to use a percentile or the mean of the observed
@@ -52,9 +56,6 @@ value to be smoothed across days.
 For example, if \emph{"smooth_window"} is set to 10 days, the final value on
 day 'd' will be the mean of the baseline/thershold values calculated for
 days: d - 10 to d + 10 (eleven values).}
-
-\item{end_date:}{The date to use as the first day of your reference period. It must be in the
-format \strong{YYYY-MM-DD}.}
 }
 \value{
 A SpatRaster with one day of the year per layer (366 layers) that has
@@ -76,7 +77,7 @@ copernicus_data_celsius <- terra::rast(file_name)
 # accross all years of the reference time period are bellow the baseline
 # value.
 #### No smoothing: # 16s to run
-baseline_qt90_smth_0 <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
+baseline_qt90_smth_0 <- BEE.calc.baseline(yourspatraster = copernicus_data_celsius,
                                    start_date = "2023-01-01",
                                    end_date = "2025-12-31",
                                    threshold = "qt",
@@ -84,7 +85,7 @@ baseline_qt90_smth_0 <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsi
                                    time_window = 5,
                                    smooth_window = 0)
 #### Smoothing over 15 days: # 18s to run
-baseline_qt90_smth_15 <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
+baseline_qt90_smth_15 <- BEE.calc.baseline(yourspatraster = copernicus_data_celsius,
                                    start_date = "2023-01-01",
                                    end_date = "2025-12-31",
                                    threshold = "qt",
@@ -92,7 +93,7 @@ baseline_qt90_smth_15 <- BEE.calc.baseline(YourSpatraster = copernicus_data_cels
                                    time_window = 5,
                                    smooth_window = 7) #7+1+7=15
 ###**Mean value threshold:**
-baseline_mean <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
+baseline_mean <- BEE.calc.baseline(yourspatraster = copernicus_data_celsius,
                                    start_date = "2023-01-01",
                                    end_date = "2025-12-31",
                                    threshold = "mean",

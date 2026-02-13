@@ -4,15 +4,15 @@
 \alias{BEE.convert.celsius}
 \title{Convert temperature data to Celsius}
 \usage{
-BEE.convert.celsius(YourSpatRaster)
+BEE.convert.celsius(yourspatraster)
 }
 \arguments{
-\item{YourSpatRaster}{:
+\item{yourspatraster}{:
 It is the SpatRaster containing temperature data, for which you want to
 check the units and convert the values to Celsius.}
 }
 \value{
-YourSpatRaster with values corrected to celsius and 'unit' metadata updated
+yourspatraster with values corrected to celsius and 'unit' metadata updated
 to 'Celsisus'.
 }
 \description{

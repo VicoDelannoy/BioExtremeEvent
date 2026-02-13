@@ -15,7 +15,7 @@ The two functions are complementary: binarise detects when conditions are extrem
 
 # Usage
 ## Arguments:
-**binarized_spatraster**: is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as YourSpatraster for comparison without bias.  
+**binarized_spatraster**: is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as yourspatraster for comparison without bias.  
 **n**: The minimum number of consecutive days above the baseline/threshol required for a series of days more extrem than the baseline to be considered as an extreme event (≥).  
 **d**: The maximum number of days for which two series of values above the threshold/baseline, separated by some days below the threshold/baseline, can be considered a single extreme event (the maximum distance in days between the two events to be merged <=).  
 **nbis**: The minimum number of days in a series of 1 to allow merging with
@@ -32,7 +32,7 @@ No messages implemented yet.
 ## Output
 Returns a list with 2 elements.  
 The first one is called **"binarized_spatraster_corrected"**. This SpatRaster contains the identified extreme events. Based on the criteria specified in the function arguments, extreme events are derived from the binarised extreme days by applying pixel-wise temporal rules such as minimum event duration, merging of events that are close in time, and the removal of isolated extreme days. These events are used in the next function of the pipeline.  
-The second element is called **"Event_corrected"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in YourSpatraster). 
+The second element is called **"Event_corrected"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in yourspatraster). 
 
 COLUMNS MEANNINGS :  
 The "original_value" column gives the value of the raw binarisation before applying this function.  

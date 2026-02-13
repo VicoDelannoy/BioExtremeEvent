@@ -2,10 +2,10 @@
 #'
 #' @description 
 #'  This function give the morphological metrics for an extreme event, 
-#'  Corrected_rasters is the SpatRaster you want to analyze (it needs to be
+#'  corrected_rasters is the SpatRaster you want to analyze (it needs to be
 #'  binarise with the mhw function)
 #' 
-#' @param Corrected_rasters :
+#' @param corrected_rasters :
 #'  The SpatRaster you want to analyse (first output of 
 #'  *BEE.id.extreme_events()*).
 #' @param start_date :
@@ -35,7 +35,7 @@
 # crs = "EPSG:2154" # for europe
 
 BEE.calc.metrics_morpho <- function(
-  Corrected_rasters,
+  corrected_rasters,
   start_date = NULL,
   end_date = NULL,
   per_pix = FALSE,
@@ -53,7 +53,7 @@ BEE.calc.metrics_morpho <- function(
       orders = c("dmy", "ymd", "mdy")
     )
     format_layers_names <- lubridate::guess_formats(
-      names(Corrected_rasters[[1]]),
+      names(corrected_rasters[[1]]),
       orders = c("dmy", "ymd", "mdy")
     )
     same_format <- all(format_start_date %in% format_layers_names)
@@ -69,23 +69,23 @@ BEE.calc.metrics_morpho <- function(
       ## Retrive
       start_date <- ifelse(
         is.null(start_date),
-        names(Corrected_rasters[[1]]),
+        names(corrected_rasters[[1]]),
         start_date
       )
       end_date <- ifelse(
         is.null(end_date),
-        names(Corrected_rasters[[terra::nlyr(Corrected_rasters)]]),
+        names(corrected_rasters[[terra::nlyr(corrected_rasters)]]),
         end_date
       )
-      rasters <- Corrected_rasters[[which(
-        names(Corrected_rasters) >= start_date &
-          names(Corrected_rasters) <= end_date
+      rasters <- corrected_rasters[[which(
+        names(corrected_rasters) >= start_date &
+          names(corrected_rasters) <= end_date
       )]]
     }
   }
   if (is.null(start_date) & is.null(end_date)) {
     ## Adjust variable name to match the rest of the function
-    rasters <- Corrected_rasters
+    rasters <- corrected_rasters
   }
 
   nb_NA <- unique(terra::global(

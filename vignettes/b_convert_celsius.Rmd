@@ -50,7 +50,7 @@ You will receive a warning if :
 If your dataset was in Kelvin or Fahrenheit, you will receive a message saying which conversion has been done.
 
 ## Output
-The output is a spatraster with the same properties as YourSpatraster but yhe pixel values are in degrees Celsius. Pixels that were NA remain NA. 
+The output is a spatraster with the same properties as yourspatraster but yhe pixel values are in degrees Celsius. Pixels that were NA remain NA. 
 
 ## Example with a dataset in Kelvin
 

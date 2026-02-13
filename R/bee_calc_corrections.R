@@ -47,7 +47,7 @@
 #'
 #-------------------------------------------------------------------------------
 # For tests : true_event_raster <- Corrected_rasters;
-# true_event_df_list <- Events_corrected
+# true_event_df_list <- events_corrected
 BEE.calc.corrections <- function(
   true_event_raster,
   true_event_df_list,

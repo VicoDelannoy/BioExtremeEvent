@@ -26,7 +26,6 @@ globalVariables(
     "prev_ID",
     "prev_value",
     "last_value_prev_group",
-    "Nb_days",
     "dates",
     "date_max_value",
     "first_date",

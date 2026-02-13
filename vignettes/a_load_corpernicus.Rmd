@@ -40,7 +40,7 @@ BioExtremeEvent::BEE.load.copernicus(
     dataset_version = "202411",
     variables = "analysed_sst", # Select only one variable ! 
     minimum_longitude = 3.0194165746371, # Use the "draw on map" option form the website 
-    # to fill the GPS coordinates
+    # to fill the gps coordinates
     maximum_longitude = 4.5708413084348,
     minimum_latitude = 42.8901433211107,
     maximum_latitude = 43.5923510331374,

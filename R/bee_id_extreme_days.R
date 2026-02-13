@@ -6,7 +6,7 @@
 #'  will be converted to 1, and the value bellow baseline will be converted 
 #'  to 0. The process works in reverse when "direction" = below.
 #'
-#' @param YourSpatraster : 
+#' @param yourspatraster : 
 #'  The Spatraster containing the values of the studied parameter, with one 
 #'  layer for each timestep.
 #' @param baseline : 
@@ -24,13 +24,13 @@
 #'  typical year, providing a total of 366 Spatrasters, with one layer per year.
 #'  The first element of the list contains the rasters for all the first of
 #'  January included in the provided time series. These rasters have the same
-#'  properties as 'YourSpatraster', but the values have been replaced with 1 if
+#'  properties as 'yourspatraster', but the values have been replaced with 1 if
 #'  the pixel value was more extreme than the baseline, and with 0 if it was
 #'  not.
 #'
 #' @details 
 #'  For computational purposes in the next stages of the pipeline, the
-#'  order of the layers differs from that in 'YourSpatraster'.
+#'  order of the layers differs from that in 'yourspatraster'.
 #'  BEE.id.extreme_days is not designed to work with 4D data (3D in space and
 #'  time). To do so, please refer to BEE.calc.4thD.
 #'  This function only identifies days more extreme than a baseline, extra
@@ -54,50 +54,50 @@
 #'
 #' # Identify the days on which the values are higher than the baseline for the
 #' # 90th percentile.:
-#' binarized_EE <- BEE.id.extreme_days(YourSpatraster=copernicus_data,
+#' binarized_EE <- BEE.id.extreme_days(yourspatraster=copernicus_data,
 #'                                   baseline=baseline_qt90,
 #'                                   direction = "above")
 #' # Identify days on which the value is lower than a fixed threshold.
-#' binarized_EE <- BEE.id.extreme_days(YourSpatraster=copernicus_data,
+#' binarized_EE <- BEE.id.extreme_days(yourspatraster=copernicus_data,
 #'                                   baseline=12,
 #'                                   direction = "below")
 #'
 #' @export
 #'
 #---------------------------------------------------------------------------
-# baseline <- baseline_qt90 ; direction <- "above"; YourSpatraster <- ds
+# baseline <- baseline_qt90 ; direction <- "above"; yourspatraster <- ds
 
-BEE.id.extreme_days <- function(YourSpatraster, baseline, direction) {
+BEE.id.extreme_days <- function(yourspatraster, baseline, direction) {
   if (class(baseline)[1] == "SpatRaster") {
-    # Retrieve the extent of YourSpatraster
-    new_extent <- terra::ext(YourSpatraster)
-    # Change the extent to match that of YourSpatraster
-    baseline <- terra::resample(baseline, YourSpatraster, method = "near")
-    # Crop to obtain the same area as YourSpatraster
+    # Retrieve the extent of yourspatraster
+    new_extent <- terra::ext(yourspatraster)
+    # Change the extent to match that of yourspatraster
+    baseline <- terra::resample(baseline, yourspatraster, method = "near")
+    # Crop to obtain the same area as yourspatraster
     #baseline <- crop(baseline, new_extent, snap = "in")
     # Retrieve the dates
-    time_list_exp <- terra::time(YourSpatraster, format = "days")
+    time_list_exp <- terra::time(yourspatraster, format = "days")
     # Create dates in the format %m.%d for a leap year
     time_list_base <- generate_month_day(2024)
-    names(YourSpatraster) <- time_list_exp # Rename the layers with the dates
+    names(yourspatraster) <- time_list_exp # Rename the layers with the dates
     names(baseline) <- time_list_base # Rename the layers with the dates
     # Check if there is a fourth hidden dimension. For instance there could be
     #several depths or several altitudes which would result in several layer
     #having the same dates and thus the same length.
 
     ######### THIS SECTION IS IN DEVELOPPEMENT TO WORK WITH 4D data ############
-    if (any(table(terra::time(YourSpatraster)) != 1)) {
+    if (any(table(terra::time(yourspatraster)) != 1)) {
       # at least one date has several layers
-      rep <- sum(table(terra::time(YourSpatraster))) /
-        length(table(terra::time(YourSpatraster)))
+      rep <- sum(table(terra::time(yourspatraster))) /
+        length(table(terra::time(yourspatraster)))
       if (rep == round(rep)) {
         # all dates are repeted the same number of time
         rast_list <- list()
-        n <- terra::nlyr(YourSpatraster)
+        n <- terra::nlyr(yourspatraster)
         for (l in seq(1, rep, 1)) {
           # create a list with all days from the same depths
           layers <- seq(l, n, rep)
-          rast_list[[l]] <- terra::rast(YourSpatraster[[layers]])
+          rast_list[[l]] <- terra::rast(yourspatraster[[layers]])
         }
         delta <- list()
         for (d in seq(1, length(rast_list))) {
@@ -106,7 +106,7 @@ BEE.id.extreme_days <- function(YourSpatraster, baseline, direction) {
         # Binarize the pixels to 1 & 0 (function from the packacge itself,
         # see bellow) /!\ this part doesn't check if the value is above for
         # five consecutive days or any duration
-        delta <- binarize_spat(YourSpatraster, baseline, direction)
+        delta <- binarize_spat(yourspatraster, baseline, direction)
         # Create a list of SpatRaster by date in the format %d.%m
         delta_list <- RastToList(delta)
         return(delta_list) # Output the list
@@ -117,7 +117,7 @@ BEE.id.extreme_days <- function(YourSpatraster, baseline, direction) {
     # Binarize the pixels to 1 & 0 (function from the packacge itself,
     # see bellow) /!\ this part doesn't check if the value is above for five
     # consecutive days or any duration
-    delta <- binarize_spat(YourSpatraster, baseline, direction)
+    delta <- binarize_spat(yourspatraster, baseline, direction)
     # Create a list of SpatRaster by date in the format %d.%m
     delta_list <- RastToList(delta)
     # Extract all rasters (If we have to think to a faster way we could filter so
@@ -158,16 +158,16 @@ BEE.id.extreme_days <- function(YourSpatraster, baseline, direction) {
 
   if (is.numeric(baseline)) {
     # Retrieve the dates
-    time_list_exp <- terra::time(YourSpatraster, format = "days")
+    time_list_exp <- terra::time(yourspatraster, format = "days")
     # Rename the layers with the dates
-    names(YourSpatraster) <- time_list_exp
+    names(yourspatraster) <- time_list_exp
     if (direction == "above") {
       # Binarize the cells based on the condition
-      delta <- terra::ifel(YourSpatraster < baseline, 0, 1)
+      delta <- terra::ifel(yourspatraster < baseline, 0, 1)
     }
     if (direction == "below") {
       # Binarize the cells based on the condition
-      delta <- terra::ifel(YourSpatraster < baseline, 1, 0)
+      delta <- terra::ifel(yourspatraster < baseline, 1, 0)
     }
     # Create a list of SpatRaster by date in the format %d.%m
     delta_list <- RastToList(delta)

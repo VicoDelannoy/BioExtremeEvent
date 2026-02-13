@@ -5,7 +5,7 @@
 \title{Compute metrics spatial features of the extreme event (only in surface, 2D)}
 \usage{
 BEE.calc.metrics_morpho(
-  Corrected_rasters,
+  corrected_rasters,
   start_date = NULL,
   end_date = NULL,
   per_pix = FALSE,
@@ -13,7 +13,7 @@ BEE.calc.metrics_morpho(
 )
 }
 \arguments{
-\item{Corrected_rasters}{:
+\item{corrected_rasters}{:
 The SpatRaster you want to analyse (first output of
 \emph{BEE.id.extreme_events()}).}
 
@@ -37,7 +37,7 @@ check on https://epsg.io/ .}
 }
 \description{
 This function give the morphological metrics for an extreme event,
-Corrected_rasters is the SpatRaster you want to analyze (it needs to be
+corrected_rasters is the SpatRaster you want to analyze (it needs to be
 binarise with the mhw function)
 }
 \note{

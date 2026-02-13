@@ -24,10 +24,10 @@ copernicus_data_celsius is a spatraster form copernicus, converted from Kelvin t
 
 ## Arguments:
 
-**YourSpatraster**: is a spatraster with one layer per day. Each layer covers the same area,
+**yourspatraster**: is a spatraster with one layer per day. Each layer covers the same area,
 and the time series must encompass the start_date and end_date provided as argument.  
 **start_date** and **end_date**: are the limits of the time period you want to consider has the
-reference value to compute the baseline. Please ensure that the date format matches that of the  provided spatraster. You can check the format using terra::time(YourSpatraster).  
+reference value to compute the baseline. Please ensure that the date format matches that of the  provided spatraster. You can check the format using terra::time(yourspatraster).  
 **threshold**: is the argument specifying whether you want to compute a percentile value of the time
 serie or the mean value. Arguments accepted are:  
 - *"qt"* (quantile), to calculate a percentile.
@@ -77,7 +77,7 @@ copernicus_data_celsius <- terra::rast(file_name)
 ```{r}
 library(BioExtremeEvent)
 #### Smoothing over 15 days: # 18s to run
-baseline_qt90_smth_15 <- BEE.calc.baseline(YourSpatraster = copernicus_data_celsius,
+baseline_qt90_smth_15 <- BEE.calc.baseline(yourspatraster = copernicus_data_celsius,
                                     start_date = "2023-01-01",
                                     end_date = "2025-12-31",
                                     threshold = "qt",

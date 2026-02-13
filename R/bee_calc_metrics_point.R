@@ -1,14 +1,14 @@
 #' Compute metrics through time for specific locations.
 #'
-#' @param Events_corrected :
+#' @param events_corrected :
 #'  Is the list of data tables produced by:
 #'  bee_calc_true_event (the second element of the output). For each pixel, it
 #'  contains a data.table with dates in the rows and a column indicating whether
 #'  it is a day belonging to a heatwave (1) or not (0).
-#' @param YourSpatraster :
+#' @param yourspatraster :
 #'  Is the spatraster with the values of the studded parameter, through time and
 #'  space.
-#' @param GPS :
+#' @param gps :
 #'  Is a data frame containing the positions for which you want to compute 
 #'  metrics. It must contain columns labelled 'x' and 'y', which should contain
 #'  longitudes and latitudes, respectively.
@@ -33,7 +33,7 @@
 #'  (time + spatial 3D).
 #'
 #' @returns 
-#'  A list of dataframe (one per GPS point), each dataframe contains
+#'  A list of dataframe (one per gps point), each dataframe contains
 #'  informations on the date of the extrem events, mean, median, max and min
 #'  values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
 #'  *etc.* Categories are defined in Hobday *et al.* 2018.
@@ -56,14 +56,14 @@
 #'                                      "baseline_mean_smth_15.tiff"),
 #'                                      package = "BioExtremeEvent")
 #' baseline_mean_smth_15 <- terra::rast(file_name_4)
-#' GPS <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
+#' gps <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
 #'                   y = c(43.3786,43.4279))
 #'
 #' # Get daily value (required for BEE.merge() and BEE.summarise()):
 #' metrics_points_day <- BEE.calc.metrics_point(
-#'  Events_corrected = binarized_corrected_df,
-#'  YourSpatraster = copernicus_data_celsius,
-#'  GPS = GPS,
+#'  events_corrected = binarized_corrected_df,
+#'  yourspatraster = copernicus_data_celsius,
+#'  gps = gps,
 #'  start_date = NULL,
 #'  end_date = NULL,
 #'  time_lapse_vector = NULL,
@@ -77,9 +77,9 @@
 #' # Get mean, min, max, sd and median per event (extreme event and btw extreme
 #' # events):
 #' metrics_points_ee <- BEE.calc.metrics_point(
-#'  Events_corrected = binarized_corrected_df,
-#'  YourSpatraster = copernicus_data_celsius,
-#'  GPS = GPS,
+#'  events_corrected = binarized_corrected_df,
+#'  yourspatraster = copernicus_data_celsius,
+#'  gps = gps,
 #'  start_date = NULL,
 #'  end_date = NULL,
 #'  time_lapse_vector = NULL,
@@ -94,14 +94,14 @@
 #'
 
 #-------------------------------------------------------------------------------
-# start_date <- "2024-06-01" ; end_date <- "2024-10-31" ; YourSpatraster <- ds ; p <- 1;
-# GPS <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781));
+# start_date <- "2024-06-01" ; end_date <- "2024-10-31" ; yourspatraster <- ds ; p <- 1;
+# gps <- data.frame(x = c(3.7659, 5.386, 3.146), y = c(43.4287, 43.183, 42.781));
 # group_by_event = TRUE; time_lapse_vector = c(1,3,5,7,14,21) ;
 # baseline_qt = baseline_qt90
 BEE.calc.metrics_point <- function(
-  Events_corrected,
-  YourSpatraster,
-  GPS,
+  events_corrected,
+  yourspatraster,
+  gps,
   start_date = NULL,
   end_date = NULL,
   time_lapse_vector = NULL, # number of time unit on which to compute the warming rates and cooling rates, NULL means it will not be computated
@@ -109,22 +109,22 @@ BEE.calc.metrics_point <- function(
   baseline_mean = baseline_mean,
   group_by_event = FALSE
 ) {
-  terra::set.names(YourSpatraster, as.Date(terra::time(YourSpatraster)))
+  terra::set.names(yourspatraster, as.Date(terra::time(yourspatraster)))
 
   ############################### WARNINGS #####################################
   if (is.null(start_date) | is.null(end_date)) {
     message(
       "You didn't specify a begining date and a ending date (see argument 
       'start_date' and 'end_date'), the first date and last date in your time 
-      YourSpatraster will be used."
+      yourspatraster will be used."
     )
-    start_date <- min(as.Date.character(terra::names(YourSpatraster)))
-    end_date <- max(as.Date.character(terra::names(YourSpatraster)))
+    start_date <- min(as.Date.character(terra::names(yourspatraster)))
+    end_date <- max(as.Date.character(terra::names(yourspatraster)))
   }
   #Check that start date and end_date are within the SpatRasters provided
   if (
-    !(start_date %in% terra::names(YourSpatraster)) |
-      !(end_date %in% terra::names(YourSpatraster))
+    !(start_date %in% terra::names(yourspatraster)) |
+      !(end_date %in% terra::names(yourspatraster))
   ) {
     warning(
       "One or both of the specified layers is/are not present in the SpatRaster 
@@ -134,12 +134,12 @@ BEE.calc.metrics_point <- function(
       provided in."
     )
   }
-  YourSpatraster_extent <- terra::ext(YourSpatraster)
-  #Check that all GPS points are within YourSpatraster and period_of_interest extent
+  yourspatraster_extent <- terra::ext(yourspatraster)
+  #Check that all gps points are within yourspatraster and period_of_interest extent
   if (
     !all(
-      abs(GPS[1]) <= abs(YourSpatraster_extent$xmax) &
-        abs(GPS[1]) >= abs(YourSpatraster_extent$xmin)
+      abs(gps[1]) <= abs(yourspatraster_extent$xmax) &
+        abs(gps[1]) >= abs(yourspatraster_extent$xmin)
     )
   ) {
     warning(
@@ -150,8 +150,8 @@ BEE.calc.metrics_point <- function(
   }
   if (
     !all(
-      abs(GPS[2]) <= abs(YourSpatraster_extent$ymax) &
-        abs(GPS[2]) >= abs(YourSpatraster_extent$ymin)
+      abs(gps[2]) <= abs(yourspatraster_extent$ymax) &
+        abs(gps[2]) >= abs(yourspatraster_extent$ymin)
     )
   ) {
     warning(
@@ -160,24 +160,24 @@ BEE.calc.metrics_point <- function(
       column of the dataframe contains valid latitude (y) values for analysis."
     )
   }
-  # Check that one of the GPS position is not in a pixel that is always an NA
+  # Check that one of the gps position is not in a pixel that is always an NA
   # (it may indicates that it falls in an area that is not interesting for the
   # study)
   ## List of pixel that are always NA:
-  NA_pixels <- which(vapply(Events_corrected, is.null, logical(1)))
-  ## Identify the pixels corresponding to the GPS position provided:
-  GPS$pixel <- terra::cellFromXY(YourSpatraster, GPS)
-  if (any(GPS$pixel %in% NA_pixels)) {
-    wrong_position <- which(GPS$pixel %in% NA_pixels)
+  NA_pixels <- which(vapply(events_corrected, is.null, logical(1)))
+  ## Identify the pixels corresponding to the gps position provided:
+  gps$pixel <- terra::cellFromXY(yourspatraster, gps)
+  if (any(gps$pixel %in% NA_pixels)) {
+    wrong_position <- which(gps$pixel %in% NA_pixels)
     warning(
       paste(
-        "Problematic GPS positions:\n",
+        "Problematic gps positions:\n",
         paste(
-          utils::capture.output(print(GPS[wrong_position, ])),
+          utils::capture.output(print(gps[wrong_position, ])),
           collapse = "\n"
         ),
         "These pixels fall on pixels that are always marked as NA, no matter the 
-      date.  Please check the accuracy of the GPS position(s) provided and 
+      date.  Please check the accuracy of the gps position(s) provided and 
       ensure that it is in the correct format."
       ),
       call. = FALSE
@@ -185,26 +185,26 @@ BEE.calc.metrics_point <- function(
   }
 
   ############################### CODE #########################################
-  #Extract YourSpatraster for the given GPS position
-  df_list <- lapply(GPS$pixel, function(p) {
-    Events_corrected[[p]]
+  #Extract yourspatraster for the given gps position
+  df_list <- lapply(gps$pixel, function(p) {
+    events_corrected[[p]]
   }) # on df per points/pixel
-  YourSpatraster <- t(terra::extract(YourSpatraster, GPS[, 3]))
+  yourspatraster <- t(terra::extract(yourspatraster, gps[, 3]))
 
   # Subset both dataset so they match the timeframe provided with 'start_date'
   # and 'end_date'.
-  Date <- rownames(YourSpatraster)
-  YourSpatraster <- YourSpatraster[
+  Date <- rownames(yourspatraster)
+  yourspatraster <- yourspatraster[
     which(
-      as.Date(rownames(YourSpatraster)) >= as.Date(start_date) &
-        as.Date(rownames(YourSpatraster)) <= as.Date(end_date)
+      as.Date(rownames(yourspatraster)) >= as.Date(start_date) &
+        as.Date(rownames(yourspatraster)) <= as.Date(end_date)
     ),
   ]
-  YourSpatraster <- as.matrix(YourSpatraster)
+  yourspatraster <- as.matrix(yourspatraster)
   df_list <- Map(
     function(df, col_idx) {
       df <- df[df$date >= start_date & df$date <= end_date, ]
-      df$value <- YourSpatraster[, col_idx] #Merge df_list and YourSpatraster  # Ad to each
+      df$value <- yourspatraster[, col_idx] #Merge df_list and yourspatraster  # Ad to each
       # dataframe the corresponding column of pixel value
       return(df)
     },
@@ -219,15 +219,15 @@ BEE.calc.metrics_point <- function(
 
   #Create a list of dataframe to store the information using one element (df)
   # per pixel and one row per event
-  colnames(GPS) <- c("x", "y", names(GPS[3]))
+  colnames(gps) <- c("x", "y", names(gps[3]))
 
   #Get daily anomaly to baseline_qt and to baseline_mean
-  qt <- as.data.frame(t(terra::extract(baseline_qt, GPS[, 3])))
+  qt <- as.data.frame(t(terra::extract(baseline_qt, gps[, 3])))
   qt$dates <- format(
     seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
     "%m-%d"
   )
-  mean <- as.data.frame(t(terra::extract(baseline_mean, GPS[, 3])))
+  mean <- as.data.frame(t(terra::extract(baseline_mean, gps[, 3])))
   mean$dates <- format(
     seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
     "%m-%d"
@@ -305,9 +305,9 @@ BEE.calc.metrics_point <- function(
       tidyr::fill(last_value_prev_group, .direction = "down") |>
       dplyr::group_by(ID) |>
       dplyr::mutate(
-        # Get GPS position of each point
-        x = GPS$x[p],
-        y = GPS$y[p],
+        # Get gps position of each point
+        x = gps$x[p],
+        y = gps$y[p],
 
         # Duration of each event (assuming duration is constant per ID)
         duration = data.table::first(duration),

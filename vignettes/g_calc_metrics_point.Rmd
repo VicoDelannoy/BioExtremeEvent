@@ -13,13 +13,13 @@ Compute daily metrics such as anomaly to the baseline, event category (according
 
 # Usage
 ## Arguments:
-**Events_corrected**: Is the list of data tables produced by:
+**events_corrected**: Is the list of data tables produced by:
  bee_calc_true_event (the second element of the output). For each pixel, it
  contains a data.table with dates in the rows and a column indicating whether
  it is a day belonging to a heatwave (1) or not (0).  
- **YourSpatraster**: is the spatraster with the values of the studded parameter,
+ **yourspatraster**: is the spatraster with the values of the studded parameter,
  through time and space.  
- **GPS**: is a data frame containing the positions for which you want to
+ **gps**: is a data frame containing the positions for which you want to
  compute metrics. It must contain columns labelled 'x' and 'y', which should
  contain longitudes and latitudes, respectively.  
  **start_date**: First day on which you want to start computing metrics.  
@@ -35,17 +35,17 @@ Compute daily metrics such as anomaly to the baseline, event category (according
 ## Warnings:
 You will receive a warning if :
 
--   the layer associated to *"start_date"* and/or *"end_date"* is not found in *"YourSpatraster"*.
+-   the layer associated to *"start_date"* and/or *"end_date"* is not found in *"yourspatraster"*.
    different layers have different units.
--   at least one of the GPS point in "*GPS*" argument falls outside of the *"YourSpatraster"*.
--   a GPS point is on a pixel that is always 'NA'.  
+-   at least one of the gps point in "*gps*" argument falls outside of the *"yourspatraster"*.
+-   a gps point is on a pixel that is always 'NA'.  
 
 ## Messages:
 You will receive a message in the following case :  
 -   You didn't specified a *"start_date"* or a *"end_date"*, a message will indicate the default *"start_date"* and *"end_date"* used.  
 
 ## Output
-A list of dataframe (one per GPS point), each dataframe contains informations on the date of the extrem events, mean, median, max and min values, peak day, onset-rate, off-set rate, mean anomaly, maximum category *etc.* Categories are defined in Hobday *et al.* 2018.
+A list of dataframe (one per gps point), each dataframe contains informations on the date of the extrem events, mean, median, max and min values, peak day, onset-rate, off-set rate, mean anomaly, maximum category *etc.* Categories are defined in Hobday *et al.* 2018.
 
 # Examples
 ## Load data:
@@ -67,7 +67,7 @@ file_name_1 <- system.file(file.path("extdata",
                                       "baseline_mean_smth_15.tiff"),
                                       package = "BioExtremeEvent")
  baseline_mean_smth_15 <- terra::rast(file_name_4)
- GPS <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
+ gps <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
                    y = c(43.3786,43.4279))
 ```
 
@@ -75,9 +75,9 @@ file_name_1 <- system.file(file.path("extdata",
 This is the recommanded action when exploring data, summarising by extreme event is possible afterward using *BEE.data.merge()* (to merge sevral types of metrics) and *BEE.data.summarise()* (to summarise metrics per extreme event or over different time period).
 ```{r}
  metrics_points_day <- BEE.calc.metrics_point(
-  Events_corrected = binarized_corrected_df,
-  YourSpatraster = copernicus_data_celsius,
-  GPS = GPS,
+  events_corrected = binarized_corrected_df,
+  yourspatraster = copernicus_data_celsius,
+  gps = gps,
   start_date = NULL,
   end_date = NULL,
   time_lapse_vector = NULL, 
@@ -90,9 +90,9 @@ This is the recommanded action when exploring data, summarising by extreme event
 ## Get daily values for each metrics:
 ```{r}
  metrics_points_ee <- BEE.calc.metrics_point(
-  Events_corrected = binarized_corrected_df,
-  YourSpatraster = copernicus_data_celsius,
-  GPS = GPS,
+  events_corrected = binarized_corrected_df,
+  yourspatraster = copernicus_data_celsius,
+  gps = gps,
   start_date = NULL,
   end_date = NULL,
   time_lapse_vector = NULL, 
@@ -106,9 +106,9 @@ This is the recommanded action when exploring data, summarising by extreme event
 Use the 'time_lapse_vector' argument. You can provide a single number or a vector of different time windows to be computed. This option is also available in *BEE.data.summarise()*, which is why we recommend doing data exploration with *"time_lapse_vector"* set to NULL and *"group_by_event"* set to FALSE and to later use *BEE.data.merge()* and *BEE.data.summarise()*.
 ```{r}
  metrics_point_lag <- BEE.calc.metrics_point(
-  Events_corrected = binarized_corrected_df,
-  YourSpatraster = copernicus_data_celsius,
-  GPS = GPS,
+  events_corrected = binarized_corrected_df,
+  yourspatraster = copernicus_data_celsius,
+  gps = gps,
   start_date = NULL,
   end_date = NULL,
   time_lapse_vector = c(3,5,7),  # The moving time windows are 3,5 and 7 days long.
@@ -118,9 +118,9 @@ Use the 'time_lapse_vector' argument. You can provide a single number or a vecto
 )
 ```
 
-## Compute metrics for every pixels in YourSpatraster:
-To do so, you need to provide a *"GPS"* argument containing all the pixel positions in YourSpatraster.
-This considerably increases computation time, so we advise against providing GPS positions that refer to pixels that are always NA.  
+## Compute metrics for every pixels in yourspatraster:
+To do so, you need to provide a *"gps"* argument containing all the pixel positions in yourspatraster.
+This considerably increases computation time, so we advise against providing gps positions that refer to pixels that are always NA.  
 
 Get all the pixel coordinates:
 ```{r}
@@ -136,9 +136,9 @@ coords <- as.data.frame(coords)
 Apply function:
 ```{r}
 metrics_points_day_all_pix <- BEE.calc.metrics_point(
-  Events_corrected = binarized_corrected_df,
-  YourSpatraster = copernicus_data_celsius,
-  GPS = coords,
+  events_corrected = binarized_corrected_df,
+  yourspatraster = copernicus_data_celsius,
+  gps = coords,
   start_date = NULL,
   end_date = NULL,
   time_lapse_vector = NULL, 
@@ -149,7 +149,7 @@ metrics_points_day_all_pix <- BEE.calc.metrics_point(
 ```
 
 ## How to save the ouputs:
-Outputs are list of dataframe (on dataframe per pixel in GPS), list can be saved in .rds :
+Outputs are list of dataframe (on dataframe per pixel in gps), list can be saved in .rds :
 ```{r, eval = FALSE}
 saveRDS(metrics_points_day, file = "your_path/data/metrics_points_day.rds")
 ```
@@ -158,7 +158,7 @@ saveRDS(metrics_points_day, file = "your_path/data/metrics_points_day.rds")
 
 ## Plot parameters values against the baseline, and the colours indicate the extremes according to the categories:
 ```{r, fig.width = 20, fig.height =5, warning = FALSE}
-# get metrics for on GPS position
+# get metrics for on gps position
 one_place <- metrics_points_day[[2]]
 
 #plot
@@ -179,7 +179,7 @@ BEE.plot.categories(metric_point_df = one_place,
 
 ## Plot mean value and variance of extreme event:
 ```{r}
-# get metrics for on GPS position
+# get metrics for on gps position
 one_place <- metrics_points_day[[2]]
 
 #plot
