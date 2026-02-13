@@ -53,6 +53,7 @@ globalVariables(
     "lim3",
     "lim4",
     "baseline_mean",
+    "baseline_qt",
     "one_place", #BEE.plot.cumulative_anomaly
     "month_day",
     "year_num",

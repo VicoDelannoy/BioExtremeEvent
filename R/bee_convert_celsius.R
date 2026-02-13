@@ -5,7 +5,7 @@
 #'  SpatRaster (Celsius, Kelvin or Fahrenheit) and converts it to the
 #'  international unit 'Celsius' if necessary.
 #' 
-#' @param YourSpatRaster:
+#' @param YourSpatRaster :
 #'  It is the SpatRaster containing temperature data, for which you want to
 #'  check the units and convert the values to Celsius.
 #' 
@@ -25,23 +25,23 @@
 #'                    dataframe=TRUE))) # first pixels are on land so their value is NA
 #'
 #'### Apply function :
-#' copernicus_data_celsius <- BioExtremeEvent::BEE.calc.celsius(copernicus_data)
+#' copernicus_data_celsius <- BioExtremeEvent::BEE.convert.celsius(copernicus_data)
 #'
 #'### Values after applying functions :
 #' head(na.omit(terra::values(x = copernicus_data_celsius[[1]],
 #'                   dataframe=TRUE))) # first pixels are on land so their value is NA
 #'
 #'### Checking the unit of the spatraster :
-#' # Before using BEE.calc.celsius :
+#' # Before using BEE.convert.celsius :
 #' terra::units(copernicus_data[[1]])
-#' # After using BEE.calc.celsius :
+#' # After using BEE.convert.celsius :
 #' terra::units(copernicus_data_celsius[[1]])
 #'
 #'@export
 #'
 #-------------------------------------------------------------------------------
 
-BEE.calc.celsius <- function(YourSpatRaster) {
+BEE.convert.celsius <- function(YourSpatRaster) {
   # Get the unit of each layer.
   units_count <- terra::units(YourSpatRaster)
 

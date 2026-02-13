@@ -5,16 +5,16 @@
 #'  It computes the number of modifications between the raw binerised Spatraster
 #'  and the Spartraster produced using the *BEE.calc.true_event()*.
 #'
-#' @param true_event_raster:
+#' @param true_event_raster :
 #'  The first element of the *BEE.calc.true_event()*
 #'  ouput, which is a spatraster binarized that inclued the corrections by
 #'  *BEE.calc.true_event()*.
-#' @param true_event_df_list:
+#' @param true_event_df_list :
 #'  The second element of the *BEE.calc.true_event()* ouput,
 #'  which is a list of data.table containing information about the value of each
 #'  pixel before and after definition criteria are applied to distinguish
 #'  isolated extreme days from extreme events.
-#' @param plot:
+#' @param plot :
 #'  Accepted values are TRUE of FALSE. Set to “FALSE” to not display
 #'  the graphs.
 #'

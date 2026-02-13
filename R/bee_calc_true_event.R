@@ -3,19 +3,19 @@
 #' @description 
 #'  Identify the extreme event according to the set of constraints.
 #'
-#' @param binarized_spatraster:
+#' @param binarized_spatraster :
 #'  A Spatraster built using the BEE.calc.binarize()
 #'  function. It only contains 1 and 0.
-#' @param n:
+#' @param n :
 #'  The minimum number of consecutive days above the baseline/threshold
 #'  required for a series of days more extrem than the baseline to be considered
 #'  as an extreme event (≥).
-#' @param d:
+#' @param d :
 #'  The maximum number of days for which two series of values above the
 #'  threshold/baseline, separated by some days below the threshold/baseline, can
 #'  be considered a single extreme event (the maximum distance in days between
 #'  the two events to be merged <=).
-#' @param nbis:
+#' @param nbis :
 #'  The minimum number of days in a series of 1 to allow merging with
 #'  serie of 1 longer than *'n'* and distant from *'d'* days or fewer.
 #'  /!\ *'nbis'* must be inferior or equal to *'n'*.
@@ -26,7 +26,7 @@
 #'  days above the threshold.
 #'  Default: NULL
 #'
-#' @param w:
+#' @param w :
 #'  NOT AVAILBALE YET Window w between to event in which you
 #'  allow a certain proportion p of days (within the window) to be bellow the
 #'  threshold, windows is bordered by series of consecutive days above
@@ -37,7 +37,7 @@
 #'  least 4 days are above threshold (wp = 7*0.5 = 3.5 rounded to 4).
 #'  Example : n = 5; w = 10; p = 0.5 -> w * p = 5 . Default: NULL.
 #'
-#' @param p:
+#' @param p :
 #'  NOT AVAILBALE YET, see "w" explanations. Default: NULL
 #'
 #' @return 

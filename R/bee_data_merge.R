@@ -12,19 +12,19 @@
 #'  bee.calc.metrics_morpho(..., per_pix = TRUE)
 #'  bee.calc.escape(..., only_days_EE = FALSE, group_by_event = FALSE).
 #'
-#' @param data_metrics_point:
+#' @param data_metrics_point :
 #'  The output of the BEE.calc.metrics_point computed using the argument 
 #'  group_by_event = FALSE.
 #'
-#' @param data_metrics_morpho:
+#' @param data_metrics_morpho :
 #'  The output of the BEE.calc.metrics_morpho computed using the argument 
 #'  per_pix = TRUE.
 #'
-#' @param data_escape:
+#' @param data_escape :
 #'  The output of the BEE.calc.escape computed using the argument 
 #'  only_days_EE = FALSE AND group_by_event = FALSE.
 #'
-#' @param crs:
+#' @param crs :
 #'  A METRICS crs that suits the studdied area.
 #'
 #' @return 

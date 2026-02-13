@@ -1,30 +1,30 @@
 #' Compute metrics through time for specific locations.
 #'
-#' @param Events_corrected:
+#' @param Events_corrected :
 #'  Is the list of data tables produced by:
 #'  bee_calc_true_event (the second element of the output). For each pixel, it
 #'  contains a data.table with dates in the rows and a column indicating whether
 #'  it is a day belonging to a heatwave (1) or not (0).
-#' @param YourSpatraster:
+#' @param YourSpatraster :
 #'  Is the spatraster with the values of the studded parameter, through time and
 #'  space.
-#' @param GPS:
+#' @param GPS :
 #'  Is a data frame containing the positions for which you want to compute 
 #'  metrics. It must contain columns labelled 'x' and 'y', which should contain
 #'  longitudes and latitudes, respectively.
-#' @param start_date:
+#' @param start_date :
 #'  First day on which you want to start computing metrics.
-#' @param end_date:
+#' @param end_date :
 #'  Last day on which you want to start computing metrics.
-#' @param baseline_qt:
+#' @param baseline_qt :
 #'  Spatraster of the 90th percentile baseline (or the 10th percentile
 #'  baseline).
-#' @param baseline_mean:
+#' @param baseline_mean :
 #'  Spatraster of the mean value baseline.
-#' @param time_lapse_vector:
+#' @param time_lapse_vector :
 #'  A vector of time laps on which to compute mean evolution rate and variance 
 #'  of the studdied parameter.
-#' @param group_by_event:
+#' @param group_by_event :
 #'  Whether you want an output summarise by extreme event or not. If not, you 
 #'  just get daily metrics.
 #' 

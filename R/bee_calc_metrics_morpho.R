@@ -5,18 +5,18 @@
 #'  Corrected_rasters is the SpatRaster you want to analyze (it needs to be
 #'  binarise with the mhw function)
 #' 
-#' @param Corrected_rasters:
+#' @param Corrected_rasters :
 #'  The SpatRaster you want to analyse (first output of 
 #'  *BEE.calc.true_event()*).
-#' @param start_date:
+#' @param start_date :
 #'  Allows to perform the analysis on a specific  time_frame, this allows to 
 #'  save computation time.
-#' @param end_date:
+#' @param end_date :
 #'  Allows to perform the analysis on a specific  time_frame, this allows to 
 #'  save computation time.
-#' @param per_pix:
+#' @param per_pix :
 #'  Use TRUE if you want a list with one dt per pixel as an output.
-#' @param crs:
+#' @param crs :
 #'  To get accurate length and area, data in longitude latitude must
 #'  be converted into meters data that take in account earth sphericity, the
 #'  conversion depend on studdied region, thus you must specify the one the most

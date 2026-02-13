@@ -6,15 +6,15 @@
 #'  will be converted to 1, and the value bellow baseline will be converted 
 #'  to 0. The process works in reverse when "direction" = below.
 #'
-#' @param YourSpatraster: 
+#' @param YourSpatraster : 
 #'  The Spatraster containing the values of the studied parameter, with one 
 #'  layer for each timestep.
-#' @param baseline: 
+#' @param baseline : 
 #'  A Spatraster built using the BEE.calc.baseline function, which contains the
 #'  baseline value for each pixel on a given day of the year (with 366 layers),
 #'  **or** a fixed threshold that you want to use as the baseline. The fixed 
 #'  threshold must be a number.
-#' @param direction: 
+#' @param direction : 
 #'  The accepted values for this argument are *"above"* or *"below"*. This tells
 #'  the function whether it values above baseline or below baseline are to be 
 #'  considered as extreme events.

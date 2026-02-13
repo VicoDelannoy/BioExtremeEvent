@@ -12,13 +12,13 @@
 #'  values (within the time window), and date of minimum value (also within the
 #'  time window).
 #'
-#' @param data:
+#' @param data :
 #'  The dataset containing the column you want to process (e.g. the ouput of 
 #'  *BEE.data.merge()*, as a list of data frame).
-#' @param variable:
+#' @param variable :
 #'  The name of the column for which you want to compute mean, median etc. over
 #'  a time window.
-#' @param summarise_by:
+#' @param summarise_by :
 #'  Takes the following options:
 #'  - "extreme_event" for each metric, the following will be computed for each
 #'  extreme event: mean, median, variance or sd, minimum and maximum, sum, and

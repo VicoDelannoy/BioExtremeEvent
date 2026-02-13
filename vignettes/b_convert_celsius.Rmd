@@ -8,7 +8,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Aim of the function *BEE.calc.celsius()*
+# Aim of the function *BEE.convert.celsius()*
 
 Identifies the unit of a temperature spatraster and convert the pixels values into celsius degrees. If the pixel values are modified, the units metadata of the spatraster is updated to celsius.
 
@@ -57,16 +57,16 @@ The output is a spatraster with the same properties as YourSpatraster but yhe pi
 ```{r}
 library(BioExtremeEvent)
 ### Apply function :
-copernicus_data_celsius <- BioExtremeEvent::BEE.calc.celsius(copernicus_data)
+copernicus_data_celsius <- BioExtremeEvent::BEE.convert.celsius(copernicus_data)
  
 ### Values after applying functions : 
 head(na.omit(terra::values(x = copernicus_data_celsius[[1]],
                    dataframe=TRUE))) # first pixels are on land so their value is NA
  
 ### Checking the unit of the spatraster :
- #### Before using BEE.calc.celsius :
+ #### Before using BEE.convert.celsius :
  terra::units(copernicus_data[[1]])
- #### After using BEE.calc.celsius : 
+ #### After using BEE.convert.celsius : 
  terra::units(copernicus_data_celsius[[1]])
 ```
 
@@ -74,7 +74,7 @@ head(na.omit(terra::values(x = copernicus_data_celsius[[1]],
 
 ```{r}
 ### Apply function :
-copernicus_data_celsius <- BioExtremeEvent::BEE.calc.celsius(copernicus_data_celsius)
+copernicus_data_celsius <- BioExtremeEvent::BEE.convert.celsius(copernicus_data_celsius)
 ```
 
 ## How to save the output

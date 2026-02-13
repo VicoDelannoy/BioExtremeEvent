@@ -37,13 +37,18 @@ more informations.}
 or as subtitle in the Marine Data Store, it is usually in capital letters.}
 
 \item{variables:}{Is the variable you are interested in, you can only call one variable at a
-time. Variables name are visible in Marine Data Store > Product >
-Data access > From (bellow subset) > use the name in grey before square
+time. Variables name are visible in Marine Data Store - Product -
+Data access - From (bellow subset) - use the name in grey before square
 bracket. Check vignette \emph{0.1 Download data from Copernicus.} for
 more informations.}
 
 \item{minimum_longitude:}{You can use the "Draw on map" Copernicus tool to
-select an area of interest in Marine Data Store > Product > Data accessForm (bellow subset) and copy the values using "N" (north) as the maximumlatitude and "W" (west) as the minimum longitude if working in the northwesthemisphere.}
+select an area of interest in Marine Data Store - Product - Data access
+\itemize{
+\item Form (bellow subset) and copy the values using "N" (north) as the maximum
+latitude and "W" (west) as the minimum longitude if working in the northwest
+hemisphere.
+}}
 
 \item{maximum_longitude:}{Maximum longitude at which data will be extracted.}
 
@@ -85,18 +90,18 @@ download it from R.
 You can select your downloading conditions in
 https://data.marine.copernicus.eu/products : Product : Data access :
 Form and then copy and past the argument of the copernicusmarine.subset
-function in https://data.marine.copernicus.eu/products > Product >
+function in https://data.marine.copernicus.eu/products - Product -
 Data access : Form : Automate : Pyhton API and use them as this function
 arguments.
 }
 \examples{
 \dontrun{
-# Non interactive exemple because this function requieres personnal 
+# Non interactive exemple because this function requieres personnal
 # Copernicus logging informations. To test this function you can create the
 # variables my_username and my_password in your environment and copy/paste
 # the code bellow.
 data <- BEE.data.load_copernicus(
-username=my_username, 
+username=my_username,
 password=my_password,
 dataset_id="cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021",
 dataset_version="202411",
