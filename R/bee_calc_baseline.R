@@ -12,7 +12,7 @@
 #'  The date to use as the first day of your reference period. It must be in the
 #'  format **YYYY-MM-DD**. (Note that the provided dataset can cover a longer
 #'  time period than the one you want to use as a reference.)
-#' @param end_date: 
+#' @param end_date : 
 #'  The date to use as the first day of your reference period. It must be in the
 #'  format **YYYY-MM-DD**.
 #' @param threshold : 

@@ -8,10 +8,6 @@
 #'  The output of *BEE.calc.metric_point()* for a given location. Please note
 #'  that the output of BEE.calc.metric_point() is a list. You only need to
 #'  provide a dataframe from that list, not the whole list.
-#' @param color_theme :
-#'  A vector of four colour codes of your choice (the first one is for category
-#'  1 and the last one is for category 4), or 'red' to use an automatic palette
-#'  of red shades, or 'blue' for a colour-shaded palette.
 #' @param start_date :
 #'  = NULL by default or the date at which you want to start the plot. It must
 #'  be in the same format than metric_point_df$date.
