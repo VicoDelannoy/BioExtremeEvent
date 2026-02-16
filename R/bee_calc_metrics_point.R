@@ -21,7 +21,7 @@
 #'  baseline). Optional argument.
 #' @param baseline_fixed :
 #'  A numerical value representing a fixed threshold for which you want to
-#'  calculate the distance between the observed value and the threshold. 
+#'  calculate the distance between the observed value and the threshold.
 #'  Optional argument.
 #' @param baseline_mean :
 #'  Spatraster of the mean value baseline. Optional argument.
@@ -482,30 +482,31 @@ BEE.calc.metrics_point <- function(
     }
 
     if (group_by_event) {
+      # Delete daily values that are not usefull to describe the full event
+      columns_to_delete <- c(
+        "baseline_qt",
+        "baseline_mean",
+        "anomaly_mean", # anomaly to the baseline_mean
+        "anomaly_qt",
+        "anomaly_unit",
+        "cumulative_anomaly_qt",
+        "daily_category",
+        "daily_rates",
+        "date",
+        "daily_category",
+        "row_num",
+        "prev_value",
+        "prev_ID",
+        "last_value_prev_group",
+        ".groups"
+      )
       df <- df |>
-        # Delete daily values that are not usefull to describe the full event
         dplyr::select(
-          -dplyr::any_of(c(
-            baseline_qt,
-            baseline_mean,
-            anomaly_mean, # anomaly to the baseline_mean
-            anomaly_qt,
-            anomaly_unit,
-            cumulative_anomaly_qt,
-            daily_category,
-            daily_rates,
-            date,
-            daily_category,
-            row_num,
-            prev_value,
-            prev_ID,
-            last_value_prev_group,
-            dplyr::starts_with("evolution_rate_lag_"),
-            dplyr::starts_with("variance_value_lag_"),
-            .groups
-          ))
+          -dplyr::starts_with("evolution_rate_lag_"),
+          -dplyr::starts_with("variance_value_lag_")
         ) |>
-        dplyr::distinct(ID, .keep_all = TRUE) # Une seule ligne par ID
+        dplyr::distinct(ID, .keep_all = TRUE) # One row per ID
+      df <- df[, !(names(df) %in% columns_to_delete)]
     } else {
       df <- df |>
         dplyr::select(

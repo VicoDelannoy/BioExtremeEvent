@@ -34,29 +34,30 @@ metrics. It must contain columns labelled 'x' and 'y', which should contain
 longitudes and latitudes, respectively.}
 
 \item{start_date}{:
-First day on which you want to start computing metrics.}
+First day on which you want to start computing metrics. Optional argument.}
 
 \item{end_date}{:
-Last day on which you want to start computing metrics.}
+Last day on which you want to start computing metrics. Optional argument.}
 
 \item{time_lapse_vector}{:
 A vector of time laps on which to compute mean evolution rate and variance
-of the studdied parameter.}
+of the studdied parameter. Optional argument.}
 
 \item{baseline_qt}{:
 Spatraster of the 90th percentile baseline (or the 10th percentile
-baseline).}
+baseline). Optional argument.}
 
 \item{baseline_mean}{:
-Spatraster of the mean value baseline.}
+Spatraster of the mean value baseline. Optional argument.}
 
 \item{baseline_fixed}{:
 A numerical value representing a fixed threshold for which you want to
-calculate the distance between the observed value and the threshold.}
+calculate the distance between the observed value and the threshold.
+Optional argument.}
 
 \item{group_by_event}{:
 Whether you want an output summarise by extreme event or not. If not, you
-just get daily metrics.}
+just get daily metrics. Optional argument.}
 }
 \value{
 A list of dataframe (one per gps point), each dataframe contains
