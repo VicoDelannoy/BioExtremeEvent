@@ -253,13 +253,13 @@ Categories are defined in Hobday <em>et al.</em> 2018.</p>
 </tr>
 <tr class="even">
 <td align="center">x  </td>
-<td align="center">Latitude</td>
+<td align="center">Longitude</td>
 <td align="center">double</td>
 <td align="center">decimal degree</td>
 </tr>
 <tr class="odd">
 <td align="center">y</td>
-<td align="center">Longitude</td>
+<td align="center">Latitude</td>
 <td align="center">double</td>
 <td align="center">decimal degree</td>
 </tr>
@@ -464,8 +464,32 @@ Categories are defined in Hobday <em>et al.</em> 2018.</p>
 <td align="center">*</td>
 </tr>
 <tr class="odd">
+<td align="center">mean_anomaly_fixed</td>
+<td align="center">average of anomaly_fixed in the period</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="even">
+<td align="center">sd_anomaly_fixed</td>
+<td align="center">standard deviation of anomaly_fixed</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
 <td align="center"></td>
-<td align="center">period</td>
+<td align="center">in the period</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">max_anomaly_fixed</td>
+<td align="center">maximum value of anomaly_fixed in</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">the period</td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
@@ -503,6 +527,9 @@ Categories are defined in Hobday <em>et al.</em> 2018.</p>
 </table>
 <p>* Same unit as the spatraster provided (here it is degree Celsius) **
 Same format as the in the spatraster provided (here yyyy-mm-dd)</p>
+<p>Note: columns depending on baseline_qt, baseline_mean and
+baseline_fixed will only be calculated if the associated argument have
+been provided.</p>
 </div>
 </div>
 <div class="section level2">
@@ -687,7 +714,7 @@ indicate the extremes according to the categories:<a class="anchor" aria-label="
 <span>                              axis.title.x <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span>,</span>
 <span>                              axis.title.y <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span>,</span>
 <span>                              legend.title <span class="op">=</span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span>,</span>
-<span>                              legend.text  <span class="op">=</span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span>
+<span>                              legend.text  <span class="op">=</span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span>
 <span>    <span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="g_calc_metrics_point_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="700"><img src="g_calc_metrics_point_files/figure-html/unnamed-chunk-8-2.png" class="r-plt" alt="" width="700"></p>
 </div>

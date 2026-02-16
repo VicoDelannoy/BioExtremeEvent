@@ -89,7 +89,8 @@
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_lapse_vector <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  baseline_qt <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  baseline_mean <span class="op">=</span> <span class="va">baseline_mean</span>,</span>
+<span>  baseline_mean <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  baseline_fixed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_event <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -121,35 +122,42 @@ longitudes and latitudes, respectively.</p></dd>
 
 <dt id="arg-start-date">start_date<a class="anchor" aria-label="anchor" href="#arg-start-date"></a></dt>
 <dd><p>:
-First day on which you want to start computing metrics.</p></dd>
+First day on which you want to start computing metrics. Optional argument.</p></dd>
 
 
 <dt id="arg-end-date">end_date<a class="anchor" aria-label="anchor" href="#arg-end-date"></a></dt>
 <dd><p>:
-Last day on which you want to start computing metrics.</p></dd>
+Last day on which you want to start computing metrics. Optional argument.</p></dd>
 
 
 <dt id="arg-time-lapse-vector">time_lapse_vector<a class="anchor" aria-label="anchor" href="#arg-time-lapse-vector"></a></dt>
 <dd><p>:
 A vector of time laps on which to compute mean evolution rate and variance
-of the studdied parameter.</p></dd>
+of the studdied parameter. Optional argument.</p></dd>
 
 
 <dt id="arg-baseline-qt">baseline_qt<a class="anchor" aria-label="anchor" href="#arg-baseline-qt"></a></dt>
 <dd><p>:
 Spatraster of the 90th percentile baseline (or the 10th percentile
-baseline).</p></dd>
+baseline). Optional argument.</p></dd>
 
 
 <dt id="arg-baseline-mean">baseline_mean<a class="anchor" aria-label="anchor" href="#arg-baseline-mean"></a></dt>
 <dd><p>:
-Spatraster of the mean value baseline.</p></dd>
+Spatraster of the mean value baseline. Optional argument.</p></dd>
+
+
+<dt id="arg-baseline-fixed">baseline_fixed<a class="anchor" aria-label="anchor" href="#arg-baseline-fixed"></a></dt>
+<dd><p>:
+A numerical value representing a fixed threshold for which you want to
+calculate the distance between the observed value and the threshold.
+Optional argument.</p></dd>
 
 
 <dt id="arg-group-by-event">group_by_event<a class="anchor" aria-label="anchor" href="#arg-group-by-event"></a></dt>
 <dd><p>:
 Whether you want an output summarise by extreme event or not. If not, you
-just get daily metrics.</p></dd>
+just get daily metrics. Optional argument.</p></dd>
 
 </dl></div>
     <div id="value">
@@ -199,6 +207,7 @@ values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
 <span class="r-in"><span><span class="co">#  NULL means it will not be computated</span></span></span>
 <span class="r-in"><span> baseline_qt <span class="op">=</span> <span class="va">baseline_qt90_smth_15</span>,</span></span>
 <span class="r-in"><span> baseline_mean <span class="op">=</span> <span class="va">baseline_mean_smth_15</span>,</span></span>
+<span class="r-in"><span> baseline_fixed <span class="op">=</span> <span class="fl">12.5</span>,</span></span>
 <span class="r-in"><span> group_by_event <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> You didn't specify a begining date and a ending date (see argument </span>
