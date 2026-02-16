@@ -43,6 +43,8 @@ globalVariables(
     "anomaly_mean",
     "anomaly_unit",
     "duration",
+    "anomaly_fixed",
+    ".groups",
     "id", #BEE.data.summarise
     "summarise_by",
     "cum_one_to_zero", #BEE.calc.corrections
