@@ -102,7 +102,7 @@ BEE.plot.cumulative_anomaly <- function(
       color = NA
     ) +
     ggplot2::geom_line(
-      size = 1,
+      linewidth = 1,
       alpha = 1 / length(unique(one_place_filtered$year_num)) + 0.05
     ) +
     ggplot2::scale_color_gradientn(
@@ -151,7 +151,7 @@ BEE.plot.cumulative_anomaly <- function(
       color = factor(ID)
     )
   ) +
-    ggplot2::geom_line(size = 1) +
+    ggplot2::geom_line(linewidth = 1) +
     ggplot2::labs(
       x = "Duration of event (days)",
       y = "Cumulative anomaly (quantile)",

@@ -36,19 +36,23 @@ The second element is called **"extreme_event"**. This is a list with one data.t
 
 The dataframes in the output list "extreme_event" contains the followings collumns :
 
-|   Column name  |             Description            |   Type    |  Unit   |
+|   Column name  |             Description            |   Class   |  Unit   |
 |:--------------:|:----------------------------------:|:---------:|:-------:|
-| original_value | Day more extreme than baseline = 1 | binary    |         |
+| pixel_id       | Pixel number in the spatraster     | integer   |         |
+| original_value | Day more extreme than baseline = 1 | double    |         |
 |                | Day less extreme than baseline = 0 |           |         |
-| cleaned_value  | Day belong to an exteme event = 1  | binary    |         |
+| cleaned_value  | Day belong to an exteme event = 1  | double    |         |
 |                | Day outside of an extreme event = 0|           |         |
-| ID             | Identifier of the extreme event \* |character  |         |
-| duration       | Duration of the period (extreme    |numerical  | days    |   
+| event_id       | Number of the extreme event in the | integer   |         | 
+|                | time serie                         |           |         |
+| duration       | Duration of the period (extreme    | integer   | days    |   
 |                | event or in between 2 events)      |           |         |   
-| date           | Date associated to the observation |date       |         |  
-
+| date           | Date associated to the observation |double/date|         |  
+| ID             | The event identifier \*            | character |         |
 
 \* built using the pixel number, the first day of the event and the last day of the event and the event_id for that pixel. ID and event_id are proper to each pixel.  
+
+If the position in the list corresponds to a pixel number for which the pixel value is consistently NA, the data frame is a null object.
 
 # Note
 The *BEE.calc.corrections()* function allows to check how many modifications your choices of settings in BEE.calc.tru_event have induced compare to row binerized data. Please check *3.bis. Check the number of modifications induced by the BEE.id.extreme_events() settings.*
@@ -65,13 +69,13 @@ binarized_data <- terra::rast(file_name_1)
 
 ## Apply filter:
 ```{r}
-binarized_EE <- BEE.id.extreme_events(binarized_spatraster = binarized_data, n = 5, d = 2)
+events <- BEE.id.extreme_events(binarized_spatraster = binarized_data, n = 5, d = 2)
 ```
 
 ## Spatraster output:
 ```{r}
 # Get the corrected spatraster:
-binarized_corrected_spatraster <- binarized_EE[[1]]
+binarized_corrected_spatraster <- events[[1]]
 
 # Plot a layer
 date <- terra::time(binarized_corrected_spatraster[[800]])
@@ -83,7 +87,7 @@ terra::plot(binarized_corrected_spatraster[[800]],
 ## Get the list of data.table with former and corrected values and with dates and duration:
 
 ```{r}
-binarized_corrected_df <- binarized_EE[[2]]
+binarized_corrected_df <- events[[2]]
 head(binarized_corrected_df[[80]])
 # Here 80 refers to the pixel id. The 850th day correspond to the 850th row.
 ```
@@ -94,11 +98,11 @@ Due to the different nature of the two outputs, they must be saved separately.
 
 ```{r, eval = FALSE}
 ## Save the spatraster
-binarized_corrected_spatraster <- binarized_EE[[1]]
+binarized_corrected_spatraster <- events[[1]]
 terra::writeRaster(binarized_corrected_spatraster, "your_path/data/binarized_corrected_spatraster.tiff")
 
 ## Save the list of df
-binarized_corrected_df <- binarized_EE[[2]]
+binarized_corrected_df <- events[[2]]
 saveRDS(binarized_corrected_df, file = "your_path/data/binarized_corrected_df.rds")
 ```
 

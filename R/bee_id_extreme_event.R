@@ -1,6 +1,6 @@
 #' Identify the extreme event
 #'
-#' @description 
+#' @description
 #'  Identify the extreme event according to the set of constraints.
 #'
 #' @param binarized_spatraster :
@@ -40,14 +40,14 @@
 #' @param p :
 #'  NOT AVAILBALE YET, see "w" explanations. Default: NULL
 #'
-#' @return 
+#' @return
 #'  Returns a list with 2 elements. The first one is called
-#'  **"binarized_spatraster_corrected"**. This is a Spatraster containing 
+#'  **"binarized_spatraster_corrected"**. This is a Spatraster containing
 #'  binarised values that have been corrected according to the definition used
 #'  in the function. It is used in the next funciton of the pipeline.
 #'  The second element is called **"extreme_event"**. This is a list with one
 #'  data.table per pixel.
-#'  Each data.table has a date for each row (and as many dates as there are 
+#'  Each data.table has a date for each row (and as many dates as there are
 #'  layers in yourspatraster). The "original_value" column gives the value of
 #'  the raw binarisation before applying this function. "cleaned_value" provides
 #'  the corrected values for each date. "ID" is the identifier of the event,
@@ -59,7 +59,7 @@
 #'  Setting *'nbis'* = 1, has the same effect as setting nbis= NULL. When
 #'  *'nbis'* = NULL any series of 1 distant from less than *'d'* to a series of
 #'  1 at least as long as *'n'* days will be merged into one big series event,
-#'  even if the serie last only one day. If you provide an argument for 
+#'  even if the serie last only one day. If you provide an argument for
 #'  *'nbis'*, only series at least as long as *'nbis'* can be merge to serie as
 #'  long as *'n'* (if the two are distant from less than *'d'* days).
 #'  Days above threshold that don't qualify has "extreme event" (e.g. to short
@@ -201,16 +201,16 @@ BEE.id.extreme_events <- function(
     #here add code for high complexity
   }
   ### Modify the spatraster :
-  # Build a matrice pixel x time using cleanned_value column from extreme_event
+  # Build a matrice pixel x time using cleaned_value column from extreme_event
   n_pixels <- terra::ncell(binarized_spatraster)
   n_dates <- length(all_dates)
   # empty matrice :
   mat <- matrix(NA_real_, nrow = n_pixels, ncol = n_dates)
-  # add corrected values from Event_correct (column cleanned value of each dt)
+  # add corrected values from Event_correct (column cleaned value of each dt)
   for (p in seq(1, length(indices_to_do), 1)) {
     #1.4 s 419 MB
     # no correction needed for pixels that are always NA
-    mat[indices_to_do[p], ] <- extreme_event[[p]]$cleanned_value
+    mat[indices_to_do[p], ] <- extreme_event[[p]]$cleaned_value
   }
   binarized_spatraster_corrected <- binarized_spatraster
   terra::values(binarized_spatraster_corrected) <- mat
@@ -254,22 +254,22 @@ correct_lowcomplexity_n_d <- function(pixel_time_series, c, n, d, all_dates) {
   ) ##list isolated '1'
   ## (series < n ) by 0
   rle_series$values[One_to_0] <- 0 # replace isolated 1 by 0
-  pixel_values_cleanned <- inverse.rle(rle_series) # values of each
+  pixel_values_cleaned <- inverse.rle(rle_series) # values of each
   ## pixel trough time
-  rle_series_cleanned <- rle(pixel_values_cleanned) # re-identify
+  rle_series_cleaned <- rle(pixel_values_cleaned) # re-identify
   ## the series of 0, this way series of zeros are re-defined to include 0
   ## and 1 transformed to 0 in one same serie when they are next to each
   ## other.
   # Clean isolated '0'
   Zero_to_1 <- which(
-    rle_series_cleanned$values == 0 &
-      rle_series_cleanned$lengths <= d
+    rle_series_cleaned$values == 0 &
+      rle_series_cleaned$lengths <= d
   ) ##list isolated '1'
   ## (series < n ) by 1
-  rle_series_cleanned$values[Zero_to_1] <- 1 # replace isolated 0 by 1
-  pixel_values_cleanned <- inverse.rle(rle_series_cleanned) # values of each
+  rle_series_cleaned$values[Zero_to_1] <- 1 # replace isolated 0 by 1
+  pixel_values_cleaned <- inverse.rle(rle_series_cleaned) # values of each
   ## pixel trough time
-  rle_series_cleanned <- rle(pixel_values_cleanned) # re-identify
+  rle_series_cleaned <- rle(pixel_values_cleaned) # re-identify
   ## the series of 1, this way series of ones are re-defined to include 1
   ## and 0 transformed to 1 in one same serie when they are next to each
   ## other.
@@ -280,14 +280,14 @@ correct_lowcomplexity_n_d <- function(pixel_time_series, c, n, d, all_dates) {
       original_value = as.vector(pixel_values),
       #need to go through a dataframe because I don't know how to modify the
       # event_id directly in rle object
-      cleanned_value = unlist(pixel_values_cleanned),
+      cleaned_value = unlist(pixel_values_cleaned),
       event_id = rep(
-        seq_along(rle_series_cleanned$lengths),
-        rle_series_cleanned$lengths
+        seq_along(rle_series_cleaned$lengths),
+        rle_series_cleaned$lengths
       ),
       duration = rep(
-        rle_series_cleanned$lengths,
-        rle_series_cleanned$lengths
+        rle_series_cleaned$lengths,
+        rle_series_cleaned$lengths
       )
     )
     dt
@@ -362,23 +362,23 @@ correct_mediumcomplexity_n_d_nbis <- function(
   # identified above.
   # 4) correct the VERY isolated ones:
   rle_series$values[One_to_0] <- 0 # replace isolated 1 by 0
-  pixel_values_cleanned <- inverse.rle(rle_series) # values of each
+  pixel_values_cleaned <- inverse.rle(rle_series) # values of each
   ## pixel trough time
-  rle_series_cleanned <- rle(pixel_values_cleanned) # re-identify
+  rle_series_cleaned <- rle(pixel_values_cleaned) # re-identify
   ## the series of 0, this way series of zeros are re-defined to include 0
   ## and 1 transformed to 0 in one same serie when they are next to each
   ## other.
 
   # Clean isolated '0'
   Zero_to_1 <- which(
-    rle_series_cleanned$values == 0 &
-      rle_series_cleanned$lengths <= d
+    rle_series_cleaned$values == 0 &
+      rle_series_cleaned$lengths <= d
   )
 
-  rle_series_cleanned$values[Zero_to_1] <- 1 # replace isolated 0 by 1
-  pixel_values_cleanned <- inverse.rle(rle_series_cleanned) # values of each
+  rle_series_cleaned$values[Zero_to_1] <- 1 # replace isolated 0 by 1
+  pixel_values_cleaned <- inverse.rle(rle_series_cleaned) # values of each
   ## pixel trough time
-  rle_series_cleanned <- rle(pixel_values_cleanned) # re-identify
+  rle_series_cleaned <- rle(pixel_values_cleaned) # re-identify
   ## the series of 1, this way series of ones are re-defined to include 1
   ## and 0 transformed to 1 in one same serie when they are next to each
   ## other.
@@ -389,14 +389,14 @@ correct_mediumcomplexity_n_d_nbis <- function(
       original_value = as.vector(pixel_values),
       #need to go through a dataframe because I don't know how to modify the
       # event_id directly in rle object
-      cleanned_value = unlist(pixel_values_cleanned),
+      cleaned_value = unlist(pixel_values_cleaned),
       event_id = rep(
-        seq_along(rle_series_cleanned$lengths),
-        rle_series_cleanned$lengths
+        seq_along(rle_series_cleaned$lengths),
+        rle_series_cleaned$lengths
       ),
       duration = rep(
-        rle_series_cleanned$lengths,
-        rle_series_cleanned$lengths
+        rle_series_cleaned$lengths,
+        rle_series_cleaned$lengths
       )
     )
     dt
@@ -441,7 +441,7 @@ correct_raster <- function(raster, t, extreme_event, indices_to_do) {
   full_values <- rep(NA_real_, n)
   ## Get corrected values of non NA pixels
   Matching_cleaning_values <- sapply(extreme_event, function(event) {
-    event[t]$cleanned_value
+    event[t]$cleaned_value
   })
   ## Add non NA pixels to the NA vector
   full_values[indices_to_do] <- Matching_cleaning_values

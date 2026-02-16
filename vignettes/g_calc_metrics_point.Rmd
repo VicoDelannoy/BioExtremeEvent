@@ -45,7 +45,68 @@ You will receive a message in the following case :
 -   You didn't specified a *"start_date"* or a *"end_date"*, a message will indicate the default *"start_date"* and *"end_date"* used.  
 
 ## Output
-A list of dataframe (one per gps point), each dataframe contains informations on the date of the extrem events, mean, median, max and min values, peak day, onset-rate, off-set rate, mean anomaly, maximum category *etc.* Categories are defined in Hobday *et al.* 2018.
+It is a list of dataframe (one per gps point). Each dataframe contains information on the periods of extreme events and the periods in between extreme events. Information can be daily or grouped by time periods (extreme events or in between extreme events). To simplify the explanation of the columns, the term 'period' is used to refer to both periods of extreme events and the periods between extreme events. To check if a period is extreme, you can use cleaned_value == 1 or check the daily_category column.  
+Categories are defined in Hobday *et al.* 2018.  
+
+Dataframes contains the folowing informations:
+
+|   Column name        |             Description              |   Class   |  Unit          |
+|:--------------------:|:------------------------------------:|:---------:|:--------------:|
+| pixel_id             | Pixel number in the spatraster       | integer   |                |
+| original_value       | Day more extreme than baseline = 1   | double    |                |
+|                      | Day less extreme than baseline = 0   |           |                |
+| cleaned_value        | Day belong to an exteme event = 1    | double    |                |
+|                      | Day outside of an extreme event = 0  |           |                |
+| event_id             | Number of the extreme event in the   | integer   |                | 
+|                      | time serie                           |           |                |
+| duration             | Duration of the period               | integer   | days           |  
+| date                 | Date associated to the observation   |double/date|                |  
+| ID                   | The event identifier \*              | character |                |
+| value                | Value of the sudied parameter        | double    | \*             |
+| x                    | Latitude                             | double    | decimal degree |
+| y                    | Longitude                            | double    | decimal degree |
+| first_date           | First day of the period              | Date      | \*\*           |
+| last_date            | Last day of the period               | Date      | \*\*           |
+| mean_value           | Mean value of the period             | double    | \*             |
+| median_value         | Median value of the period           | double    | \*             |
+| max_value            | Max value of the period              | double    | \*             |
+| date_max_value       | Date one which max value was reached | double    | \*\*           |
+| days_onset_abs       | Number of days between the 1^s^t day | double    | days           |
+|                      | and the day of maximal value         |           |                |
+| raw_onset_rate_abs   | Slope between 1^s^t day and the day  |           |                |
+|                      | of maximal value                     | double    | \* per day     |
+| days_offset_abs      | Number of days between the day of max| double    | days           |
+|                      | value and the last day               |           |                |
+| raw_offset_rate_abs  | Slope between the day of maximal     |           |                |
+|                      | value and the last day               | double    | \* per day     |
+| daily_rate           | variation between d day and d-1      | double    | \* per day     |
+| baseline_qt          | value in baseline_qt argument        | double    | \*             |
+| baseline_mean        | value in baseline_mean argument      | double    | \*             |
+| anomaly_qt           | value on d day - baseline_qt on d day| double    | \*             |
+| anomaly_mean         | value on d day - baseline_mean on d  | double    | \*             |
+|                      | day                                  |           |                |
+| anomaly_unit         | baseline_qt on d day - baseline_mean | double    | \*             |
+|                      | on d day                             |           |                |
+| daily_category       | period category according Hodbay *et*| factor (5)| no,I,II,III,IV |
+|                      | *al.*, 2018                          |           |                |
+| mean_anomaly_qt      | average of anomaly_qt in the period  | double    | \*             |
+| sd_anomaly_qt        | standard deviation of anomaly_qt in  | double    | \*             |
+|                      | the period                           |           |                |
+| max_anomaly_qt       | maximum value of anomaly_qt in the   | double    | \*             |
+|                      | period                               |           |                |
+| mean_anomaly_mean    | average of anomaly_mean in the period| double    | \*             |
+| sd_anomaly_mean      | standard deviation of anomaly_mean in| double    | \*             |
+|                      | the period                           |           |                |
+| max_anomaly_mean     | maximum value of anomaly_mean in the | double    | \*             |
+|                      | period                               |           |                |
+|most_frequent_category| most frequent category in the period | character |                |
+| evolution_rate_lag_x | rate of 'value' computed over x days | double    | \* per day     |
+|                      | available when time_lapse_vector=x   |           |                |
+| variance_value_lag_x | variance of 'value' computed over x  | double    | \* squared     |
+|                      |days, available if time_lapse_vector=x|           |                |
+
+\* Same unit as the spatraster provided (here it is degree Celsius)
+\*\* Same format as the in the spatraster provided (here yyyy-mm-dd)
 
 # Examples
 ## Load data:

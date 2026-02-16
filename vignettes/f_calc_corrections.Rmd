@@ -35,16 +35,22 @@ The output is a data frame containing one row for each combination of date and p
 The first plot shows the cumulative percentage of values that have been modified amongst all non-NA values over time. This allows us to visualise whether the corrections are homogeneous over time. If so, the lines drawn should be straight. The same graph also allows you to check whether a similar percentage of non-NA values have been changed to 1 and to 0.  
 The second graph allows you to check whether the corrections are homogeneous across the area. It plots the studied area and shows the difference between the number extreme days that have been added and the number  extreme days that have been withdrawn, for each pixel. If a pixel value is negative, it means that, over the entire time period, more extreme days have been removed than added for that pixel.
 
-|   Column name  |             Description            |   Type    |  Unit   |
+|   Column name  |             Description            |   Class   |  Unit   |
 |:--------------:|:----------------------------------:|:---------:|:-------:|
-| original_value | Day more extreme than baseline = 1 | binary    |         |
+| pixel_id       | Pixel number in the spatraster     | integer   |         |
+| original_value | Day more extreme than baseline = 1 | double    |         |
 |                | Day less extreme than baseline = 0 |           |         |
-| cleaned_value  | Day belong to an exteme event = 1  | binary    |         |
+| cleaned_value  | Day belong to an exteme event = 1  | double    |         |
 |                | Day outside of an extreme event = 0|           |         |
-| ID             | Identifier of the extreme event \* |character  |         |
-| duration       | Duration of the period (extreme    |numerical  | days    |   
+| event_id       | Number of the extreme event in the | integer   |         | 
+|                | time serie                         |           |         |
+| duration       | Duration of the period (extreme    | integer   | days    |   
 |                | event or in between 2 events)      |           |         |   
-| date           | Date associated to the observation |date       |         | 
+| date           | Date associated to the observation | Date      |         |  
+| ID             | The event identifier \*            | character |         |
+| delta          | cleaned_value - original value     | double    | days    |
+| one_to_zero    | Number of days changed from 1 to 0 | double    | days    |
+| zero_to_one    | Number of days changed from 0 to 1 | double    | days    |
 
 # Examples
 ## Load data:

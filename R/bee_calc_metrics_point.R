@@ -370,7 +370,7 @@ BEE.calc.metrics_point <- function(
         anomaly_mean = value - baseline_mean,
         anomaly_unit = baseline_qt - baseline_mean,
         daily_category = dplyr::case_when(
-          cleanned_value == 0 ~ "No extreme event",
+          cleaned_value == 0 ~ "No extreme event",
           anomaly_qt < anomaly_unit ~ "Category I",
           anomaly_qt < 2 * anomaly_unit & anomaly_qt >= 0 ~ "Category II",
           anomaly_qt < 3 * anomaly_unit & anomaly_qt >= 0 ~ "Category III",

@@ -46,8 +46,8 @@
 #' @export
 #'
 #-------------------------------------------------------------------------------
-# For tests : true_event_raster <- Corrected_rasters;
-# true_event_df_list <- events_corrected
+# For tests : true_event_raster <- binarized_corrected_spatraster;
+# true_event_df_list <- binarized_corrected_df
 BEE.calc.corrections <- function(
   true_event_raster,
   true_event_df_list,
@@ -55,7 +55,7 @@ BEE.calc.corrections <- function(
 ) {
   df <- data.table::rbindlist(true_event_df_list)
   # total changes in the spatraster
-  delta <- df$cleanned_value - df$original_value
+  delta <- df$cleaned_value - df$original_value
   n_positive <- sum(delta > 0, na.rm = TRUE) # 0 -> 1
   n_negative <- sum(delta < 0, na.rm = TRUE) # 1 -> 0
   # total changes in percentages (among non NA values) in the spatraster:

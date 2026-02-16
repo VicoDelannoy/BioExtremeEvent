@@ -36,6 +36,7 @@ The output is a spartaster with the same properties as yourspatraster but it
 only contains binerized value (1 or 0), '1' if the pixel values was more extreme than the baseline on the day corresponding to the layer. '0' if it was less extreme. Pixel that were NA stays NA. 
 This SpatRaster contains binarised extreme **days**. The function *BEE.calc.binarise()* only identifies, for each pixel, the days that are more extreme than the baseline according to the selected threshold. At this stage, no extreme events are defined yet; the output is simply a binary time series of extreme versus non-extreme days. to identifies extreme event, see *BEE.id.extreme_events()*.
 
+
 # Examples
 ## Load data:
 ```{r setup}

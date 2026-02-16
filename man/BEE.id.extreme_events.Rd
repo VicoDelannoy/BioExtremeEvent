@@ -66,8 +66,8 @@ layers in yourspatraster). The "original_value" column gives the value of
 the raw binarisation before applying this function. "cleaned_value" provides
 the corrected values for each date. "ID" is the identifier of the event,
 built using the pixel number, the first day of the event and the last day of
-the event. It is proper to each pixel. "Duration" indicates the duration (in
-days) of the event. "Date" indicates the date corresponding to the row.
+the event. It is proper to each pixel. "duration" indicates the duration (in
+days) of the event. "date" indicates the date corresponding to the row.
 }
 \description{
 Identify the extreme event according to the set of constraints.

@@ -63,7 +63,7 @@ BEE.data.summarise <- function(
     "pixel_id",
     "date",
     "original_value",
-    "cleanned_value",
+    "cleaned_value",
     "event_id",
     "duration",
     "ID_df_point",
