@@ -5,7 +5,7 @@
 <url><loc>/articles/a_load_corpernicus.html</loc></url>
 <url><loc>/articles/b_convert_celsius.html</loc></url>
 <url><loc>/articles/c_calc_baseline.html</loc></url>
-<url><loc>/articles/d_calc_binarize.html</loc></url>
+<url><loc>/articles/d_id_extreme_day.html</loc></url>
 <url><loc>/articles/e_id_extreme_event.html</loc></url>
 <url><loc>/articles/f_calc_corrections.html</loc></url>
 <url><loc>/articles/g_calc_metrics_point.html</loc></url>
@@ -20,7 +20,7 @@
 <url><loc>/reference/BEE.convert.celsius.html</loc></url>
 <url><loc>/reference/BEE.data.merge.html</loc></url>
 <url><loc>/reference/BEE.data.summarise.html</loc></url>
-<url><loc>/reference/BEE.id.extreme_days.html</loc></url>
+<url><loc>/reference/BEE.id.extreme_day.html</loc></url>
 <url><loc>/reference/BEE.id.extreme_events.html</loc></url>
 <url><loc>/reference/BEE.load.copernicus.html</loc></url>
 <url><loc>/reference/BEE.plot.categories.html</loc></url>

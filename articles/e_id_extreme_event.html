@@ -61,7 +61,7 @@
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
     </li>
     <li>
-      <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
+      <a href="../articles/d_id_extreme_day.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
       <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
@@ -114,7 +114,7 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
 <p>Identify the extreme event according to a set of constraints
 (e.g. minimum duration, merging close events).
 <em>BEE.id.extreme_events()</em> transforms the extreme days identified
-with <em>BEE.id.extreme_days()</em> into coherent extreme events by
+with <em>BEE.id.extreme_day()</em> into coherent extreme events by
 applying temporal criteria such as minimum duration, merging events
 close in time, and removing isolated days. The two functions are
 complementary: binarise detects when conditions are extreme, while
@@ -169,14 +169,95 @@ pipeline.<br>
 The second element is called <strong>“extreme_event”</strong>. This is a
 list with one data.table per pixel. Each data.table has a date for each
 row (and as many dates as there are layers in yourspatraster).</p>
-<p>The dataframes The “original_value” column gives the value of the raw
-binarisation before applying this function.<br>
-“cleaned_value” provides the corrected values for each date.<br>
-“ID” is the identifier of the event, built using the pixel number, the
-first day of the event and the last day of the event and the event_id
-for that pixel. ID and event_id are proper to each pixel.<br>
-“Duration” indicates the duration (in days) of the event.<br>
-“Date” indicates the date corresponding to the row.</p>
+<p>The dataframes in the output list “extreme_event” contains the
+followings collumns :</p>
+<table class="table">
+<colgroup>
+<col width="22%">
+<col width="50%">
+<col width="15%">
+<col width="12%">
+</colgroup>
+<thead><tr class="header">
+<th align="center">Column name</th>
+<th align="center">Description</th>
+<th align="center">Class</th>
+<th align="center">Unit</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="center">pixel_id</td>
+<td align="center">Pixel number in the spatraster</td>
+<td align="center">integer</td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">original_value</td>
+<td align="center">Day more extreme than baseline = 1</td>
+<td align="center">double</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">Day less extreme than baseline = 0</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">cleaned_value</td>
+<td align="center">Day belong to an exteme event = 1</td>
+<td align="center">double</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">Day outside of an extreme event = 0</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">event_id</td>
+<td align="center">Number of the extreme event in the</td>
+<td align="center">integer</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">time serie</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">duration</td>
+<td align="center">Duration of the period (extreme</td>
+<td align="center">integer</td>
+<td align="center">days</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">event or in between 2 events)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">date</td>
+<td align="center">Date associated to the observation</td>
+<td align="center">double/date</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center">ID</td>
+<td align="center">The event identifier *</td>
+<td align="center">character</td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<p>* built using the pixel number, the first day of the event and the
+last day of the event and the event_id for that pixel. ID and event_id
+are proper to each pixel.</p>
+<p>If the position in the list corresponds to a pixel number for which
+the pixel value is consistently NA, the data frame is a null object.</p>
 </div>
 </div>
 <div class="section level2">
@@ -196,7 +277,7 @@ settings.</em></p>
 </h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VicoMarbec/BioExtremeEvent" class="external-link">BioExtremeEvent</a></span><span class="op">)</span></span>
-<span><span class="co">#Binarized spatraster built using BEE.id.extreme_days()</span></span>
+<span><span class="co">#Binarized spatraster built using BEE.id.extreme_day()</span></span>
 <span><span class="va">file_name_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"copernicus_binarized.tiff"</span><span class="op">)</span>,</span>
 <span>                                   package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
 <span><span class="va">binarized_data</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name_1</span><span class="op">)</span></span></code></pre></div>
@@ -205,14 +286,14 @@ settings.</em></p>
 <h3 id="apply-filter">Apply filter:<a class="anchor" aria-label="anchor" href="#apply-filter"></a>
 </h3>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.id.extreme_events.html">BEE.id.extreme_events</a></span><span class="op">(</span>binarized_spatraster <span class="op">=</span> <span class="va">binarized_data</span>, n <span class="op">=</span> <span class="fl">5</span>, d <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">events</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.id.extreme_events.html">BEE.id.extreme_events</a></span><span class="op">(</span>binarized_spatraster <span class="op">=</span> <span class="va">binarized_data</span>, n <span class="op">=</span> <span class="fl">5</span>, d <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="spatraster-output">Spatraster output:<a class="anchor" aria-label="anchor" href="#spatraster-output"></a>
 </h3>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get the corrected spatraster:</span></span>
-<span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">events</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co"># Plot a layer</span></span>
 <span><span class="va">date</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span><span class="op">[[</span><span class="fl">800</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
@@ -227,15 +308,15 @@ settings.</em></p>
 dates and duration:<a class="anchor" aria-label="anchor" href="#get-the-list-of-data-table-with-former-and-corrected-values-and-with-dates-and-duration"></a>
 </h3>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="va">events</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">binarized_corrected_df</span><span class="op">[[</span><span class="fl">80</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##   pixel_id original_value cleanned_value event_id duration       date</span></span>
-<span><span class="co">## 1       80              1              1        1       21 2023-01-01</span></span>
-<span><span class="co">## 2       80              1              1        1       21 2023-01-02</span></span>
-<span><span class="co">## 3       80              1              1        1       21 2023-01-03</span></span>
-<span><span class="co">## 4       80              1              1        1       21 2023-01-04</span></span>
-<span><span class="co">## 5       80              1              1        1       21 2023-01-05</span></span>
-<span><span class="co">## 6       80              1              1        1       21 2023-01-06</span></span>
+<pre><code><span><span class="co">##   pixel_id original_value cleaned_value event_id duration       date</span></span>
+<span><span class="co">## 1       80              1             1        1       21 2023-01-01</span></span>
+<span><span class="co">## 2       80              1             1        1       21 2023-01-02</span></span>
+<span><span class="co">## 3       80              1             1        1       21 2023-01-03</span></span>
+<span><span class="co">## 4       80              1             1        1       21 2023-01-04</span></span>
+<span><span class="co">## 5       80              1             1        1       21 2023-01-05</span></span>
+<span><span class="co">## 6       80              1             1        1       21 2023-01-06</span></span>
 <span><span class="co">##                           ID</span></span>
 <span><span class="co">## 1 80_2023-01-01_2023-01-21_1</span></span>
 <span><span class="co">## 2 80_2023-01-01_2023-01-21_1</span></span>
@@ -253,11 +334,11 @@ dates and duration:<a class="anchor" aria-label="anchor" href="#get-the-list-of-
 separately.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Save the spatraster</span></span>
-<span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="va">binarized_corrected_spatraster</span> <span class="op">&lt;-</span> <span class="va">events</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">binarized_corrected_spatraster</span>, <span class="st">"your_path/data/binarized_corrected_spatraster.tiff"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">## Save the list of df</span></span>
-<span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="va">binarized_EE</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="va">binarized_corrected_df</span> <span class="op">&lt;-</span> <span class="va">events</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/serialize.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">binarized_corrected_df</span>, file <span class="op">=</span> <span class="st">"your_path/data/binarized_corrected_df.rds"</span><span class="op">)</span></span></code></pre></div>
 <p>Please save both because they are both used in the next steps of the
 pipeline.</p>

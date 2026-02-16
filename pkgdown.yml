@@ -6,8 +6,8 @@ articles:
   b_convert_celsius: b_convert_celsius.html
   BioExtremeEvent: BioExtremeEvent.html
   c_calc_baseline: c_calc_baseline.html
-  d_calc_binarize: d_calc_binarize.html
+  d_id_extreme_day: d_id_extreme_day.html
   e_id_extreme_event: e_id_extreme_event.html
   f_calc_corrections: f_calc_corrections.html
   g_calc_metrics_point: g_calc_metrics_point.html
-last_built: 2026-02-13T14:30Z
+last_built: 2026-02-16T10:27Z

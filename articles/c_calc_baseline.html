@@ -61,7 +61,7 @@
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
     </li>
     <li>
-      <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
+      <a href="../articles/d_id_extreme_day.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
       <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
@@ -128,10 +128,10 @@ involves three steps :<br>
 <em>BEE.calc.baseline()</em> function.<br>
 - Then, each day of the studied time period is compared to the baseline
 value, and days above (or below) the threshold are identified using
-<em>BEE.id.extreme_days()</em>. If you are working with a fixed
-baseline, you can skip <em>BEE.calc.baseline()</em> and go straight to
-<em>BEE.id.extreme_days()</em>.<br>
-- Finally, you can apply a filter to <em>BEE.id.extreme_days()</em>
+<em>BEE.id.extreme_day()</em>. If you are working with a fixed baseline,
+you can skip <em>BEE.calc.baseline()</em> and go straight to
+<em>BEE.id.extreme_day()</em>.<br>
+- Finally, you can apply a filter to <em>BEE.id.extreme_day()</em>
 output to add additional criteria to the ‘extreme event’ definition.
 This could be a minimum duration or a tolerance of a certain number of
 days below the baseline value within an extreme event. See

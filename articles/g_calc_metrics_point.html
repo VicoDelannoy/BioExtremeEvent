@@ -61,7 +61,7 @@
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
     </li>
     <li>
-      <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
+      <a href="../articles/d_id_extreme_day.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
       <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
@@ -161,11 +161,348 @@ a message will indicate the default <em>“start_date”</em> and
 <div class="section level3">
 <h3 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a>
 </h3>
-<p>A list of dataframe (one per gps point), each dataframe contains
-informations on the date of the extrem events, mean, median, max and min
-values, peak day, onset-rate, off-set rate, mean anomaly, maximum
-category <em>etc.</em> Categories are defined in Hobday <em>et al.</em>
-2018.</p>
+<p>It is a list of dataframe (one per gps point). Each dataframe
+contains information on the periods of extreme events and the periods in
+between extreme events. Information can be daily or grouped by time
+periods (extreme events or in between extreme events). To simplify the
+explanation of the columns, the term ‘period’ is used to refer to both
+periods of extreme events and the periods between extreme events. To
+check if a period is extreme, you can use cleaned_value == 1 or check
+the daily_category column.<br>
+Categories are defined in Hobday <em>et al.</em> 2018.</p>
+<p>Dataframes contains the folowing informations:</p>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="43%">
+<col width="12%">
+<col width="18%">
+</colgroup>
+<thead><tr class="header">
+<th align="center">Column name</th>
+<th align="center">Description</th>
+<th align="center">Class</th>
+<th align="center">Unit</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="center">pixel_id</td>
+<td align="center">Pixel number in the spatraster</td>
+<td align="center">integer</td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">original_value</td>
+<td align="center">Day more extreme than baseline = 1</td>
+<td align="center">double</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">Day less extreme than baseline = 0</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">cleaned_value</td>
+<td align="center">Day belong to an exteme event = 1</td>
+<td align="center">double</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">Day outside of an extreme event = 0</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">event_id</td>
+<td align="center">Number of the extreme event in the</td>
+<td align="center">integer</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">time serie</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">duration</td>
+<td align="center">Duration of the period</td>
+<td align="center">integer</td>
+<td align="center">days</td>
+</tr>
+<tr class="odd">
+<td align="center">date</td>
+<td align="center">Date associated to the observation</td>
+<td align="center">double/date</td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">ID</td>
+<td align="center">The event identifier *</td>
+<td align="center">character</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center">value</td>
+<td align="center">Value of the sudied parameter</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="even">
+<td align="center">x  </td>
+<td align="center">Latitude</td>
+<td align="center">double</td>
+<td align="center">decimal degree</td>
+</tr>
+<tr class="odd">
+<td align="center">y</td>
+<td align="center">Longitude</td>
+<td align="center">double</td>
+<td align="center">decimal degree</td>
+</tr>
+<tr class="even">
+<td align="center">first_date</td>
+<td align="center">First day of the period</td>
+<td align="center">Date</td>
+<td align="center">**</td>
+</tr>
+<tr class="odd">
+<td align="center">last_date</td>
+<td align="center">Last day of the period</td>
+<td align="center">Date</td>
+<td align="center">**</td>
+</tr>
+<tr class="even">
+<td align="center">mean_value</td>
+<td align="center">Mean value of the period</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
+<td align="center">median_value</td>
+<td align="center">Median value of the period</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="even">
+<td align="center">max_value</td>
+<td align="center">Max value of the period</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
+<td align="center">date_max_value</td>
+<td align="center">Date one which max value was reached</td>
+<td align="center">double</td>
+<td align="center">**</td>
+</tr>
+<tr class="even">
+<td align="center">days_onset_abs</td>
+<td align="center">Number of days between the 1<sup>s</sup>t day</td>
+<td align="center">double</td>
+<td align="center">days</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">and the day of maximal value</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">raw_onset_rate_abs</td>
+<td align="center">Slope between 1<sup>s</sup>t day and the day</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">of maximal value</td>
+<td align="center">double</td>
+<td align="center">* per day</td>
+</tr>
+<tr class="even">
+<td align="center">days_offset_abs</td>
+<td align="center">Number of days between the day of max</td>
+<td align="center">double</td>
+<td align="center">days</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">value and the last day</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">raw_offset_rate_abs</td>
+<td align="center">Slope between the day of maximal</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">value and the last day</td>
+<td align="center">double</td>
+<td align="center">* per day</td>
+</tr>
+<tr class="even">
+<td align="center">daily_rate</td>
+<td align="center">variation between d day and d-1</td>
+<td align="center">double</td>
+<td align="center">* per day</td>
+</tr>
+<tr class="odd">
+<td align="center">baseline_qt</td>
+<td align="center">value in baseline_qt argument</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="even">
+<td align="center">baseline_mean</td>
+<td align="center">value in baseline_mean argument</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
+<td align="center">anomaly_qt</td>
+<td align="center">value on d day - baseline_qt on d day</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="even">
+<td align="center">anomaly_mean</td>
+<td align="center">value on d day - baseline_mean on d</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">day</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">anomaly_unit</td>
+<td align="center">baseline_qt on d day - baseline_mean</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">on d day</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">daily_category</td>
+<td align="center">period category according Hodbay <em>et</em>
+</td>
+<td align="center">factor (5)</td>
+<td align="center">no,I,II,III,IV</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">
+<em>al.</em>, 2018</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">mean_anomaly_qt</td>
+<td align="center">average of anomaly_qt in the period</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
+<td align="center">sd_anomaly_qt</td>
+<td align="center">standard deviation of anomaly_qt in</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="even">
+<td align="center"></td>
+<td align="center">the period</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center">max_anomaly_qt</td>
+<td align="center">maximum value of anomaly_qt in the</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="even">
+<td align="center"></td>
+<td align="center">period</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center">mean_anomaly_mean</td>
+<td align="center">average of anomaly_mean in the period</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="even">
+<td align="center">sd_anomaly_mean</td>
+<td align="center">standard deviation of anomaly_mean in</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">the period</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">max_anomaly_mean</td>
+<td align="center">maximum value of anomaly_mean in the</td>
+<td align="center">double</td>
+<td align="center">*</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">period</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">most_frequent_category</td>
+<td align="center">most frequent category in the period</td>
+<td align="center">character</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center">evolution_rate_lag_x</td>
+<td align="center">rate of ‘value’ computed over x days</td>
+<td align="center">double</td>
+<td align="center">* per day</td>
+</tr>
+<tr class="even">
+<td align="center"></td>
+<td align="center">available when time_lapse_vector=x</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center">variance_value_lag_x</td>
+<td align="center">variance of ‘value’ computed over x</td>
+<td align="center">double</td>
+<td align="center">* squared</td>
+</tr>
+<tr class="even">
+<td align="center"></td>
+<td align="center">days, available if time_lapse_vector=x</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<p>* Same unit as the spatraster provided (here it is degree Celsius) **
+Same format as the in the spatraster provided (here yyyy-mm-dd)</p>
 </div>
 </div>
 <div class="section level2">
@@ -352,14 +689,6 @@ indicate the extremes according to the categories:<a class="anchor" aria-label="
 <span>                              legend.title <span class="op">=</span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span>,</span>
 <span>                              legend.text  <span class="op">=</span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span>
 <span>    <span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.</span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Please use `linewidth` instead.</span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">BioExtremeEvent</span> package.</span></span>
-<span><span class="co">##   Please report the issue at</span></span>
-<span><span class="co">##   <span style="color: #0000BB; font-style: italic;">&lt;https://github.com/VicoMarbec/BioExtremeEvent/issues&gt;</span>.</span></span>
-<span><span class="co">## <span style="color: #555555;">This warning is displayed once per session.</span></span></span>
-<span><span class="co">## <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
-<span><span class="co">## <span style="color: #555555;">generated.</span></span></span></code></pre>
 <p><img src="g_calc_metrics_point_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="700"><img src="g_calc_metrics_point_files/figure-html/unnamed-chunk-8-2.png" class="r-plt" alt="" width="700"></p>
 </div>
 </div>

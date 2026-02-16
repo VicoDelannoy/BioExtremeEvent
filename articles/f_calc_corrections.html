@@ -61,7 +61,7 @@
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
     </li>
     <li>
-      <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
+      <a href="../articles/d_id_extreme_day.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
       <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
@@ -161,6 +161,106 @@ difference between the number extreme days that have been added and the
 number extreme days that have been withdrawn, for each pixel. If a pixel
 value is negative, it means that, over the entire time period, more
 extreme days have been removed than added for that pixel.</p>
+<table class="table">
+<colgroup>
+<col width="22%">
+<col width="50%">
+<col width="15%">
+<col width="12%">
+</colgroup>
+<thead><tr class="header">
+<th align="center">Column name</th>
+<th align="center">Description</th>
+<th align="center">Class</th>
+<th align="center">Unit</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="center">pixel_id</td>
+<td align="center">Pixel number in the spatraster</td>
+<td align="center">integer</td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">original_value</td>
+<td align="center">Day more extreme than baseline = 1</td>
+<td align="center">double</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">Day less extreme than baseline = 0</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">cleaned_value</td>
+<td align="center">Day belong to an exteme event = 1</td>
+<td align="center">double</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">Day outside of an extreme event = 0</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">event_id</td>
+<td align="center">Number of the extreme event in the</td>
+<td align="center">integer</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">time serie</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">duration</td>
+<td align="center">Duration of the period (extreme</td>
+<td align="center">integer</td>
+<td align="center">days</td>
+</tr>
+<tr class="odd">
+<td align="center"></td>
+<td align="center">event or in between 2 events)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">date</td>
+<td align="center">Date associated to the observation</td>
+<td align="center">Date</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td align="center">ID</td>
+<td align="center">The event identifier *</td>
+<td align="center">character</td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td align="center">delta</td>
+<td align="center">cleaned_value - original value</td>
+<td align="center">double</td>
+<td align="center">days</td>
+</tr>
+<tr class="odd">
+<td align="center">one_to_zero</td>
+<td align="center">Number of days changed from 1 to 0</td>
+<td align="center">double</td>
+<td align="center">days</td>
+</tr>
+<tr class="even">
+<td align="center">zero_to_one</td>
+<td align="center">Number of days changed from 0 to 1</td>
+<td align="center">double</td>
+<td align="center">days</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section level2">

@@ -44,7 +44,7 @@
       <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
     </li>
     <li>
-      <a href="../articles/d_calc_binarize.html">2. Compare a time serie with the baseline or fixed threshold</a>
+      <a href="../articles/d_id_extreme_day.html">2. Compare a time serie with the baseline or fixed threshold</a>
     </li>
     <li>
       <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
@@ -97,7 +97,7 @@
 
 <dl><dt id="arg-binarized-spatraster">binarized_spatraster<a class="anchor" aria-label="anchor" href="#arg-binarized-spatraster"></a></dt>
 <dd><p>:
-A Spatraster built using the BEE.id.extreme_days()
+A Spatraster built using the BEE.id.extreme_day()
 function. It only contains 1 and 0.</p></dd>
 
 
@@ -160,8 +160,8 @@ layers in yourspatraster). The "original_value" column gives the value of
 the raw binarisation before applying this function. "cleaned_value" provides
 the corrected values for each date. "ID" is the identifier of the event,
 built using the pixel number, the first day of the event and the last day of
-the event. It is proper to each pixel. "Duration" indicates the duration (in
-days) of the event. "Date" indicates the date corresponding to the row.</p>
+the event. It is proper to each pixel. "duration" indicates the duration (in
+days) of the event. "date" indicates the date corresponding to the row.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
