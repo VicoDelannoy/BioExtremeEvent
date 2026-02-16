@@ -12,7 +12,8 @@ BEE.calc.metrics_point(
   end_date = NULL,
   time_lapse_vector = NULL,
   baseline_qt = NULL,
-  baseline_mean = baseline_mean,
+  baseline_mean = NULL,
+  baseline_fixed = NULL,
   group_by_event = FALSE
 )
 }
@@ -48,6 +49,10 @@ baseline).}
 
 \item{baseline_mean}{:
 Spatraster of the mean value baseline.}
+
+\item{baseline_fixed}{:
+A numerical value representing a fixed threshold for which you want to
+calculate the distance between the observed value and the threshold.}
 
 \item{group_by_event}{:
 Whether you want an output summarise by extreme event or not. If not, you
@@ -99,6 +104,7 @@ metrics_points_day <- BEE.calc.metrics_point(
 #  NULL means it will not be computated
  baseline_qt = baseline_qt90_smth_15,
  baseline_mean = baseline_mean_smth_15,
+ baseline_fixed = 12.5,
  group_by_event = FALSE
 )
 

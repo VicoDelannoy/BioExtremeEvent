@@ -9,30 +9,34 @@
 #'  Is the spatraster with the values of the studded parameter, through time and
 #'  space.
 #' @param gps :
-#'  Is a data frame containing the positions for which you want to compute 
+#'  Is a data frame containing the positions for which you want to compute
 #'  metrics. It must contain columns labelled 'x' and 'y', which should contain
 #'  longitudes and latitudes, respectively.
 #' @param start_date :
-#'  First day on which you want to start computing metrics.
+#'  First day on which you want to start computing metrics. Optional argument.
 #' @param end_date :
-#'  Last day on which you want to start computing metrics.
+#'  Last day on which you want to start computing metrics. Optional argument.
 #' @param baseline_qt :
 #'  Spatraster of the 90th percentile baseline (or the 10th percentile
-#'  baseline).
+#'  baseline). Optional argument.
+#' @param baseline_fixed :
+#'  A numerical value representing a fixed threshold for which you want to
+#'  calculate the distance between the observed value and the threshold. 
+#'  Optional argument.
 #' @param baseline_mean :
-#'  Spatraster of the mean value baseline.
+#'  Spatraster of the mean value baseline. Optional argument.
 #' @param time_lapse_vector :
-#'  A vector of time laps on which to compute mean evolution rate and variance 
-#'  of the studdied parameter.
+#'  A vector of time laps on which to compute mean evolution rate and variance
+#'  of the studdied parameter. Optional argument.
 #' @param group_by_event :
-#'  Whether you want an output summarise by extreme event or not. If not, you 
-#'  just get daily metrics.
-#' 
+#'  Whether you want an output summarise by extreme event or not. If not, you
+#'  just get daily metrics. Optional argument.
+#'
 #' @note
-#'  *BEE.calc.metrics_point()* is not designed to work on 4D data 
+#'  *BEE.calc.metrics_point()* is not designed to work on 4D data
 #'  (time + spatial 3D).
 #'
-#' @returns 
+#' @returns
 #'  A list of dataframe (one per gps point), each dataframe contains
 #'  informations on the date of the extrem events, mean, median, max and min
 #'  values, peak day, onset-rate, off-set rate, mean anomaly, maximum category
@@ -71,6 +75,7 @@
 #' #  NULL means it will not be computated
 #'  baseline_qt = baseline_qt90_smth_15,
 #'  baseline_mean = baseline_mean_smth_15,
+#'  baseline_fixed = 12.5,
 #'  group_by_event = FALSE
 #')
 #'
@@ -106,7 +111,8 @@ BEE.calc.metrics_point <- function(
   end_date = NULL,
   time_lapse_vector = NULL, # number of time unit on which to compute the warming rates and cooling rates, NULL means it will not be computated
   baseline_qt = NULL,
-  baseline_mean = baseline_mean,
+  baseline_mean = NULL,
+  baseline_fixed = NULL,
   group_by_event = FALSE
 ) {
   terra::set.names(yourspatraster, as.Date(terra::time(yourspatraster)))
@@ -222,16 +228,20 @@ BEE.calc.metrics_point <- function(
   colnames(gps) <- c("x", "y", names(gps[3]))
 
   #Get daily anomaly to baseline_qt and to baseline_mean
-  qt <- as.data.frame(t(terra::extract(baseline_qt, gps[, 3])))
-  qt$dates <- format(
-    seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
-    "%m-%d"
-  )
-  mean <- as.data.frame(t(terra::extract(baseline_mean, gps[, 3])))
-  mean$dates <- format(
-    seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
-    "%m-%d"
-  )
+  if (!is.null(baseline_qt)) {
+    qt <- as.data.frame(t(terra::extract(baseline_qt, gps[, 3])))
+    qt$dates <- format(
+      seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
+      "%m-%d"
+    )
+  }
+  if (!is.null(baseline_mean)) {
+    mean <- as.data.frame(t(terra::extract(baseline_mean, gps[, 3])))
+    mean$dates <- format(
+      seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
+      "%m-%d"
+    )
+  }
 
   metrics <- lapply(1:length(df_list), function(p) {
     # Go through each pixel
@@ -351,107 +361,149 @@ BEE.calc.metrics_point <- function(
           as.numeric(date - dplyr::lag(date)),
       )
 
-    # Add daily baseline_qt and daily baseline_mean
-    df <- df |>
-      dplyr::left_join(
-        qt[, c("dates", paste0("V", as.character(p)))],
-        by = "dates"
-      ) |>
-      dplyr::rename(baseline_qt = paste0("V", as.character(p))) |>
-      dplyr::left_join(
-        mean[, c("dates", paste0("V", as.character(p)))],
-        by = "dates"
-      ) |>
-      dplyr::rename(baseline_mean = paste0("V", as.character(p)))
+    # Add daily baseline_qt and/or daily baseline_mean and/or baseline_fixed
+    if (!is.null(baseline_qt)) {
+      df <- df |>
+        dplyr::left_join(
+          qt[, c("dates", paste0("V", as.character(p)))],
+          by = "dates"
+        ) |>
+        dplyr::rename(baseline_qt = paste0("V", as.character(p)))
+    }
+    if (!is.null(baseline_mean)) {
+      df <- df |>
+        dplyr::left_join(
+          mean[, c("dates", paste0("V", as.character(p)))],
+          by = "dates"
+        ) |>
+        dplyr::rename(baseline_mean = paste0("V", as.character(p)))
+    }
+    if (!is.null(baseline_fixed)) {
+      df$baseline_fixed <- rep(baseline_fixed, nrow(df))
+    }
     # Calculate anomalies
-    df <- df |>
-      dplyr::mutate(
-        anomaly_qt = value - baseline_qt,
-        anomaly_mean = value - baseline_mean,
-        anomaly_unit = baseline_qt - baseline_mean,
-        daily_category = dplyr::case_when(
-          cleaned_value == 0 ~ "No extreme event",
-          anomaly_qt < anomaly_unit ~ "Category I",
-          anomaly_qt < 2 * anomaly_unit & anomaly_qt >= 0 ~ "Category II",
-          anomaly_qt < 3 * anomaly_unit & anomaly_qt >= 0 ~ "Category III",
-          anomaly_qt >= 3 * anomaly_unit & anomaly_qt >= 0 ~ "Category IV",
-          TRUE ~ NA_character_
+    if (!is.null(baseline_qt)) {
+      df <- df |>
+        dplyr::mutate(anomaly_qt = value - baseline_qt) |>
+        dplyr::group_by(ID) |>
+        dplyr::mutate(
+          cumulative_anomaly_qt = cumsum(anomaly_qt),
+          sum_anomaly_qt = sum(anomaly_qt, na.rm = TRUE)
+        ) |>
+        dplyr::ungroup()
+      # Add mean value and standard deviation of anomaly_qt and anomaly_mean to
+      # the ouputs + add maximal category of each event
+      df <- df |>
+        dplyr::group_by(ID) |>
+        dplyr::mutate(
+          mean_anomaly_qt = mean(anomaly_qt, na.rm = TRUE),
+          sd_anomaly_qt = stats::sd(anomaly_qt, na.rm = TRUE),
+          max_anomaly_qt = max(anomaly_qt, na.rm = TRUE)
         )
-      )
+    }
 
-    df <- df |>
-      dplyr::group_by(ID) |>
-      dplyr::mutate(
-        cumulative_anomaly_qt = cumsum(anomaly_qt),
-        sum_anomaly_qt = sum(anomaly_qt, na.rm = T)
-      ) |>
-      dplyr::ungroup()
-    # Keep the maximum category reached by each event
-    df <- df |>
-      dplyr::mutate(
-        daily_category = factor(
-          daily_category,
-          levels = c(
-            "No extreme event",
-            "Category I",
-            "Category II",
-            "Category III",
-            "Category IV"
-          ),
-          ordered = TRUE
+    if (!is.null(baseline_mean)) {
+      df <- df |>
+        dplyr::mutate(
+          anomaly_mean = value - baseline_mean
         )
-      )
+      # Add mean value and standard deviation of anomaly_qt and anomaly_mean to
+      # the ouputs + add maximal category of each event
+      df <- df |>
+        dplyr::group_by(ID) |>
+        dplyr::mutate(
+          mean_anomaly_mean = mean(anomaly_mean, na.rm = TRUE),
+          sd_anomaly_mean = stats::sd(anomaly_mean, na.rm = TRUE),
+          max_anomaly_mean = max(anomaly_mean, na.rm = TRUE)
+        )
+    }
+    if (!is.null(baseline_fixed)) {
+      df <- df |>
+        dplyr::mutate(
+          anomaly_fixed = value - baseline_fixed
+        )
+      # Add mean value and standard deviation of anomaly_qt and anomaly_mean to
+      # the ouputs + add maximal category of each event
+      df <- df |>
+        dplyr::group_by(ID) |>
+        dplyr::mutate(
+          mean_anomaly_fixed = mean(anomaly_fixed, na.rm = TRUE),
+          sd_anomaly_fixed = stats::sd(anomaly_fixed, na.rm = TRUE),
+          max_anomaly_fixed = max(anomaly_fixed, na.rm = TRUE)
+        )
+    }
+    if (!is.null(baseline_mean) & !is.null(baseline_qt)) {
+      df <- df |>
+        dplyr::mutate(
+          anomaly_unit = baseline_qt - baseline_mean,
+          daily_category = dplyr::case_when(
+            cleaned_value == 0 ~ "No extreme event",
+            anomaly_qt < anomaly_unit ~ "Category I",
+            anomaly_qt < 2 * anomaly_unit & anomaly_qt >= 0 ~ "Category II",
+            anomaly_qt < 3 * anomaly_unit & anomaly_qt >= 0 ~ "Category III",
+            anomaly_qt >= 3 * anomaly_unit & anomaly_qt >= 0 ~ "Category IV",
+            TRUE ~ NA_character_
+          )
+        )
+      # Keep the maximum category reached by each event
+      df <- df |>
+        dplyr::mutate(
+          daily_category = factor(
+            daily_category,
+            levels = c(
+              "No extreme event",
+              "Category I",
+              "Category II",
+              "Category III",
+              "Category IV"
+            ),
+            ordered = TRUE
+          )
+        )
 
-    max_category <- df |>
-      dplyr::filter(!is.na(daily_category)) |>
-      dplyr::group_by(ID) |>
-      dplyr::summarise(max_category = max(daily_category), .groups = 'drop')
-    df <- df |>
-      dplyr::left_join(max_category, by = "ID")
+      max_category <- df |>
+        dplyr::filter(!is.na(daily_category)) |>
+        dplyr::group_by(ID) |>
+        dplyr::summarise(max_category = max(daily_category), .groups = 'drop')
+      df <- df |>
+        dplyr::left_join(max_category, by = "ID")
 
-    # Add mean value and standard deviation of anomaly_qt and anomaly_mean to
-    # the ouputs + add maximal category of each event
-    summary_stats <- df |>
-      dplyr::group_by(ID) |>
-      dplyr::summarise(
-        mean_anomaly_qt = mean(anomaly_qt, na.rm = TRUE),
-        sd_anomaly_qt = stats::sd(anomaly_qt, na.rm = TRUE),
-        max_anomaly_qt = max(anomaly_qt, na.rm = TRUE),
-        mean_anomaly_mean = mean(anomaly_mean, na.rm = TRUE),
-        sd_anomaly_mean = stats::sd(anomaly_mean, na.rm = TRUE),
-        max_anomaly_mean = max(anomaly_mean, na.rm = TRUE),
-        max_category = names(sort(table(daily_category), decreasing = TRUE))[1],
-        # Catégorie la plus fréquente
-        .groups = 'drop'
-      )
-    df <- df |>
-      dplyr::left_join(summary_stats, by = "ID")
-    data.table::setnames(
-      df,
-      old = "max_category.y",
-      new = "most_frequent_category"
-    )
-    data.table::setnames(df, old = "max_category.x", new = "max_category")
+      # Add mean value and standard deviation of anomaly_qt and anomaly_mean to
+      # the ouputs + add maximal category of each event
+      df <- df |>
+        dplyr::group_by(ID) |>
+        dplyr::mutate(
+          max_category = names(sort(table(daily_category), decreasing = TRUE))[
+            1
+          ],
+          # Catégorie la plus fréquente
+          .groups = 'drop'
+        )
+    }
+
     if (group_by_event) {
       df <- df |>
         # Delete daily values that are not usefull to describe the full event
         dplyr::select(
-          -baseline_qt,
-          -baseline_mean,
-          -anomaly_mean, # anomaly to the baseline_mean
-          -anomaly_qt,
-          -anomaly_unit,
-          -cumulative_anomaly_qt,
-          -daily_category,
-          -daily_rates,
-          -date,
-          -daily_category,
-          -row_num,
-          -prev_value,
-          -prev_ID,
-          -last_value_prev_group,
-          -dplyr::starts_with("evolution_rate_lag_"),
-          -dplyr::starts_with("variance_value_lag_")
+          -dplyr::any_of(c(
+            baseline_qt,
+            baseline_mean,
+            anomaly_mean, # anomaly to the baseline_mean
+            anomaly_qt,
+            anomaly_unit,
+            cumulative_anomaly_qt,
+            daily_category,
+            daily_rates,
+            date,
+            daily_category,
+            row_num,
+            prev_value,
+            prev_ID,
+            last_value_prev_group,
+            dplyr::starts_with("evolution_rate_lag_"),
+            dplyr::starts_with("variance_value_lag_"),
+            .groups
+          ))
         ) |>
         dplyr::distinct(ID, .keep_all = TRUE) # Une seule ligne par ID
     } else {
@@ -461,7 +513,8 @@ BEE.calc.metrics_point <- function(
           -row_num,
           -prev_value,
           -prev_ID,
-          -last_value_prev_group
+          -last_value_prev_group,
+          -.groups
         )
     }
     return(df)

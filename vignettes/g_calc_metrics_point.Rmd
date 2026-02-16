@@ -63,8 +63,8 @@ Dataframes contains the folowing informations:
 | date                 | Date associated to the observation   |double/date|                |  
 | ID                   | The event identifier \*              | character |                |
 | value                | Value of the sudied parameter        | double    | \*             |
-| x                    | Latitude                             | double    | decimal degree |
-| y                    | Longitude                            | double    | decimal degree |
+| x                    | Longitude                            | double    | decimal degree |
+| y                    | Latitude                             | double    | decimal degree |
 | first_date           | First day of the period              | Date      | \*\*           |
 | last_date            | Last day of the period               | Date      | \*\*           |
 | mean_value           | Mean value of the period             | double    | \*             |
@@ -98,15 +98,22 @@ Dataframes contains the folowing informations:
 | sd_anomaly_mean      | standard deviation of anomaly_mean in| double    | \*             |
 |                      | the period                           |           |                |
 | max_anomaly_mean     | maximum value of anomaly_mean in the | double    | \*             |
-|                      | period                               |           |                |
+| mean_anomaly_fixed   |average of anomaly_fixed in the period| double    | \*             |
+| sd_anomaly_fixed     | standard deviation of anomaly_fixed  | double    | \*             |
+|                      | in the period                        |           |                |
+| max_anomaly_fixed    | maximum value of anomaly_fixed in    | double    | \*             |
+|                      | the period                           |           |                |
 |most_frequent_category| most frequent category in the period | character |                |
 | evolution_rate_lag_x | rate of 'value' computed over x days | double    | \* per day     |
 |                      | available when time_lapse_vector=x   |           |                |
 | variance_value_lag_x | variance of 'value' computed over x  | double    | \* squared     |
-|                      |days, available if time_lapse_vector=x|           |                |
+|                      |days, available if time_lapse_vector=x|           |                |  
 
 \* Same unit as the spatraster provided (here it is degree Celsius)
-\*\* Same format as the in the spatraster provided (here yyyy-mm-dd)
+\*\* Same format as the in the spatraster provided (here yyyy-mm-dd)  
+
+Note: columns depending on baseline_qt, baseline_mean and baseline_fixed will only be calculated if the associated argument have been provided.  
+
 
 # Examples
 ## Load data:
@@ -254,6 +261,6 @@ BEE.plot.cumulative_anomaly(metric_point_df = one_place,
                               axis.title.x = ggplot2::element_text(size = 16),
                               axis.title.y = ggplot2::element_text(size = 16),
                               legend.title =  ggplot2::element_text(size = 16),
-                              legend.text  =  ggplot2::element_text(size = 14)
+                              legend.text  =  ggplot2::element_text(size = 11)
     ))
 ```
