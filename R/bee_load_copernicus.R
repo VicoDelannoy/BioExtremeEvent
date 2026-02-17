@@ -201,7 +201,7 @@ BEE.load.copernicus <- function(
     )
     file_name <- file.path(
       output_directory,
-      "cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_2.94E-7.80E_42.01N-43.67N_1982-01-01-2024-12-31.nc"
+      paste0(dataset_id)
     )
     ds <- terra::rast(file_name)
     return(ds)
