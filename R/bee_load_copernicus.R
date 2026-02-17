@@ -90,7 +90,7 @@
 #' # Copernicus logging informations. To test this function you can create the
 #' # variables my_username and my_password in your environment and copy/paste
 #' # the code bellow.
-#' data <- BEE.data.load_copernicus(
+#' data <- BEE.load.copernicus(
 #' username=my_username,
 #' password=my_password,
 #' dataset_id="cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021",
@@ -201,7 +201,16 @@ BEE.load.copernicus <- function(
     )
     file_name <- file.path(
       output_directory,
-      paste0(dataset_id,".nc")
+      paste0(
+        dataset_id,
+        minimum_longitude,
+        maximum_longitude,
+        minimum_latitude,
+        maximum_latitude,
+        start_datetime,
+        end_datetime,
+        ".nc"
+      )
     )
     ds <- terra::rast(file_name)
     return(ds)
