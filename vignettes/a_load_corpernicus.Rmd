@@ -11,7 +11,7 @@ vignette: >
 
 # Aims of the function *BEE.load.copernicus()*
 
-This is an **optional function** to import data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products) some dataset. This\
+This is an **optional function** to download data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products) some dataset. This\
 function uses the CopernicusMarine Python library. A virtual Python environment is automatically created to enable it to run in R. If Python is not already installed on your computer, *BEE.load.copernicus* will download it for you.\
 This allows you to copy and paste the Python API generated on the copernicus website (Data access\>select your data and ONLY one variable\> Automate\> Python API) almost directly as an argument for the *BEE.load.copernicus()* function.
 
@@ -26,10 +26,11 @@ To fulfil the argument of *the BEE.load.copernicus()* function, you just need to
 You can now run the function.
 
 ## Output
-The output is a spartaster (.nc). It is load in your environment and saved in local.
+There is no direct output in R environment, the data are saved in local. Refer to the 'Example of the dataset obtained' section to see how to load the data into your R environment.
 
-## Example
+## Example  
 
+Download data:
 ```{r, eval=FALSE}
 library(BioExtremeEvent)
 
@@ -52,15 +53,19 @@ BioExtremeEvent::BEE.load.copernicus(
 )
 ```
 
-You obtained a spatraster with one layer per time step in your R environment, the same dataset is saved in your computer at the location indicated by *output_directory*.
+Load dataset in R environment:
+```{r, eval = FALSE}
+copernicus_data <- terra::rast("output_directory/your_dataset_name.nc") #Adapt your file name.
+```
 
 ## Example of the dataset obtained
 
-```{r}
+```{r, echo = FALSE}
 # Load the example dataset in R environement :
 file_name <- system.file(file.path("extdata", "copernicus_example_data.nc"), package = "BioExtremeEvent")
 copernicus_data <- terra::rast(file_name)
-
+```
+```{r}
 # Plot first layer (Sea surface temperature the first day of the dataset) :
 terra::plot(
   copernicus_data[[1]],

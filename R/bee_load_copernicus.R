@@ -78,11 +78,12 @@
 #'  next to your script if there is one.
 #'
 #' @return
-#' A SpatRaster subset from the
-#' [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products)
-#' according to the provided timeframe and spatial frame. The dataset will also
-#' be saved to your computer (see the 'output_directory' argument) into an .nc
-#' file.
+#'  A SpatRaster subset from the
+#'  [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products)
+#'  according to the provided timeframe and spatial frame. It is saved directly
+#'  to your computer in an .nc file (see the 'output_directory' argument).
+#'  To load the dataset in your R environment use:
+#'  terra::rast("output_directory/data_set_name.nc")
 #'
 #' @examples
 #' \dontrun{
@@ -200,4 +201,5 @@ BEE.load.copernicus <- function(
       output_directory = output_directory
     )
   }
+  print("Downloading is complete.")
 }

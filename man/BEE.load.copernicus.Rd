@@ -90,9 +90,10 @@ next to your script if there is one.}
 \value{
 A SpatRaster subset from the
 \href{https://data.marine.copernicus.eu/products}{Copernicus Marine Data Store}
-according to the provided timeframe and spatial frame. The dataset will also
-be saved to your computer (see the 'output_directory' argument) into an .nc
-file.
+according to the provided timeframe and spatial frame. It is saved directly
+to your computer in an .nc file (see the 'output_directory' argument).
+To load the dataset in your R environment use:
+terra::rast("output_directory/data_set_name.nc")
 }
 \description{
 This function is a wrapper from the CopernicusMarine
