@@ -91,7 +91,7 @@
 #' # Copernicus logging informations. To test this function you can create the
 #' # variables my_username and my_password in your environment and copy/paste
 #' # the code bellow.
-#' data <- BEE.load.copernicus(
+#' BEE.load.copernicus(
 #' username=my_username,
 #' password=my_password,
 #' dataset_id="cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021",
@@ -182,7 +182,7 @@ BEE.load.copernicus <- function(
     cm$login(username, password)
 
     # Get the data
-    ds <- cm$subset(
+    cm$subset(
       dataset_id = dataset_id,
       dataset_version = dataset_version,
       variables = list(gsub(
