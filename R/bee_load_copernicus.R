@@ -201,7 +201,7 @@ BEE.load.copernicus <- function(
     )
     file_name <- file.path(
       output_directory,
-      paste0(dataset_id)
+      paste0(dataset_id,".nc")
     )
     ds <- terra::rast(file_name)
     return(ds)
