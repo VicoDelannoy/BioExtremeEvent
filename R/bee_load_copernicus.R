@@ -199,20 +199,5 @@ BEE.load.copernicus <- function(
       disable_progress_bar = disable_progress_bar,
       output_directory = output_directory
     )
-    file_name <- file.path(
-      output_directory,
-      paste0(
-        dataset_id,
-        minimum_longitude,
-        maximum_longitude,
-        minimum_latitude,
-        maximum_latitude,
-        start_datetime,
-        end_datetime,
-        ".nc"
-      )
-    )
-    ds <- terra::rast(file_name)
-    return(ds)
   }
 }
