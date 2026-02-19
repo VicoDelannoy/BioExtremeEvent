@@ -178,8 +178,13 @@ BEE.load.copernicus <- function(
     }
   }
   if (length(version) > 0) {
+    cred_file <- "~/.copernicusmarine/.copernicusmarine-credentials"
+    if (file.exists(cred_file)) {
+      file.remove(cred_file)
+    }
+
     cm <- reticulate::import("copernicusmarine") #not called in R
-    cm$login(username, password, overwrite = True)
+    cm$login(username, password)
 
     # Get the data
     cm$subset(
