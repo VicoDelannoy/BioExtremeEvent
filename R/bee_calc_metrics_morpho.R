@@ -32,7 +32,7 @@
 #-------------------------------------------------------------------------------
 
 # start_date <- "2024-06-01" ; end_date <- "2024-09-31" ;per_pix=TRUE ;
-# crs = "EPSG:2154" # for europe
+# crs = "EPSG:2154" # for france ; EPSG:10596 for europe + med sea
 
 BEE.calc.metrics_morpho <- function(
   corrected_rasters,
