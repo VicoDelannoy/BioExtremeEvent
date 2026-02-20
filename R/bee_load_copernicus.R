@@ -183,6 +183,12 @@ BEE.load.copernicus <- function(
       file.remove(cred_file)
     }
 
+    if (!reticulate::py_module_available("h5py")) {
+      reticulate::py_install("h5py", pip = TRUE, envname = "CopernicusMarine")
+    } else {
+      message("h5py already installed in CopernicusMarine")
+    }
+
     cm <- reticulate::import("copernicusmarine") #not called in R
     cm$login(username, password)
 
