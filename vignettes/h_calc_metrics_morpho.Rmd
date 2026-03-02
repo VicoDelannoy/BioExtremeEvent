@@ -42,139 +42,129 @@ You will receive a message in the following case :
 -    The number of NA pixels is not consitent through the layers, some metrics
 
 ## Output
-It is a list of dataframe (one per gps point). Each dataframe contains information on the periods of extreme events and the periods in between extreme events. Information can be daily or grouped by time periods (extreme events or in between extreme events). To simplify the explanation of the columns, the term 'period' is used to refer to both periods of extreme events and the periods between extreme events. To check if a period is extreme, you can use cleaned_value == 1 or check the daily_category column.  
-Categories are defined in Hobday *et al.* 2018.  
 
-Dataframes contains the folowing informations:
+You will get a list of dataframes contains the informations in the table bellow and a spartaster with all the extreme events, identified daily:
+*Below, 'patch' is used to describe a group of neighbouring pixels on a given date.*
 
 |   Column name        |             Description              |   Class   |  Unit          |
 |:--------------------:|:------------------------------------:|:---------:|:--------------:|
-| pixel_id             | Pixel number in the spatraster       | integer   |                |
-| original_value       | Day more extreme than baseline = 1   | double    |                |
-|                      | Day less extreme than baseline = 0   |           |                |
-| cleaned_value        | Day belong to an exteme event = 1    | double    |                |
-|                      | Day outside of an extreme event = 0  |           |                |
-| event_id             | Number of the extreme event in the   | integer   |                | 
-|                      | time serie                           |           |                |
-| duration             | Duration of the period               | integer   | days           |  
-| date                 | Date associated to the observation   |double/date|                |  
-| ID                   | The event identifier \*              | character |                |
-| value                | Value of the sudied parameter        | double    | \*             |
+| pixel_id             | Pixel number in the spatraster       | integer   |                | 
 | x                    | Longitude                            | double    | decimal degree |
 | y                    | Latitude                             | double    | decimal degree |
-| first_date           | First day of the period              | Date      | \*\*           |
-| last_date            | Last day of the period               | Date      | \*\*           |
-| mean_value           | Mean value of the period             | double    | \*             |
-| median_value         | Median value of the period           | double    | \*             |
-| max_value            | Max value of the period              | double    | \*             |
-| date_max_value       | Date one which max value was reached | double    | \*\*           |
-| days_onset_abs       | Number of days between the 1^s^t day | double    | days           |
-|                      | and the day of maximal value         |           |                |
-| raw_onset_rate_abs   | Slope between 1^s^t day and the day  |           |                |
-|                      | of maximal value                     | double    | \* per day     |
-| days_offset_abs      | Number of days between the day of max| double    | days           |
-|                      | value and the last day               |           |                |
-| raw_offset_rate_abs  | Slope between the day of maximal     |           |                |
-|                      | value and the last day               | double    | \* per day     |
-| daily_rate           | variation between d day and d-1      | double    | \* per day     |
-| baseline_qt          | value in baseline_qt argument        | double    | \*             |
-| baseline_mean        | value in baseline_mean argument      | double    | \*             |
-| anomaly_qt           | value on d day - baseline_qt on d day| double    | \*             |
-| anomaly_mean         | value on d day - baseline_mean on d  | double    | \*             |
-|                      | day                                  |           |                |
-| anomaly_unit         | baseline_qt on d day - baseline_mean | double    | \*             |
-|                      | on d day                             |           |                |
-| daily_category       | period category according Hodbay *et*| factor (5)| no,I,II,III,IV |
-|                      | *al.*, 2018                          |           |                |
-| mean_anomaly_qt      | average of anomaly_qt in the period  | double    | \*             |
-| sd_anomaly_qt        | standard deviation of anomaly_qt in  | double    | \*             |
-|                      | the period                           |           |                |
-| max_anomaly_qt       | maximum value of anomaly_qt in the   | double    | \*             |
-|                      | period                               |           |                |
-| mean_anomaly_mean    | average of anomaly_mean in the period| double    | \*             |
-| sd_anomaly_mean      | standard deviation of anomaly_mean in| double    | \*             |
-|                      | the period                           |           |                |
-| max_anomaly_mean     | maximum value of anomaly_mean in the | double    | \*             |
-| mean_anomaly_fixed   |average of anomaly_fixed in the period| double    | \*             |
-| sd_anomaly_fixed     | standard deviation of anomaly_fixed  | double    | \*             |
-|                      | in the period                        |           |                |
-| max_anomaly_fixed    | maximum value of anomaly_fixed in    | double    | \*             |
-|                      | the period                           |           |                |
-|most_frequent_category| most frequent category in the period | character |                |
-| evolution_rate_lag_x | rate of 'value' computed over x days | double    | \* per day     |
-|                      | available when time_lapse_vector=x   |           |                |
-| variance_value_lag_x | variance of 'value' computed over x  | double    | \* squared     |
-|                      |days, available if time_lapse_vector=x|           |                |  
+| patch_id             | Extreme event polygon identifier     | double    |                |
+| cell_size            | Area of the pixel                    |           | m²             |
+| boredering           | Whether the pixel is on the border of| double    | 1 or 0         |
+|                      | the patch (1) or not (0).            |           |                |
+| patch_area           | Total area of the extreme event on a | double    | m²             |
+| core_area            | Area of non-boredering pixels        | double    | m²             |
+|                      | of an extreme event on a given day   |           |                | 
+| core_area_index      | patch_are/core_area                  | double    | no unit        |
+| n_pixel              | number of pixels belong to the       | double    | pixels         |
+|                      | extreme event                        |           |                |
+| pixel_EE_tot         | Total number of pixels in extreme    | double    | pixels         |
+|                      | event (all extreme events that       |           |                |
+|                      | occured on that day)                 |           |                |
+| cover_percent        | Percentage of non-NA area that is    | double    | percentage     |
+|                      | covered by this extreme event (cf ID)|           |                |
+| n_core_pixel         | Number of pixels in the extreme event| double    | pixels         |
+|                      | that do not border the patch         |           |                |
+| date                 | Date associated to the observation   | Date      |                |
+| ID                   | The event identifier \*              | character |                |
+| perimeter            | Perimeter associated to the extreme  | double    | m              |
+|                      | event patch                          |           |                |
+| centroid_x           | centroid longitude of the patch      | double    | degrees        |
+| centroid_y           | centroid latitude of the patch       | double    | degrees        |
+| perim_pixel_ratio    | Pixels on patch limit / total number |           | no unit        |
+|                      | pixels in the patch                  |           |                |
+| perim_area_ratio     | Perimter (in m) / area (in m² )      | double    | m⁻¹           |
+| shape_index          | 0.25*perimeter/sqrt(area)            | double    | no unit        |
+| fractal_cor_index    | 2*log(0.25 *perimeter)/log(area)     | double    | no unit        |
+| contiguity_index     | Number of pixel from a patch within  | double    | pixels         |
+|                      | the 8 pixels around each pixel from  |           |                |
+|                      | the patch. For more info see:        |           |                |
+|                      | ?landscapemetrics::lsm_p_contig      |           |                |
+| ell_dir              | The angle between the north direction| double    | degrees        |
+|                      | and the longest axis of the smallest |           |                | 
+|                      | ellipse that surrounds a patch.      |           |                |
+| ell_crop_area_m2     | Ellipse area within the raster       | double    | no unit        |
+| ell_tot_area_m2      | Ellipse total area                   | double    | m²             |
+| ell_long_axis        | Longest ellipse axis length          | double    | m              |
+| ell_short_axis       | Shortest ellipse axis length         | double    | m              |
+| patch_ell_ratio      | Patch area / ellipse area            | double    | no unit        |
 
-\* Same unit as the spatraster provided (here it is degree Celsius)
-\*\* Same format as the in the spatraster provided (here yyyy-mm-dd)  
+\* Same format as the in the spatraster provided (here yyyy-mm-dd)  
 
-Note: columns depending on baseline_qt, baseline_mean and baseline_fixed will only be calculated if the associated argument have been provided.  
+## Find out more about ellipse computation and related metrics:
 
+The ellipses computed in this package are the smallest ellipses that encapsulate the centres of all the pixels within a patch. They are computed daily. Since the calculation is based on the coordinates (in degrees) of the centre of the pixels in a patch, no ellipse can be computed for patches that form a line (vertical, horizontal or diagonal). Indeed, since all the coordinates used to compute the ellipse are aligned, no width can be assessed.
+Ellipse computations are performed in two steps: first, the coordinates (in degrees) are computed based on the centre pixel coordinates (in degrees) using the cluster::ellipsoidhull() function. The axis lengths, azimuth or area computed by cluster::ellipsoidhull() cannot be used directly because cluster::ellipsoidhull() does not take into account deformation due to the degree reference. To avoid this issue, the ellipse properties are re-computed 'manually' using the coordinates of the ellipse perimeter (in degrees), and the axis lengths are calculated using functions such as terra::expanse(). Functions in the terra package compute distances and areas using projection onto a sphere, which is much more precise than projection onto a plane. According terra : "For vector data, the best way to compute area is to use the longitude/latitude CRS. This is contrary to (erroneous, but popular) belief that you should use a planar coordinate reference system." 
+Please do not hestitate to check the function code available on the [github page](https://github.com/VicoDelannoy/BioExtremeEvent/blob/main/R/bee_calc_metrics_morpho.R) starting line 369.
 
 # Examples
 ## Load data:
+We need the spatraster "stacked_rasters_corrected", wich is an ouptut of BEE.calc.id_extreme_event().
 ```{r setup}
 library(BioExtremeEvent)
+
 file_name_1 <- system.file(file.path("extdata", 
-                                      "copernicus_data_celsius.tiff"),
+                                      "binarized_corrected_spatraster.tiff"),
                                       package = "BioExtremeEvent")
- copernicus_data_celsius <- terra::rast(file_name_1)
- file_name_2 <- system.file(file.path("extdata", 
-                                      "binarized_corrected_df.rds"),
-                                      package = "BioExtremeEvent")
- binarized_corrected_df <- readRDS(file_name_2)
- file_name_3 <- system.file(file.path("extdata", 
-                                      "baseline_qt90_smth_15.tiff"),
-                                      package = "BioExtremeEvent")
- baseline_qt90_smth_15 <- terra::rast(file_name_3)
- file_name_4 <- system.file(file.path("extdata", 
-                                      "baseline_mean_smth_15.tiff"),
-                                      package = "BioExtremeEvent")
- baseline_mean_smth_15 <- terra::rast(file_name_4)
- gps <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
-                   y = c(43.3786,43.4279))
+copernicus_data_celsius <- terra::rast(file_name_1)
 ```
 
-## Get:
+## Get metrics by pixel:
 
 ```{r}
-
+# Warning, this can takes a minute or two.
+list_morpho_metrics <- BEE.calc.metrics_morpho(copernicus_data_celsius, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=TRUE) 
 ```
 
-## Get:
+## Get metrics by patch:
 ```{r}
-
+list_morpho_metrics2 <- BEE.calc.metrics_morpho(copernicus_data_celsius, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE)
 ```
 
-## Get:
-
-```{r}
-
-```
-
-## Compute metrics for every pixels in yourspatraster:
-
-Apply function:
-```{r}
-
-```
 
 ## How to save the ouputs:
-Outputs are :
+If you used per_pix=TRUE, outputs are a list of dataframe, with one dataframe per pixel and a spatraster. 
+To save your list of dataframe:
 ```{r, eval = FALSE}
-
+df_list <- list_morpho_metrics[[1]]
+saveRDS(df_list, file = "your_path/data/metrics_morpho_pixel.rds")
 ```
+
+To save the spatraster:
+
+```{r, eval = FALSE}
+patch_spatraster <- list_morpho_metrics[[2]]
+terra::writeRaster(patch_spatraster, "your_path/data/patch_spatraster.tiff")
+```
+
+I you used per_pix=FALSE the ouptuts are a dataframe (within a list) and a spataraster. Spatraster do not differ whether you use per_pix =TRUE or per_pix =FALSE.
+To save the dataframe with morphometrics values per patch :
+
+```{r, eval = FALSE}
+patch_df <- list_morpho_metrics1[[1]] # get first object of the ouput
+saveRDS(patch_df, file = "your_path/data/metrics_morpho_patch.rds")
+
+# To avoid saving the dataframe as a list of one object, you can extract it from the list before saving:
+patch_df_unlisted <- patch_df[[1]] #extract the df from the list
+write.csv(patch_df_unlisted, file = "your_path/data/metrics_morpho_patch.csv")
+```
+
 
 # Plots
 
 ## Plot:
-```{r, fig.width = 20, fig.height =5, warning = FALSE}
-
-```
-
-## Plot:
+Quick plot of patches for a given day
 ```{r}
 
 
 ```
+
+## Plot:
+Plot a metric throught time for a given position (e.g. a given pixel):
+```{r, fig.width = 20, fig.height =5, warning = FALSE}
+
+```
+

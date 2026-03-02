@@ -16,13 +16,8 @@
 #'  save computation time.
 #' @param per_pix :
 #'  Use TRUE if you want a list with one dt per pixel as an output.
-#' @param crs :
-#'  To get accurate length and area, data in longitude latitude must
-#'  be converted into meters data that take in account earth sphericity, the
-#'  conversion depend on studdied region, thus you must specify the one the most
-#'  appropriated for your data. See help here to find a suitable EPSG you can
-#'  check on https://epsg.io/ or https://spatialreference.org/explorer.html or
-#'  https://projectionwizard.org/.
+#'
+#' @return Units related to area are in m².
 #'
 #' @note
 #'  BEE.calc.metrics_morpho is not designed to work on 4D data
@@ -32,15 +27,14 @@
 #'
 #-------------------------------------------------------------------------------
 
-# start_date <- "2024-06-01" ; end_date <- "2024-09-31" ;per_pix=TRUE ;
-# crs = "EPSG:2154" # for france ; EPSG:10596 for europe + med sea
+# start_date <- "2024-07-01" ; end_date <- "2024-08-31" ;per_pix=TRUE ;
+# corrected_rasters <- Corrected_rasters
 
 BEE.calc.metrics_morpho <- function(
   corrected_rasters,
   start_date = NULL,
   end_date = NULL,
-  per_pix = FALSE,
-  crs = NULL
+  per_pix = FALSE
 ) {
   # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)) {
@@ -118,15 +112,19 @@ BEE.calc.metrics_morpho <- function(
     }
   )
 
-  nb_pixel_studied <- terra::ncell(rasters[[1]]) - nb_NA
+  non_NA_pixels <- which(
+    terra::app(rasters, fun = function(x) all(!is.na(x)))[] == 1
+  )
+  cell_size <- terra::values(terra::cellSize(rasters, unit = "m"))
+  area_studied <- sum(cell_size[non_NA_pixels, 1]) # m
 
   dist_list <- lapply(patch_list, function(x) {
     #  # 1 only NA # 41 one patch et 45 2 patches,
-    # 100 4 patch dont un gros en premier #  x <- patch_list[[100]]
-
+    # 100 4 patch dont un gros en premier #  x <- patch_list[[8]]
     # Create a df with on row per pixel
     vals <- terra::values(x)
-    cell_size <- terra::values(terra::cellSize(x, unit = "km"))[, 1]
+
+    # previous line : brakets to get vector instead of matrix
     boundary <- terra::boundaries(x, directions = 8)
     coordonates <- terra::xyFromCell(x, 1:terra::ncell(x)) #each pixel coordinates
     d <- terra::time(x)
@@ -137,7 +135,7 @@ BEE.calc.metrics_morpho <- function(
       y = coordonates[, 2],
       values = vals,
       # value of the patch
-      cell_size = cell_size,
+      cell_size = cell_size[, 1],
       boundary = terra::values(terra::boundaries(x, directions = 8))
     )
     data.table::setnames(
@@ -146,15 +144,17 @@ BEE.calc.metrics_morpho <- function(
       new = c("patch_id", "bordering")
     )
 
+    polygon <- terra::as.polygons(x, aggregate = T, round = F)
+    patch_area <- terra::expanse(polygon, unit = "m")
+    patch_table <- data.frame(
+      patch_id = polygon$patches,
+      patch_area = patch_area
+    )
+    data$patch_area <- patch_table$patch_area[
+      match(data$patch_id, patch_table$patch_id)
+    ]
     # Split the 'data' by patch id to process faster :
     sp <- split(data, data$patch_id)
-
-    # add metrics :
-    patch_area <- vapply(
-      sp,
-      function(df) if (any(is.na(df$patch_id))) NA_real_ else sum(df$cell_size),
-      numeric(1)
-    )
 
     core_area <- vapply(
       sp,
@@ -169,8 +169,8 @@ BEE.calc.metrics_morpho <- function(
     )
 
     # Remapping to data
-    data$patch_area <- patch_area[match(data$patch_id, names(patch_area))]
     data$core_area <- core_area[match(data$patch_id, names(core_area))]
+
     sp <- split(data, data$patch_id)
     # add metrics :
     core_area_index <- vapply(
@@ -206,7 +206,13 @@ BEE.calc.metrics_morpho <- function(
     sp <- split(data, data$patch_id)
     cover_percent <- vapply(
       sp,
-      function(df) as.numeric(df$n_pixel[1]) / as.numeric(nb_pixel_studied),
+      function(df) as.numeric(df$patch_area[1]) / as.numeric(area_studied),
+      numeric(1)
+    )
+
+    n_core_pixel <- vapply(
+      sp,
+      function(df) as.numeric(df$n_pixel[1]) - sum(df$bordering),
       numeric(1)
     )
 
@@ -214,7 +220,10 @@ BEE.calc.metrics_morpho <- function(
       data$patch_id,
       names(cover_percent)
     )]
-    data$core_pixel <- data$n_pixel - data$bordering
+    data$n_core_pixel <- n_core_pixel[match(
+      data$patch_id,
+      names(n_core_pixel)
+    )]
 
     data$date <- rep(d, nrow(data))
 
@@ -223,28 +232,29 @@ BEE.calc.metrics_morpho <- function(
       NA,
       paste0(seq_len(nrow(data)), "_", d, "_", data$patch_id)
     )
-    polygon <- terra::as.polygons(x, aggregate = T, round = F)
+
     perim_m <- data.table::data.table(perimeter = terra::perim(polygon))
 
     perim_m$patch_id <- unique(data$patch_id[!is.na(data$patch_id)]) # in meters
 
     data$perimeter <- perim_m$perimeter[match(data$patch_id, perim_m$patch_id)]
 
-    data <- data |>
-      dplyr::select(-cell_size)
-
     if (length(polygon) == 0) {
       data$centroid_x <- rep(NA_real_, nrow(data))
       data$centroid_y <- rep(NA_real_, nrow(data))
       data$perim_pixel_ratio <- rep(NA_real_, nrow(data))
-      data$perim_area_ratio_m <- rep(NA_real_, nrow(data))
+      data$perim_area_ratio <- rep(NA_real_, nrow(data))
       data$shape_index <- rep(NA_real_, nrow(data))
       data$fractal_cor_index <- rep(NA_real_, nrow(data))
-      data$perim_area_ratio_m <- rep(NA_real_, nrow(data))
-      data$circle_ratio_index <- rep(NA_real_, nrow(data))
       data$contiguity_index <- rep(NA_real_, nrow(data))
+      data$ell_dir <- rep(NA_real_, nrow(data))
+      data$ell_crop_area_m2 <- rep(NA_real_, nrow(data))
+      data$ell_tot_area_m2 <- rep(NA_real_, nrow(data))
+      data$ell_long_axis <- rep(NA_real_, nrow(data))
+      data$ell_short_axis <- rep(NA_real_, nrow(data))
+      data$patch_ell_ratio <- rep(NA_real_, nrow(data))
     } else {
-      centro <- terra::centroids(polygon, TRUE)
+      centro <- terra::centroids(polygon)
       centro <- terra::extract(x, centro, xy = TRUE)
       centro <- centro |>
         dplyr::select(patches, x, y) |>
@@ -266,37 +276,40 @@ BEE.calc.metrics_morpho <- function(
         names(perim_pixel_ratio)
       )]
       #Perimeter ratio area in meters :
-      Perim_area_ratios_m <- landscapemetrics::lsm_p_para(x)
-      data$perim_area_ratio_m <- Perim_area_ratios_m$value[match(
+      sp <- split(data, data$patch_id)
+      perim_area_ratios_m <- vapply(
+        sp,
+        function(df) sum(df$perimeter) / unique(df$patch_area),
+        numeric(1)
+      )
+      data$perim_area_ratio <- perim_area_ratios_m[match(
         data$patch_id,
-        Perim_area_ratios_m$id
+        names(perim_area_ratios_m)
       )]
       #Shape Index :
-      x <- raster::raster(x)
-      Shape_indexes <- landscapemetrics::lsm_p_shape(x)
-      data$shape_index <- Shape_indexes$value[match(
+      shape_index <- vapply(
+        sp,
+        function(df) 0.25 * df$perimeter[1] / sqrt(df$patch_area[1]),
+        numeric(1)
+      )
+      data$shape_index <- shape_index[match(
         data$patch_id,
-        Shape_indexes$id
+        names(shape_index)
       )]
       #Fractal correlation :
-      Fractal_cor_indexes <- landscapemetrics::lsm_p_frac(x)
-      data$fractal_cor_index <- Fractal_cor_indexes$value[match(
+      fractal_cor_indexes <- vapply(
+        sp,
+        function(df) 2 * log(0.25 * df$perimeter[1]) / log(df$patch_area[1]),
+        numeric(1)
+      )
+      data$fractal_cor_index <- fractal_cor_indexes[match(
         data$patch_id,
-        Fractal_cor_indexes$id
+        names(fractal_cor_indexes)
       )]
 
-      #Ratio btw patch shape and circle
-      circle_ratio <- data.frame(
-        patch_id = as.numeric(names(sp)[names(sp) != "NaN"]),
-        circle_ratio_index = as.numeric(patch_circle_ratio(polygon, crs = crs))
-      )
-      data <- merge(
-        data,
-        circle_ratio,
-        by = "patch_id",
-        all.x = TRUE,
-        sort = FALSE
-      )
+      #Ratio btw patch shape and ellipsoide
+      ellipses <- min_ellipse_from_polygon(x, data)
+      data <- merge(data, ellipses, by = "patch_id", all.x = TRUE)
 
       #Contiguity :
       Contiguity_indexes <- landscapemetrics::lsm_p_contig(x)
@@ -345,23 +358,239 @@ BEE.calc.metrics_morpho <- function(
   patch_list <- terra::rast(patch_list)
   names(patch_list) <- terra::time(rasters)
 
-  data_summarised <- data.table::rbindlist(data_summarised)
+  data_summarised <- data.table::rbindlist(data_summarised, use.names = TRUE)
 
   output <- list(data_summarised, patch_list)
   return(output)
 }
 
 
-#' Compute de smallest circle in which a patch fits and compare patch are to circle area
+#' Compute de smallest ellipsoide in which a patch fits and compute area
 #'
 #' @noRd
 #'
-patch_circle_ratio <- function(polygon, crs = crs) {
-  # WORK one raster per one raster, not on spat raster
-  patch_sf <- sf::st_as_sf(polygon, crs = crs)
-  patch_sf <- sf::st_transform(patch_sf, crs = crs)
-  patch_area <- terra::expanse(polygon, unit = "m")
-  circle <- sf::st_minimum_bounding_circle(patch_sf)
-  circle_area <- as.numeric(sf::st_area(circle))
-  patch_area / circle_area
+
+#Minimum ellipse:
+
+min_ellipse_from_polygon <- function(x, data2) {
+  patch_ids <- unique(data2$patch_id[
+    !is.na(data2$patch_id) & !is.nan(data2$patch_id)
+  ])
+
+  ell_dir <- vector()
+  ell_crop_area_m2 <- vector()
+  ell_tot_area_m2 <- vector()
+  patch_ell_ratio <- vector()
+  ell_long_axis <- vector()
+  ell_short_axis <- vector()
+  i = 1
+
+  for (p in patch_ids) {
+    #p <- patch_ids[1]
+    # pixels coordinates from patch p
+    data_p <- data2[
+      !is.na(data2$patch_id) &
+        data2$patch_id == p &
+        !is.na(data2$x) &
+        !is.na(data2$y),
+    ]
+
+    #matrix of points: (pixels coordinates that must goes into the ellipse)
+    coords_m <- as.matrix(
+      data_p[, c("x", "y")]
+    )
+    if (nrow(coords_m) == 1) {
+
+      ell_dir[i] <- NA
+      ell_crop_area_m2[i] <- 0
+      ell_tot_area_m2 <- 0
+      patch_ell_ratio[i] <- NA
+      ell_long_axis[i] <- 0
+      ell_short_axis[i] <- 0
+      i <- 1 + i
+    } else if (
+      nrow(coords_m) >= 2 &
+        (length(unique(coords_m[, 1])) == 1 |
+          length(unique(coords_m[, 2])) == 1)
+    ) {
+      # the patch formes a line
+      if (length(unique(coords_m[, 1])) == 1) {
+
+        #fixed longitude
+        ell_dir[i] <- 0
+        patch_ell_ratio[i] <- NA
+        ell_crop_area_m2[i] <- 0
+        ell_tot_area_m2 <- 0
+        #distance
+        data_p_deg <- data2[data2$patch_id == p, c("x", "y")]
+        data_p_deg_v <- terra::vect(data_p_deg, crs = terra::crs(x))
+
+        ell_long_axis[i] <- max(terra::distance(data_p_deg_v)) / 2
+        ell_short_axis[i] <- 0
+        i <- 1 + i
+      }
+      if (length(unique(coords_m[, 2])) == 1) {
+
+        #fixed longitude
+        ell_dir[i] <- 90
+        patch_ell_ratio[i] <- NA
+        ell_crop_area_m2[i] <- 0
+        ell_tot_area_m2 <- 0
+        #distance
+        data_p_deg <- data2[data2$patch_id == p, c("x", "y")]
+        data_p_deg_v <- terra::vect(data_p_deg, crs = terra::crs(x))
+
+        ell_long_axis[i] <- max(terra::distance(data_p_deg_v)) / 2
+        ell_short_axis[i] <- 0
+        i <- 1 + i
+      }
+    } else if (
+      nrow(coords_m) >= 2 &
+        (length(unique(coords_m[, 1])) == nrow(coords_m) &
+          length(unique(coords_m[, 2])) == nrow(coords_m))
+    ) {
+
+      #diagonal
+      ell_dir[i] <- geosphere::bearing(coords_m[1, ], coords_m[2, ])
+      patch_ell_ratio[i] <- NA
+      ell_crop_area_m2[i] <- 0
+      ell_tot_area_m2 <- 0
+      #distance
+      data_p_deg <- data2[data2$patch_id == p, c("x", "y")]
+      data_p_deg_v <- terra::vect(data_p_deg, crs = terra::crs(x))
+
+      ell_long_axis[i] <- max(terra::distance(data_p_deg_v)) / 2
+      ell_short_axis[i] <- 0
+      i <- 1 + i
+    } else if (
+      nrow(coords_m) >= 2 &
+        length(unique(coords_m[, 1])) > 1 &
+        length(unique(coords_m[, 2])) > 1
+    ) {
+
+      # /!\ In between those line, every output is in degrees and distances and
+      # angle are wrong because cluster::ellipsoidhull assume that coordinates
+      # are planer, in our case we just want the coordinates of the points that
+      # formes the ellipse, thoses coordinates will be in degres, once transformed
+      # transformed into a polygon, terra will deal with the lon/lat to get the
+      # most precise estimation of the covered are. This will be more precise
+      # than convert to metric crs and then compute ellipse and its area.
+      #-------------------------------------------------------------------------
+      #make ellipse:
+      ell <- cluster::ellipsoidhull(coords_m)
+
+      #extract ellipse caracteristics:
+      ## center coordinates:
+      center_m <- ell$loc
+      ## ellipse matrix (covariance):
+      cov_m <- ell$cov
+
+      ##PCA ellispe: (to get axis)
+      eigen_res <- eigen(cov_m)
+      eigenvalues <- eigen_res$values
+      eigenvectors <- eigen_res$vectors
+      ##axis
+      semi_major_m <- sqrt(ell$d2 * eigenvalues[1])
+      semi_minor_m <- sqrt(ell$d2 * eigenvalues[2])
+
+      ## Total area of the ellipse
+      ellipse_area_m2 <- pi * semi_major_m * semi_minor_m
+
+      ##ellispe orientation relatively to first axis in the matrix provided as data_p
+      #angle btw longest axis and a latitude
+      principal_vector <- eigenvectors[, 1]
+      angle_rad <- atan2(
+        principal_vector[2],
+        principal_vector[1]
+      )
+      angle_deg <- angle_rad * 180 / pi # par rapport à l'axe des x dans mon repère
+
+      #To compute ratio btw ellispe area and patch area we need to withdraw from
+      #the ellipse the portions that fall outside of the raster:
+      #convert the ellipse into a polygon:
+      ##draw ellipse:
+      t <- seq(0, 2 * pi, length.out = 300)
+      x0 <- semi_major_m * cos(t)
+      y0 <- semi_minor_m * sin(t)
+      x_rot <- x0 * cos(angle_rad) - y0 * sin(angle_rad)
+      y_rot <- x0 * sin(angle_rad) + y0 * cos(angle_rad)
+      x_ellipse <- x_rot + center_m[1]
+      y_ellipse <- y_rot + center_m[2]
+      ##convert to polygon
+      ellipse_mat <- cbind(x_ellipse, y_ellipse)
+      ellipse_mat <- rbind(
+        ellipse_mat,
+        ellipse_mat[1, ]
+      )
+      #-------------------------------------------------------------------------
+      ellipse_poly <- terra::vect(
+        ellipse_mat,
+        type = "polygons",
+        crs = terra::crs(x)
+      )
+
+      extent_poly <- terra::as.polygons(terra::ext(x), crs = terra::crs(x))
+
+      #get ellipse only inside raster:
+      ellipse_area_crop <- terra::intersect(ellipse_poly, extent_poly)
+      terra::crs(ellipse_area_crop) <- terra::crs(x)
+      ellipse_area_in_raster_m <- terra::expanse(ellipse_area_crop, unit = "m")
+
+      #get patch/ellipse ratio
+      patch_area <- sum(data_p$cell_size)
+      patch_ell_ratio_i <- patch_area / ellipse_area_in_raster_m
+
+      # Now proprely deduce axis:
+      #in raster (long axis can outside of raster but not short one)
+
+      major_axis <- max(terra::distance(
+        terra::crds(ellipse_area_crop),
+        lonlat = T,
+        unit = "m"
+      )) /
+        2
+      # area=pi*major_axis_REAL*minor_axis :
+      pts_ell_poly <- terra::crds(ellipse_poly)
+      major_axis_real <- max(terra::distance(
+        pts_ell_poly,
+        lonlat = T,
+        unit = "m"
+      )) /
+        2
+      minor_axis <- terra::expanse(ellipse_poly, unit = "m") /
+        (pi * major_axis_real)
+
+      #get long axis azimut
+
+      dist_mat <- as.matrix(terra::distance(
+        pts_ell_poly,
+        lonlat = T,
+        unit = "m"
+      ))
+      max_idx <- which(dist_mat == max(dist_mat, na.rm = TRUE), arr.ind = TRUE)
+      pt1 <- pts_ell_poly[max_idx[1, 1], ]
+      pt2 <- pts_ell_poly[max_idx[1, 2], ]
+      ell_azimut <- geosphere::bearing(pt1, pt2) # computed on ellipsoid :)
+
+      #save results:
+      ell_crop_area_m2[i] <- ellipse_area_in_raster_m
+      ell_tot_area_m2[i] <- terra::expanse(ellipse_poly, unit = "m")
+      patch_ell_ratio[i] <- patch_ell_ratio_i
+      ell_long_axis[i] <- major_axis
+      ell_short_axis[i] <- minor_axis
+      ell_dir[i] <- ell_azimut
+      i <- i + 1
+    }
+  }
+  ellipse <- data.frame(
+    patch_id = patch_ids,
+    ell_dir = ell_dir,
+    ell_crop_area_m2 = ell_crop_area_m2,
+    ell_tot_area_m2 = ell_tot_area_m2,
+    patch_ell_ratio = patch_ell_ratio,
+    ell_long_axis = ell_long_axis,
+    ell_short_axis = ell_short_axis
+  )
+
+  return(ellipse)
 }

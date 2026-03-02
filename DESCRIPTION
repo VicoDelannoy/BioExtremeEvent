@@ -19,6 +19,7 @@ Depends:
     R (>= 4.1)
 Imports: 
     circular,
+    cluster,
     data.table,
     dplyr,
     geosphere,
@@ -26,7 +27,6 @@ Imports:
     here,
     landscapemetrics,
     lubridate,
-    raster,
     reticulate,
     sf,
     stats,

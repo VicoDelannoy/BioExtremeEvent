@@ -8,8 +8,7 @@ BEE.calc.metrics_morpho(
   corrected_rasters,
   start_date = NULL,
   end_date = NULL,
-  per_pix = FALSE,
-  crs = NULL
+  per_pix = FALSE
 )
 }
 \arguments{
@@ -27,13 +26,9 @@ save computation time.}
 
 \item{per_pix}{:
 Use TRUE if you want a list with one dt per pixel as an output.}
-
-\item{crs}{:
-To get accurate length and area, data in longitude latitude must
-be converted into meters data that take in account earth sphericity, the
-conversion depend on studdied region, thus you must specify the one the most
-appropriated for your data. See help here to find a suitable EPSG you can
-check on https://epsg.io/ .}
+}
+\value{
+Units related to area are in m².
 }
 \description{
 This function give the morphological metrics for an extreme event,

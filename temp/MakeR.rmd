@@ -192,7 +192,11 @@ The function bellow gives you basic metrics for a given GPS position, list of po
 ```{r}
 GPS <- data.frame(x = c(3.7659, 5.386, 3.146), # Frontignan, îles du Frioul, Banyuls, Monaco
                   y = c(43.4287, 43.183, 42.781))
-points_metrics <- BEE.calc.metrics_point(Events_corrected, Values = ds, GPS, start_date = "2024-06-01", end_date = "2024-10-31", baseline_qt = baseline_qt90, baseline_mean = baseline_mean, group_by_event = FALSE)
+
+test <- readRDS("/home/victoria/Documents/R/Ben_RNAseq_article/extreme_event_df_list.rds")
+test_ds <- terra::rast("/home/victoria/Documents/R/Ben_RNAseq_article/cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021_analysed_sst_3.54E-4.20E_43.12N-43.62N_1982-01-01-2024-12-31.nc")
+ds <- BEE.convert.celsius(test_ds)
+points_metrics <- BEE.calc.metrics_point(test, yourspatraster = ds, GPS[1,], start_date = "2024-06-01", end_date = "2024-10-31", baseline_qt = baseline_qt90, baseline_mean = baseline_mean, group_by_event = FALSE)
 
 saveRDS(points_metrics, file = "Data/points_metrics.rds")
 points_metrics <- readRDS("Data/points_metrics.rds")
@@ -281,7 +285,7 @@ factoextra::fviz_pca_var(acp_result,
 #7. Get metrics related to space.
 
 ```{r}
-list_morpho_metrics <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=TRUE, crs = "EPSG:2154") # Give the spatial metrics of each patch present in the provided area for each days.
+list_morpho_metrics2 <- BEE.calc.metrics_morpho(Corrected_rasters, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE) # Give the spatial metrics of each patch present in the provided area for each days.
 
 saveRDS(list_morpho_metrics[[1]], file = "Data/list_morpho_metrics_df.rds")
 list_morpho_metrics_df <- readRDS("Data/list_morpho_metrics_df.rds")

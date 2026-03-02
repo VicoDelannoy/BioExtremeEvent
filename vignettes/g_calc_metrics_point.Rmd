@@ -61,7 +61,7 @@ Dataframes contains the folowing informations:
 |                      | time serie                           |           |                |
 | duration             | Duration of the period               | integer   | days           |  
 | date                 | Date associated to the observation   |double/date|                |  
-| ID                   | The event identifier \*              | character |                |
+| ID                   | The event identifier \*\*            | character |                |
 | value                | Value of the sudied parameter        | double    | \*             |
 | x                    | Longitude                            | double    | decimal degree |
 | y                    | Latitude                             | double    | decimal degree |
