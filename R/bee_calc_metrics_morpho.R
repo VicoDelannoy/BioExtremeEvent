@@ -2,10 +2,10 @@
 #'
 #' @description
 #'  This function give the morphological metrics for an extreme event,
-#'  corrected_rasters is the SpatRaster you want to analyze (it needs to be
+#'  extreme_event_spatraster is the SpatRaster you want to analyze (it needs to be
 #'  binarise with the mhw function)
 #'
-#' @param corrected_rasters :
+#' @param extreme_event_spatraster :
 #'  The SpatRaster you want to analyse (first output of
 #'  *BEE.id.extreme_events()*).
 #' @param start_date :
@@ -15,7 +15,8 @@
 #'  Allows to perform the analysis on a specific  time_frame, this allows to
 #'  save computation time.
 #' @param per_pix :
-#'  Use TRUE if you want a list with one dt per pixel as an output.
+#'  Use TRUE if you want a list with one dt per pixel as an output. Use TRUE to 
+#'  be able to use the output in BEE.data.merge().
 #'
 #' @return Units related to area are in m².
 #'
@@ -45,10 +46,10 @@
 #-------------------------------------------------------------------------------
 
 # start_date <- "2024-07-01" ; end_date <- "2024-08-31" ;per_pix=TRUE ;
-# corrected_rasters <- Corrected_rasters
+# extreme_event_spatraster <- Corrected_rasters
 
 BEE.calc.metrics_morpho <- function(
-  corrected_rasters,
+  extreme_event_spatraster,
   start_date = NULL,
   end_date = NULL,
   per_pix = FALSE
@@ -65,7 +66,7 @@ BEE.calc.metrics_morpho <- function(
       orders = c("dmy", "ymd", "mdy")
     )
     format_layers_names <- lubridate::guess_formats(
-      names(corrected_rasters[[1]]),
+      names(extreme_event_spatraster[[1]]),
       orders = c("dmy", "ymd", "mdy")
     )
     same_format <- all(format_start_date %in% format_layers_names)
@@ -81,23 +82,23 @@ BEE.calc.metrics_morpho <- function(
       ## Retrive
       start_date <- ifelse(
         is.null(start_date),
-        names(corrected_rasters[[1]]),
+        names(extreme_event_spatraster[[1]]),
         start_date
       )
       end_date <- ifelse(
         is.null(end_date),
-        names(corrected_rasters[[terra::nlyr(corrected_rasters)]]),
+        names(extreme_event_spatraster[[terra::nlyr(extreme_event_spatraster)]]),
         end_date
       )
-      rasters <- corrected_rasters[[which(
-        names(corrected_rasters) >= start_date &
-          names(corrected_rasters) <= end_date
+      rasters <- extreme_event_spatraster[[which(
+        names(extreme_event_spatraster) >= start_date &
+          names(extreme_event_spatraster) <= end_date
       )]]
     }
   }
   if (is.null(start_date) & is.null(end_date)) {
     ## Adjust variable name to match the rest of the function
-    rasters <- corrected_rasters
+    rasters <- extreme_event_spatraster
   }
 
   nb_NA <- unique(terra::global(

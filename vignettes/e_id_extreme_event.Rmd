@@ -15,7 +15,7 @@ The two functions are complementary: binarise detects when conditions are extrem
 
 # Usage
 ## Arguments:
-**binarized_spatraster**: is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as yourspatraster for comparison without bias.  
+**extreme_day**: is a spatraster with one layer per day. Each layer covers the same area and time is continuous (no layers are missing). If you are not using a fixed threshold, the baseline spatraster computed using BEE.calc.baseline() must be computed using the same dataset as yourspatraster for comparison without bias.  
 **n**: The minimum number of consecutive days above the baseline/threshol required for a series of days more extrem than the baseline to be considered as an extreme event (≥).  
 **d**: The maximum number of days for which two series of values above the threshold/baseline, separated by some days below the threshold/baseline, can be considered a single extreme event (the maximum distance in days between the two events to be merged <=).  
 **nbis**: The minimum number of days in a series of 1 to allow merging with
@@ -31,10 +31,10 @@ No messages implemented yet.
 
 ## Output
 Returns a list with 2 elements.  
-The first one is called **"binarized_spatraster_corrected"**. This SpatRaster contains the identified extreme events. Based on the criteria specified in the function arguments, extreme events are derived from the binarised extreme days by applying pixel-wise temporal rules such as minimum event duration, merging of events that are close in time, and the removal of isolated extreme days. These events are used in the next function of the pipeline.  
-The second element is called **"extreme_event"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in yourspatraster). 
+The first one is called **"extreme_event_spatraster"**. This SpatRaster contains the identified extreme events. Based on the criteria specified in the function arguments, extreme events are derived from the binarised extreme days by applying pixel-wise temporal rules such as minimum event duration, merging of events that are close in time, and the removal of isolated extreme days. These events are used in the next function of the pipeline.  
+The second element is called **"extreme_event_list"**. This is a list with one data.table per pixel. Each data.table has a date for each row (and as many dates as there are layers in yourspatraster). 
 
-The dataframes in the output list "extreme_event" contains the followings collumns :
+The dataframes in the output list "extreme_event_list" contains the followings collumns :
 
 |   Column name  |             Description            |   Class   |  Unit   |
 |:--------------:|:----------------------------------:|:---------:|:-------:|
@@ -69,17 +69,17 @@ binarized_data <- terra::rast(file_name_1)
 
 ## Apply filter:
 ```{r}
-events <- BEE.id.extreme_events(binarized_spatraster = binarized_data, n = 5, d = 2)
+events <- BEE.id.extreme_events(extreme_day = binarized_data, n = 5, d = 2)
 ```
 
 ## Spatraster output:
 ```{r}
 # Get the corrected spatraster:
-binarized_corrected_spatraster <- events[[1]]
+extreme_event_spatraster <- events[[1]]
 
 # Plot a layer
-date <- terra::time(binarized_corrected_spatraster[[800]])
-terra::plot(binarized_corrected_spatraster[[800]],
+date <- terra::time(extreme_event_spatraster[[800]])
+terra::plot(extreme_event_spatraster[[800]],
             main = as.character(date))
 # Here 850 refers to the layers of the spatraster <-> 800th days of the spatraster.
 ```
@@ -87,8 +87,8 @@ terra::plot(binarized_corrected_spatraster[[800]],
 ## Get the list of data.table with former and corrected values and with dates and duration:
 
 ```{r}
-binarized_corrected_df <- events[[2]]
-head(binarized_corrected_df[[80]])
+extreme_event_list <- events[[2]]
+head(extreme_event_list[["80"]])
 # Here 80 refers to the pixel id. The 850th day correspond to the 850th row.
 ```
 
@@ -98,12 +98,12 @@ Due to the different nature of the two outputs, they must be saved separately.
 
 ```{r, eval = FALSE}
 ## Save the spatraster
-binarized_corrected_spatraster <- events[[1]]
-terra::writeRaster(binarized_corrected_spatraster, "your_path/data/binarized_corrected_spatraster.tiff")
+extreme_event_spatraster <- events[[1]]
+terra::writeRaster(extreme_event_spatraster, "your_path/data/binarized_corrected_spatraster.tiff")
 
 ## Save the list of df
-binarized_corrected_df <- events[[2]]
-saveRDS(binarized_corrected_df, file = "your_path/data/binarized_corrected_df.rds")
+extreme_event_list <- events[[2]]
+saveRDS(extreme_event_list, file = "your_path/data/binarized_corrected_df.rds")
 ```
 
 Please save both because they are both used in the next steps of the pipeline.

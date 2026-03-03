@@ -7,7 +7,7 @@
 #'  (but avoiding NA pixels, which are suppose to represent a place that cannot
 #'  be crossed) through time for a given gps position or for all pixels.
 #'
-#' @param true_event_output : 
+#' @param extreme_events_output : 
 #'  Is the ouput of function BEE.id.extreme_events().
 #' @param start_date : 
 #'  Defines the beginning of the timeframe during which you want to analyse
@@ -21,7 +21,7 @@
 #'  = 'TRUE' if you want to perform calculations using all the days.
 #'  Use account = 'FALSE' when you want to calculate only for the days when your
 #'  reference point is experiencing an extreme event. 
-#'  By default, account_all_days is set on FALSE
+#'  By default, only_days_EE is set on FALSE
 #' @param group_by_event :
 #'  Allows to specify if you want your result by extreme event or for the whole
 #'  time periode specified. "group_by_event" = TRUE : compute one mean distance
@@ -33,23 +33,23 @@
 #' @param pixel :
 #'  Is a vector with x,y coordinates or a df of x,y coordinates or "all" if you
 #'  want to compute distance metrics for all pixels in the raster provided 
-#'  through true_event_output.
+#'  through extreme_events_output.
 #'
 #' @note 
 #'  All distance metrics are limited by the size of the Spatraster your
-#'  are providing.
+#'  are providing. See function is not developped to work on 4D data (time + 3D).
 #'
 #' @export
 #'
 #-------------------------------------------------------------------------------
 
 # BEE.calc.escape is not designed to work on 4D data (time + spatial 3D).
-# true_event_output <- result ; start_date = "2024-08-01";
+# extreme_events_output <- result ; start_date = "2024-08-01";
 # end_date = "2024-08-20" ; pixel = gps ; only_days_EE = FALSE ;
 # group_by_event = FALSE
 
 BEE.calc.escape <- function(
-  true_event_output,
+  extreme_events_output,
   start_date = NULL,
   end_date = NULL,
   pixel,
@@ -59,14 +59,14 @@ BEE.calc.escape <- function(
   ### Recreate a Spatraster using events_corrected. In this list, there are one
   # df per pixel and one raw per dates
   ## Get data and shell
-  data <- true_event_output[[2]]
+  data <- extreme_events_output[[2]]
   data <- Filter(Negate(is.null), data)
-  shell <- true_event_output[[1]]
+  shell <- extreme_events_output[[1]]
   ## Select timeframe of interest to save computation time later
   # Check that dates from the two products of result match
   if (length(data[[1]]$original_value) != terra::nlyr(shell)) {
     warning(
-      "The two elements you provided as 'true_event_output don't cover the same
+      "The two elements you provided as 'extreme_events_output' don't cover the same
       number of days, please use the output of BEE.id.extreme_events."
     )
   }
@@ -75,9 +75,9 @@ BEE.calc.escape <- function(
   data <- lapply(data, \(df) df[date_indices[1]:date_indices[2], ])
 
   # Subset the layers in the timeframe of interest
-  rasters <- true_event_output[[1]][[
-    names(true_event_output[[1]]) >= start_date &
-      names(true_event_output[[1]]) <= end_date
+  rasters <- extreme_events_output[[1]][[
+    names(extreme_events_output[[1]]) >= start_date &
+      names(extreme_events_output[[1]]) <= end_date
   ]]
 
   # coordinates of every pixel in the dataset :
@@ -278,7 +278,7 @@ BEE.calc.escape <- function(
     return(points)
   })
 
-  warnings(
+  message(
     "When several pixels are the 'closest pixel', the one with the smallest 
     number/id is kept to compute shortest distance and azimut. Moreover, this 
     function uses 'geosphere::distHaversine' to compute distances, it accounts 
@@ -330,7 +330,7 @@ BEE.calc.escape <- function(
     # Here we want to give 'summary' type value compute across all day of a
     # same event for each pixel (and event)
     # First, we need to re-identify all the days that belong to a same event :
-    ## Create a data.table from  true_event_output[[2]] (data) with a column to
+    ## Create a data.table from  extreme_events_output[[2]] (data) with a column to
     # easly identify the pixel represented in each row :
     names(data) <- sapply(data, function(df) df$pixel_id[1])
     data <- data[names(data) %in% as.character(unique(dist_dir$pixel_id))]
@@ -449,7 +449,7 @@ BEE.calc.escape <- function(
 
     return(dist_dir)
   }
-  message("this combination of argument is not endle by the function")
+  message("this combination of argument is not handle by the function")
 }
 
 

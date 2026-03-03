@@ -61,7 +61,7 @@ Binerise the Spatraster
 ```{r}
 # Identify the days on which the values are higher than the baseline for the
 # 90th percentile.:
-binarized <- BEE.id.extreme_day(yourspatraster=copernicus_data,
+extreme_day <- BEE.id.extreme_day(yourspatraster=copernicus_data,
                                    baseline=baseline_qt90,
                                    direction = "above")
 ```
@@ -111,7 +111,7 @@ terra::plot(
 )
 
 terra::plot(
-  binarized[[800]],
+  extreme_day[[800]],
   main = "Binarized data",
   plg  = list(cex = 1.4),
   cex.main = 1.4,
@@ -123,7 +123,7 @@ terra::plot(
 
 ```{r}
 # Identify days on which the value is lower than a fixed threshold.
-binarized_fixed_threshold <- BEE.id.extreme_day(yourspatraster=copernicus_data,
+extreme_day_fixed_threshold <- BEE.id.extreme_day(yourspatraster=copernicus_data,
                                    baseline= 12.5,
                                    direction = "below")
 ```
@@ -159,7 +159,7 @@ terra::plot(
 )
 
 terra::plot(
-  binarized_fixed_threshold[[800]],
+  extreme_day_fixed_threshold[[800]],
   main = "Binarized data ",
   cex.main = 1.4,
   cex.axis = 1.4,
@@ -172,5 +172,5 @@ terra::plot(
 The output is a spatraster, you can save it using:
 
 ```{r, eval = FALSE}
-terra::writeRaster(binarized, "your_path/data/copernicus_binarized.tiff")
+terra::writeRaster(extreme_day, "your_path/data/copernicus_extreme_day.tiff")
 ```

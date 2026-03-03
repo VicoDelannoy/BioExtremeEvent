@@ -13,7 +13,7 @@ Compute daily metrics of spatial features of the extreme event (only in surface,
 
 # Usage
 ## Arguments:
-**corrected_rasters** :
+**extreme_event_spatraster** :
   The SpatRaster you want to analyse (first output of 
   *BEE.id.extreme_events()*).
 **start_date** :
@@ -23,19 +23,14 @@ Compute daily metrics of spatial features of the extreme event (only in surface,
   Allows to perform the analysis on a specific  time_frame, this allows to 
   save computation time.
 **per_pix** :
-  Use TRUE if you want a list with one dt per pixel as an output.
-**crs** :
-  To get accurate length and area, data in longitude latitude must
-  be converted into meters data that take in account earth sphericity, the
-  conversion depend on studdied region, thus you must specify the one the most
-  appropriated for your data. To find a suitable EPSG you can
-  check on https://spatialreference.org/explorer.html or https://epsg.io/ or build your own EPSG here https://projectionwizard.org/.
+  Use TRUE if you want a list with one dt per pixel as an output.  Use TRUE to be able to use the output in BEE.data.merge().
+
 
 
 ## Warnings:
 You will receive a warning if :
 
--   *"start_date"* and/or *"end_date"* formats do not match the format of the spatrasters layer name. Please note that some mismatches in the date format may still not be detected. To be sure, compare your *"start_date"* and *"end_sate"* with terra::names(corrected_rasters[[1:10]]).
+-   *"start_date"* and/or *"end_date"* formats do not match the format of the spatrasters layer name. Please note that some mismatches in the date format may still not be detected. To be sure, compare your *"start_date"* and *"end_sate"* with terra::names(extreme_event_spatraster[[1:10]]).
 
 ## Messages:
 You will receive a message in the following case :  
@@ -43,7 +38,7 @@ You will receive a message in the following case :
 
 ## Output
 
-You will get a list of dataframes contains the informations in the table bellow and a spartaster with all the extreme events, identified daily:
+You will get a list of dataframes containning the informations in the table bellow and a spartaster with all the extreme events, identified daily:
 *Below, 'patch' is used to describe a group of neighbouring pixels on a given date.*
 
 |   Column name        |             Description              |   Class   |  Unit          |

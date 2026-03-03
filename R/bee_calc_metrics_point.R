@@ -1,8 +1,8 @@
 #' Compute metrics through time for specific locations.
 #'
-#' @param events_corrected :
+#' @param extreme_event :
 #'  Is the list of data tables produced by:
-#'  bee_calc_true_event (the second element of the output). For each pixel, it
+#'  bee.id.extreme_events() (the second element of the output). For each pixel, it
 #'  contains a data.table with dates in the rows and a column indicating whether
 #'  it is a day belonging to a heatwave (1) or not (0).
 #' @param yourspatraster :
@@ -30,7 +30,8 @@
 #'  of the studdied parameter. Optional argument.
 #' @param group_by_event :
 #'  Whether you want an output summarise by extreme event or not. If not, you
-#'  just get daily metrics. Optional argument.
+#'  just get daily metrics. Optional argument.  Use FALSE to be able to use the
+#'  output in BEE.data.merge().
 #'
 #' @note
 #'  *BEE.calc.metrics_point()* is not designed to work on 4D data
@@ -51,7 +52,7 @@
 #' file_name_2 <- system.file(file.path("extdata",
 #'                                      "binarized_corrected_df.rds"),
 #'                                      package = "BioExtremeEvent")
-#' binarized_corrected_df <- readRDS(file_name_2)
+#' extreme_event_list <- readRDS(file_name_2)
 #' file_name_3 <- system.file(file.path("extdata",
 #'                                      "baseline_qt90_smth_15.tiff"),
 #'                                      package = "BioExtremeEvent")
@@ -65,7 +66,7 @@
 #'
 #' # Get daily value (required for BEE.merge() and BEE.summarise()):
 #' metrics_points_day <- BEE.calc.metrics_point(
-#'  events_corrected = binarized_corrected_df,
+#'  extreme_event = extreme_event_list,
 #'  yourspatraster = copernicus_data_celsius,
 #'  gps = gps,
 #'  start_date = NULL,
@@ -82,7 +83,7 @@
 #' # Get mean, min, max, sd and median per event (extreme event and btw extreme
 #' # events):
 #' metrics_points_ee <- BEE.calc.metrics_point(
-#'  events_corrected = binarized_corrected_df,
+#'  extreme_event = extreme_event_list,
 #'  yourspatraster = copernicus_data_celsius,
 #'  gps = gps,
 #'  start_date = NULL,
@@ -104,7 +105,7 @@
 # group_by_event = TRUE; time_lapse_vector = c(1,3,5,7,14,21) ;
 # baseline_qt = baseline_qt90
 BEE.calc.metrics_point <- function(
-  events_corrected,
+  extreme_event,
   yourspatraster,
   gps,
   start_date = NULL,
@@ -170,7 +171,7 @@ BEE.calc.metrics_point <- function(
   # (it may indicates that it falls in an area that is not interesting for the
   # study)
   ## List of pixel that are always NA:
-  NA_pixels <- which(vapply(events_corrected, is.null, logical(1)))
+  NA_pixels <- which(vapply(extreme_event, is.null, logical(1)))
   ## Identify the pixels corresponding to the gps position provided:
   gps$pixel <- terra::cellFromXY(yourspatraster, gps)
   if (any(gps$pixel %in% NA_pixels)) {
@@ -193,7 +194,7 @@ BEE.calc.metrics_point <- function(
   ############################### CODE #########################################
   #Extract yourspatraster for the given gps position
   df_list <- lapply(gps$pixel, function(p) {
-    events_corrected[[p]]
+    extreme_event[[p]]
   }) # on df per points/pixel
   yourspatraster <- t(terra::extract(yourspatraster, gps[, 3]))
 

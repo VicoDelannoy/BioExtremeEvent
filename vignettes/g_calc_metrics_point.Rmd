@@ -30,7 +30,7 @@ Compute daily metrics such as anomaly to the baseline, event category (according
   **time_lapse_vector**: a vector of time laps on which to compute mean
  evolution rate and variance of the studdied parameter.  
  **group_by_event**: Whether you want an output summarise by extreme event
- or not. If not, you just get daily metrics.
+ or not. If not, you just get daily metrics.  Use FALSE to be able to use the output in BEE.data.merge().
 
 ## Warnings:
 You will receive a warning if :

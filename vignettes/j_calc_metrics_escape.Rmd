@@ -1,0 +1,115 @@
+---
+title: 6. Calculate shortest distance (and direction) to escape from an extrem event."
+author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{6. Calculate shortest distance (and direction) to escape from an extrem event.}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Aims of the function *BEE.calc.escape()*.
+Compute daily metrics related to the of the nearest "refuge area", its direction or position. The function only seek for refuge in 2D.
+
+# Usage
+## Arguments:
+**extreme_events_output**: If a the full output of BEE.calc.id.extreme_events(), which means a list with 2 objects : the spatraster with binarized value AND the list of dataframe with one dataframe per pixel. See vignette *3.1 Identify extreme event according specific constraints* for more informations.
+
+**start_date**: First day on which you want to start computing metrics. Optional argument. 
+
+**end_date**: Last day on which you want to compute metrics. Optional argument.
+
+**pixel**: A vector with x,y coordinates or a df of x,y coordinates or "all" if you want to compute distance metrics for all pixels in the raster provided through *"extreme_event_list"*.
+
+**only_days_EE**: TRUE if you want an output including all days (even if they don't belong to an extreme event), FLASE if you want an output with only the date that belong to an extreme event.
+
+**group_by_event** If TRUE, you will get a mean value per metrics per extreme event for every pixel analysed. If FALSE you will get daily value for each metrics. Use FALSE to be able to use the output in BEE.data.merge().
+ 
+
+## Warnings:
+You will receive a warning if :
+
+-   The two elements of *"extreme_events_output"* argument don't cover the same time period. If you enccounter this issue, please make sure you are using the full output of *BEE.id.extreme_event()* without intermediate modifications.
+-   The format of *'pixel'* argument is not recognized by the function. Please make sure that the provided dataframe contains only two columns, named x and y.
+-   The spatraster provided through *"extreme_events_output"* have no pixel value equal to 0 or 1, it is very likely that it is not binarized. PLease check function *BEE.id.extreme_day()* and *BEE.id.extreme_event* or see vignettes n°2 and n°3.1 .
+
+## Messages:
+You will receive a message in the following case :  
+-    Several pixels are "the closest pixel" which means there are sevral refuge area at the same distance. The azimut to the closest refuge pixel is the azimut to the pixel that as the lowest pixel id.
+-   No extreme event was found on the given pixel over the time period provided through *"start_date"* and *"end_date"*.
+-   For a given date, the raster (area provided) was fully covered by an extreme event, which means that it was not possible to identify a place to escape from the extreme event.
+-   The combination of arguments is not handled by the function.
+
+## Output
+
+You will get a list of dataframes containning the informations in the table bellow and a spartaster with all the extreme events, identified daily:
+
+|   Column name        |             Description              |   Class   |  Unit          |
+|:--------------------:|:------------------------------------:|:---------:|:--------------:|
+| pixel_id             | Pixel number in the spatraster       | integer   |                | 
+| x                    | Longitude                            | double    | decimal degree |
+| y                    | Latitude                             | double    | decimal degree |
+| patch_id             | Extreme event polygon identifier     | double    |                |
+| cell_size            | Area of the pixel                    |           | m²             |
+| boredering           | Whether the pixel is on the border of| double    | 1 or 0         |
+|                      | the patch (1) or not (0).            |           |                |
+| patch_area           | Total area of the extreme event on a | double    | m²             |
+| core_area            | Area of non-boredering pixels        | double    | m²             |
+|                      | of an extreme event on a given day   |           |                | 
+| core_area_index      | patch_are/core_area                  | double    | no unit        |
+| n_pixel              | number of pixels belong to the       | double    | pixels         |
+|                      | extreme event                        |           |                |
+| pixel_EE_tot         | Total number of pixels in extreme    | double    | pixels         |
+|                      | event (all extreme events that       |           |                |
+|                      | occured on that day)                 |           |                |
+| cover_percent        | Percentage of non-NA area that is    | double    | percentage     |
+|                      | covered by this extreme event (cf ID)|           |                |
+| n_core_pixel         | Number of pixels in the extreme event| double    | pixels         |
+|                      | that do not border the patch         |           |                |
+| date                 | Date associated to the observation   | Date      |                |
+| ID                   | The event identifier \*              | character |                |
+| perimeter            | Perimeter associated to the extreme  | double    | m              |
+|                      | event patch                          |           |                |
+| centroid_x           | centroid longitude of the patch      | double    | degrees        |
+| centroid_y           | centroid latitude of the patch       | double    | degrees        |
+| perim_pixel_ratio    | Pixels on patch limit / total number |           | no unit        |
+|                      | pixels in the patch                  |           |                |
+| perim_area_ratio     | Perimter (in m) / area (in m² )      | double    | m⁻¹           |
+| shape_index          | 0.25*perimeter/sqrt(area)            | double    | no unit        |
+| fractal_cor_index    | 2*log(0.25 *perimeter)/log(area)     | double    | no unit        |
+| contiguity_index     | Number of pixel from a patch within  | double    | pixels         |
+|                      | the 8 pixels around each pixel from  |           |                |
+|                      | the patch. For more info see:        |           |                |
+|                      | ?landscapemetrics::lsm_p_contig      |           |                |
+| ell_dir              | The angle between the north direction| double    | degrees        |
+|                      | and the longest axis of the smallest |           |                | 
+|                      | ellipse that surrounds a patch.      |           |                |
+| ell_crop_area_m2     | Ellipse area within the raster       | double    | no unit        |
+| ell_tot_area_m2      | Ellipse total area                   | double    | m²             |
+| ell_long_axis        | Longest ellipse axis length          | double    | m              |
+| ell_short_axis       | Shortest ellipse axis length         | double    | m              |
+| patch_ell_ratio      | Patch area / ellipse area            | double    | no unit        |
+
+\* Same format as the in the spatraster provided (here yyyy-mm-dd)  
+
+# Examples
+## Load data:
+We need the spatraster "stacked_rasters_corrected", wich is an ouptut of BEE.calc.id_extreme_event().
+```{r setup}
+library(BioExtremeEvent)
+
+file_name_1 <- system.file(file.path("extdata", 
+                                      "binarized_corrected_spatraster.tiff"),
+                                      package = "BioExtremeEvent")
+copernicus_data_celsius <- terra::rast(file_name_1)
+```
+
+## Get metrics by pixel:
+
+## Get metrics by patch x day :
+
+
+## How to save the ouputs:
+
+
+# Plots
