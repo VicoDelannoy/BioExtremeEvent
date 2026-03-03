@@ -30,10 +30,10 @@
 #'file_name_1 <- system.file(file.path("extdata",
 #'                                      "binarized_corrected_spatraster.tiff"),
 #'                                      package = "BioExtremeEvent")
-#'copernicus_data_celsius <- terra::rast(file_name_1)
+#'extreme_event_spatraster <- terra::rast(file_name_1)
 #'
 #' # Get metrics value per pixel x day:
-#' list_morpho_metrics <- BEE.calc.metrics_morpho(copernicus_data_celsius,
+#' list_morpho_metrics <- BEE.calc.metrics_morpho(extreme_event_spatraster,
 #' start_date = "2024-05-01",
 #' end_date = "2024-11-30",
 #' per_pix=TRUE)

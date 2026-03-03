@@ -63,11 +63,11 @@ baseline_qt90 <- terra::rast(file_name_2)
 
 # Identify the days on which the values are higher than the baseline for the
 # 90th percentile.:
-binarized_EE <- BEE.id.extreme_day(yourspatraster=copernicus_data,
+extreme_day <- BEE.id.extreme_day(yourspatraster=copernicus_data,
                                   baseline=baseline_qt90,
                                   direction = "above")
 # Identify days on which the value is lower than a fixed threshold.
-binarized_EE <- BEE.id.extreme_day(yourspatraster=copernicus_data,
+extreme_day <- BEE.id.extreme_day(yourspatraster=copernicus_data,
                                   baseline=12,
                                   direction = "below")
 

@@ -6,7 +6,7 @@
 (in surface, 2D)}
 \usage{
 BEE.calc.escape(
-  true_event_output,
+  extreme_events_output,
   start_date = NULL,
   end_date = NULL,
   pixel,
@@ -15,7 +15,7 @@ BEE.calc.escape(
 )
 }
 \arguments{
-\item{true_event_output}{:
+\item{extreme_events_output}{:
 Is the ouput of function BEE.id.extreme_events().}
 
 \item{start_date}{:
@@ -31,13 +31,13 @@ on all days_provided}
 \item{pixel}{:
 Is a vector with x,y coordinates or a df of x,y coordinates or "all" if you
 want to compute distance metrics for all pixels in the raster provided
-through true_event_output.}
+through extreme_events_output.}
 
 \item{only_days_EE}{:
 = 'TRUE' if you want to perform calculations using all the days.
 Use account = 'FALSE' when you want to calculate only for the days when your
 reference point is experiencing an extreme event.
-By default, account_all_days is set on FALSE}
+By default, only_days_EE is set on FALSE}
 
 \item{group_by_event}{:
 Allows to specify if you want your result by extreme event or for the whole
@@ -56,5 +56,5 @@ be crossed) through time for a given gps position or for all pixels.
 }
 \note{
 All distance metrics are limited by the size of the Spatraster your
-are providing.
+are providing. See function is not developped to work on 4D data (time + 3D).
 }

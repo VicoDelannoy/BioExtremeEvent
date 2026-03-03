@@ -5,14 +5,14 @@
 \title{Compute metrics spatial features of the extreme event (only in surface, 2D)}
 \usage{
 BEE.calc.metrics_morpho(
-  corrected_rasters,
+  extreme_event_spatraster,
   start_date = NULL,
   end_date = NULL,
   per_pix = FALSE
 )
 }
 \arguments{
-\item{corrected_rasters}{:
+\item{extreme_event_spatraster}{:
 The SpatRaster you want to analyse (first output of
 \emph{BEE.id.extreme_events()}).}
 
@@ -25,14 +25,15 @@ Allows to perform the analysis on a specific  time_frame, this allows to
 save computation time.}
 
 \item{per_pix}{:
-Use TRUE if you want a list with one dt per pixel as an output.}
+Use TRUE if you want a list with one dt per pixel as an output. Use TRUE to
+be able to use the output in BEE.data.merge().}
 }
 \value{
 Units related to area are in m².
 }
 \description{
 This function give the morphological metrics for an extreme event,
-corrected_rasters is the SpatRaster you want to analyze (it needs to be
+extreme_event_spatraster is the SpatRaster you want to analyze (it needs to be
 binarise with the mhw function)
 }
 \note{

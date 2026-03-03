@@ -4,17 +4,10 @@
 \alias{BEE.id.extreme_events}
 \title{Identify the extreme event}
 \usage{
-BEE.id.extreme_events(
-  binarized_spatraster,
-  n,
-  d,
-  nbis = NULL,
-  w = NULL,
-  p = NULL
-)
+BEE.id.extreme_events(extreme_day, n, d, nbis = NULL, w = NULL, p = NULL)
 }
 \arguments{
-\item{binarized_spatraster}{:
+\item{extreme_day}{:
 A Spatraster built using the BEE.id.extreme_day()
 function. It only contains 1 and 0.}
 
@@ -56,7 +49,7 @@ NOT AVAILBALE YET, see "w" explanations. Default: NULL}
 }
 \value{
 Returns a list with 2 elements. The first one is called
-\strong{"binarized_spatraster_corrected"}. This is a Spatraster containing
+\strong{"extreme_event_spatraster"}. This is a Spatraster containing
 binarised values that have been corrected according to the definition used
 in the function. It is used in the next funciton of the pipeline.
 The second element is called \strong{"extreme_event"}. This is a list with one
@@ -106,7 +99,7 @@ file_name <- system.file(file.path("extdata", "copernicus_binarized.tiff"),
                                   package = "BioExtremeEvent")
 binarized <- terra::rast(file_name)
 ### Apply filter:
-binarized_EE <- BEE.id.extreme_events(binarized_spatraster = binarized,
+binarized_EE <- BEE.id.extreme_events(extreme_day = binarized,
 n = 5,
 d = 2)
 
@@ -125,7 +118,7 @@ file_name <- system.file(file.path("extdata", "copernicus_binarized.tiff"),
                                   package = "BioExtremeEvent")
 binarized <- terra::rast(file_name)
 ### Apply filter:
-binarized_EE <- BEE.id.extreme_events(binarized_spatraster = binarized,
+binarized_EE <- BEE.id.extreme_events(extreme_day = binarized,
 n = 5,
 d = 2,
 nbis = 3)

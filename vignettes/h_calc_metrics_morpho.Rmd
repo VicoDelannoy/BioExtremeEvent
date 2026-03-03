@@ -104,14 +104,14 @@ library(BioExtremeEvent)
 file_name_1 <- system.file(file.path("extdata", 
                                       "binarized_corrected_spatraster.tiff"),
                                       package = "BioExtremeEvent")
-copernicus_data_celsius <- terra::rast(file_name_1)
+extreme_event_spatraster <- terra::rast(file_name_1)
 ```
 
 ## Get metrics by pixel:
 
 ```{r}
 # Warning, this can takes a minute or two.
-list_morpho_metrics <- BEE.calc.metrics_morpho(copernicus_data_celsius, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=TRUE) 
+list_morpho_metrics <- BEE.calc.metrics_morpho(extreme_event_spatraster, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=TRUE) 
 ```
 
 /!\ In the list of dataframe (first output of BEE.calc.metrics_morpho()) are NAMED according pixel_id, which allows you to extract a dataframe by it's NAME. If you extract a dataframe by its position in the list, you will not get the dataframe associed to the expected pixel.
@@ -131,7 +131,7 @@ pixel_unknown$pixel_id[1] ; names(df_list[214])
 
 ## Get metrics by patch x day :
 ```{r}
-list_morpho_metrics_EE <- BEE.calc.metrics_morpho(copernicus_data_celsius, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE)
+list_morpho_metrics_EE <- BEE.calc.metrics_morpho(extreme_event_spatraster, start_date = "2024-05-01", end_date = "2024-11-30", per_pix=FALSE)
 ```
 
 

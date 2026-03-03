@@ -5,7 +5,7 @@
 \title{Compute metrics through time for specific locations.}
 \usage{
 BEE.calc.metrics_point(
-  events_corrected,
+  extreme_event,
   yourspatraster,
   gps,
   start_date = NULL,
@@ -18,9 +18,9 @@ BEE.calc.metrics_point(
 )
 }
 \arguments{
-\item{events_corrected}{:
+\item{extreme_event}{:
 Is the list of data tables produced by:
-bee_calc_true_event (the second element of the output). For each pixel, it
+bee.id.extreme_events() (the second element of the output). For each pixel, it
 contains a data.table with dates in the rows and a column indicating whether
 it is a day belonging to a heatwave (1) or not (0).}
 
@@ -57,7 +57,8 @@ Optional argument.}
 
 \item{group_by_event}{:
 Whether you want an output summarise by extreme event or not. If not, you
-just get daily metrics. Optional argument.}
+just get daily metrics. Optional argument.  Use FALSE to be able to use the
+output in BEE.data.merge().}
 }
 \value{
 A list of dataframe (one per gps point), each dataframe contains
@@ -81,7 +82,7 @@ copernicus_data_celsius <- terra::rast(file_name_1)
 file_name_2 <- system.file(file.path("extdata",
                                      "binarized_corrected_df.rds"),
                                      package = "BioExtremeEvent")
-binarized_corrected_df <- readRDS(file_name_2)
+extreme_event_list <- readRDS(file_name_2)
 file_name_3 <- system.file(file.path("extdata",
                                      "baseline_qt90_smth_15.tiff"),
                                      package = "BioExtremeEvent")
@@ -95,7 +96,7 @@ gps <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
 
 # Get daily value (required for BEE.merge() and BEE.summarise()):
 metrics_points_day <- BEE.calc.metrics_point(
- events_corrected = binarized_corrected_df,
+ extreme_event = extreme_event_list,
  yourspatraster = copernicus_data_celsius,
  gps = gps,
  start_date = NULL,
@@ -112,7 +113,7 @@ metrics_points_day <- BEE.calc.metrics_point(
 # Get mean, min, max, sd and median per event (extreme event and btw extreme
 # events):
 metrics_points_ee <- BEE.calc.metrics_point(
- events_corrected = binarized_corrected_df,
+ extreme_event = extreme_event_list,
  yourspatraster = copernicus_data_celsius,
  gps = gps,
  start_date = NULL,

@@ -46,70 +46,61 @@ You will get a list of dataframes containning the informations in the table bell
 
 |   Column name        |             Description              |   Class   |  Unit          |
 |:--------------------:|:------------------------------------:|:---------:|:--------------:|
-| pixel_id             | Pixel number in the spatraster       | integer   |                | 
+| pixel_id             | Pixel number in the spatraster       | integer   |                |
+| date                 | Date associated to the observation \*| Date      |                | 
 | x                    | Longitude                            | double    | decimal degree |
 | y                    | Latitude                             | double    | decimal degree |
-| patch_id             | Extreme event polygon identifier     | double    |                |
-| cell_size            | Area of the pixel                    |           | m²             |
-| boredering           | Whether the pixel is on the border of| double    | 1 or 0         |
-|                      | the patch (1) or not (0).            |           |                |
-| patch_area           | Total area of the extreme event on a | double    | m²             |
-| core_area            | Area of non-boredering pixels        | double    | m²             |
-|                      | of an extreme event on a given day   |           |                | 
-| core_area_index      | patch_are/core_area                  | double    | no unit        |
-| n_pixel              | number of pixels belong to the       | double    | pixels         |
-|                      | extreme event                        |           |                |
-| pixel_EE_tot         | Total number of pixels in extreme    | double    | pixels         |
-|                      | event (all extreme events that       |           |                |
-|                      | occured on that day)                 |           |                |
-| cover_percent        | Percentage of non-NA area that is    | double    | percentage     |
-|                      | covered by this extreme event (cf ID)|           |                |
-| n_core_pixel         | Number of pixels in the extreme event| double    | pixels         |
-|                      | that do not border the patch         |           |                |
-| date                 | Date associated to the observation   | Date      |                |
-| ID                   | The event identifier \*              | character |                |
-| perimeter            | Perimeter associated to the extreme  | double    | m              |
-|                      | event patch                          |           |                |
-| centroid_x           | centroid longitude of the patch      | double    | degrees        |
-| centroid_y           | centroid latitude of the patch       | double    | degrees        |
-| perim_pixel_ratio    | Pixels on patch limit / total number |           | no unit        |
-|                      | pixels in the patch                  |           |                |
-| perim_area_ratio     | Perimter (in m) / area (in m² )      | double    | m⁻¹           |
-| shape_index          | 0.25*perimeter/sqrt(area)            | double    | no unit        |
-| fractal_cor_index    | 2*log(0.25 *perimeter)/log(area)     | double    | no unit        |
-| contiguity_index     | Number of pixel from a patch within  | double    | pixels         |
-|                      | the 8 pixels around each pixel from  |           |                |
-|                      | the patch. For more info see:        |           |                |
-|                      | ?landscapemetrics::lsm_p_contig      |           |                |
-| ell_dir              | The angle between the north direction| double    | degrees        |
-|                      | and the longest axis of the smallest |           |                | 
-|                      | ellipse that surrounds a patch.      |           |                |
-| ell_crop_area_m2     | Ellipse area within the raster       | double    | no unit        |
-| ell_tot_area_m2      | Ellipse total area                   | double    | m²             |
-| ell_long_axis        | Longest ellipse axis length          | double    | m              |
-| ell_short_axis       | Shortest ellipse axis length         | double    | m              |
-| patch_ell_ratio      | Patch area / ellipse area            | double    | no unit        |
-
+| to_x                 | Longitude of the closest pixel       | character | decimal degree |
+|                      | outside the extreme event.           |           |                |
+| to_y                 | Latitude of the closest pixel        | character | decimal degree |
+|                      | outside the extreme event.           |           |                |
+| pixel_to_id          | Pixel number of the closest pixel    | character |                |
+|                      | outside of the extreme event.        | integer   |                |
+| distance             | Distance to the closest pixel outside| character | m              |
+|                      | the extreme event                    |           |                |
+| azimut               | Angle between north and the axis     | character | degrees        |
+|                      | formed by the pixel to flee and the  |           |                |
+|                      | refuge pixel                         |           |                |
+| ID                   | The event identifier                 | character |                |
 \* Same format as the in the spatraster provided (here yyyy-mm-dd)  
 
 # Examples
 ## Load data:
-We need the spatraster "stacked_rasters_corrected", wich is an ouptut of BEE.calc.id_extreme_event().
+We need the full output of *BEE.calc.id_extreme_event()..
 ```{r setup}
 library(BioExtremeEvent)
-
+# reconstruct the output of BEE.id.extreme_event() from data saved in local:
 file_name_1 <- system.file(file.path("extdata", 
                                       "binarized_corrected_spatraster.tiff"),
                                       package = "BioExtremeEvent")
-copernicus_data_celsius <- terra::rast(file_name_1)
+extreme_event_spatraster <- terra::rast(file_name_1)
+file_name_2 <- system.file(file.path("extdata", 
+                                      "binarized_corrected_df.rds"),
+                                      package = "BioExtremeEvent")
+extreme_event_list <- readRDS(file_name_2)
+
+extreme_event <- list(extreme_event_spatraster,extreme_event_list)
+
+# create a dataframe with the positions of the studdied sites:
+GPS <- data.frame(x = c(3.7659), 
+                  y = c(43.4287))
 ```
 
 ## Get metrics by pixel:
+```{r}
+library(BioExtremeEvent)
 
-## Get metrics by patch x day :
+escape <- BEE.calc.escape(
+  extreme_events_output = extreme_event,
+  start_date = "2024-05-01",
+  end_date = "2024-11-30",
+  pixel= GPS,
+  only_days_EE = FALSE,
+  group_by_event = FALSE
+) 
+```
 
-
-## How to save the ouputs:
+## GRAPH RAPPORT CELESTE
 
 
 # Plots
