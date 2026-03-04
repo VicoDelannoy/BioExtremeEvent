@@ -340,7 +340,7 @@ BEE.data.merge <- function(
       spatially, merging is not possible. Please check the following points : 
         - computation of metrics with BEE.calc.metrics_point() and 
       BEE.calc.metrics_morpho() were done on the same files.
-        - The crs of on of the datasets has been modified in between operations.
+        - The crs of one of the datasets has been modified in between operations.
         - The grid resolution has been modified in between operations.
         "
       )
@@ -361,7 +361,7 @@ BEE.data.merge <- function(
       spatially, merging is not possible. Please check the following points : 
         - computation of metrics with BEE.calc.metrics_morpho() and 
       BEE.calc.escape() were done on the same files.
-        - The crs of on of the datasets has been modified in between operations.
+        - The crs of one of the datasets has been modified in between operations.
         - The grid resolution has been modified in between operations.
         "
       )
@@ -382,7 +382,7 @@ BEE.data.merge <- function(
        spatially, merging is not possible. Please check the following points : 
         - computation of metrics with BEE.calc.metrics_point() and 
       BEE.calc.escape() were done on the same files.
-        - The crs of on of the datasets has been modified in between operations.
+        - The crs of one of the datasets has been modified in between operations.
         - The grid resolution has been modified in between operations.
         "
       )

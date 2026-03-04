@@ -1,17 +1,15 @@
 ---
-title: "3.1 Identify extreme event according specific constraints"
+title: "7. Merge the the ouput of BEE.calc.'..' functions in one dataframe."
 author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{3.1 Identify extreme event according specific constraints}
+  %\VignetteIndexEntry{7. Merge the metrics on extreme events in one dataframe.}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-# Aims of the function *BEE.id.extreme_events()*
-Identify the extreme event according to a set of constraints (e.g. minimum duration, merging close events).
-*BEE.id.extreme_events()* transforms the extreme days identified with *BEE.id.extreme_day()* into coherent extreme events by applying temporal criteria such as minimum duration, merging events close in time, and removing isolated days.
-The two functions are complementary: binarise detects when conditions are extreme, while true_event defines which sequences of extreme days constitute meaningful events.
+# Aims of the function *BEE.data.merge()*
+Merge the ouputs of *BEE.calc.metrics_point()*, *BEE.calc.metrics_morpho()* and/or *BEE.calc.escape()* in one df per pixel. Among other thing, this allows to link daily patch to an extreme event.
 
 # Usage
 ## Arguments:
