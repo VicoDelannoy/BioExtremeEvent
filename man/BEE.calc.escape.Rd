@@ -58,3 +58,34 @@ be crossed) through time for a given gps position or for all pixels.
 All distance metrics are limited by the size of the Spatraster your
 are providing. See function is not developped to work on 4D data (time + 3D).
 }
+\examples{
+# Load data for example: library(BioExtremeEvent)
+# reconstruct the output of BEE.id.extreme_event() from data saved in local:
+file_name_1 <- system.file(file.path("extdata",
+                                     "binarized_corrected_spatraster.tiff"),
+                                     package = "BioExtremeEvent")
+extreme_event_spatraster <- terra::rast(file_name_1)
+file_name_2 <- system.file(file.path("extdata",
+                                     "binarized_corrected_df.rds"),
+                                     package = "BioExtremeEvent")
+extreme_event_list <- readRDS(file_name_2)
+
+extreme_event <- list(extreme_event_spatraster,extreme_event_list)
+
+# create a dataframe with the positions of the studdied sites:
+GPS <- data.frame(x = c(3.7659),
+                 y = c(43.4287))
+
+#' # Get distance, azimut and pixel coordinates to escape:
+library(BioExtremeEvent)
+
+escape <- BioExtremeEvent::BEE.calc.escape(
+ extreme_events_output = extreme_event,
+ start_date = "2024-05-01",
+ end_date = "2024-11-30",
+ pixel= GPS,
+ only_days_EE = FALSE,
+ group_by_event = FALSE
+)
+
+}

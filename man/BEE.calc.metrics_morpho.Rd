@@ -57,4 +57,5 @@ per_pix=TRUE)
 dataframe_list <- list_morpho_metrics[[1]] # One df per pixel
 patch_spatraster <- list_morpho_metrics[[2]]
 
+
 }
