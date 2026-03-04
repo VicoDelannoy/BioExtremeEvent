@@ -15,7 +15,7 @@
 #'  Allows to perform the analysis on a specific  time_frame, this allows to
 #'  save computation time.
 #' @param per_pix :
-#'  Use TRUE if you want a list with one dt per pixel as an output. Use TRUE to 
+#'  Use TRUE if you want a list with one dt per pixel as an output. Use TRUE to
 #'  be able to use the output in BEE.data.merge().
 #'
 #' @return Units related to area are in m².
@@ -40,6 +40,7 @@
 #'
 #' dataframe_list <- list_morpho_metrics[[1]] # One df per pixel
 #' patch_spatraster <- list_morpho_metrics[[2]]
+#'
 #'
 #' @export
 #'
@@ -87,7 +88,9 @@ BEE.calc.metrics_morpho <- function(
       )
       end_date <- ifelse(
         is.null(end_date),
-        names(extreme_event_spatraster[[terra::nlyr(extreme_event_spatraster)]]),
+        names(extreme_event_spatraster[[terra::nlyr(
+          extreme_event_spatraster
+        )]]),
         end_date
       )
       rasters <- extreme_event_spatraster[[which(
