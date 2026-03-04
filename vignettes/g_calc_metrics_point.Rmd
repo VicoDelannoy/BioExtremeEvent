@@ -13,7 +13,7 @@ Compute daily metrics such as anomaly to the baseline, event category (according
 
 # Usage
 ## Arguments:
-**events_corrected**: Is the list of data tables produced by:
+**extreme_event**: Is the list of data tables produced by:
  bee_calc_true_event (the second element of the output). For each pixel, it
  contains a data.table with dates in the rows and a column indicating whether
  it is a day belonging to a heatwave (1) or not (0).  
@@ -143,7 +143,7 @@ file_name_1 <- system.file(file.path("extdata",
 This is the recommanded action when exploring data, summarising by extreme event is possible afterward using *BEE.data.merge()* (to merge sevral types of metrics) and *BEE.data.summarise()* (to summarise metrics per extreme event or over different time period).
 ```{r}
  metrics_points_day <- BEE.calc.metrics_point(
-  events_corrected = binarized_corrected_df,
+  extreme_event = binarized_corrected_df,
   yourspatraster = copernicus_data_celsius,
   gps = gps,
   start_date = NULL,
@@ -158,7 +158,7 @@ This is the recommanded action when exploring data, summarising by extreme event
 ## Get daily values for each metrics:
 ```{r}
  metrics_points_ee <- BEE.calc.metrics_point(
-  events_corrected = binarized_corrected_df,
+  extreme_event = binarized_corrected_df,
   yourspatraster = copernicus_data_celsius,
   gps = gps,
   start_date = NULL,
@@ -174,7 +174,7 @@ This is the recommanded action when exploring data, summarising by extreme event
 Use the 'time_lapse_vector' argument. You can provide a single number or a vector of different time windows to be computed. This option is also available in *BEE.data.summarise()*, which is why we recommend doing data exploration with *"time_lapse_vector"* set to NULL and *"group_by_event"* set to FALSE and to later use *BEE.data.merge()* and *BEE.data.summarise()*.
 ```{r}
  metrics_point_lag <- BEE.calc.metrics_point(
-  events_corrected = binarized_corrected_df,
+  extreme_event = binarized_corrected_df,
   yourspatraster = copernicus_data_celsius,
   gps = gps,
   start_date = NULL,
@@ -204,7 +204,7 @@ coords <- as.data.frame(coords)
 Apply function:
 ```{r}
 metrics_points_day_all_pix <- BEE.calc.metrics_point(
-  events_corrected = binarized_corrected_df,
+  extreme_event = binarized_corrected_df,
   yourspatraster = copernicus_data_celsius,
   gps = coords,
   start_date = NULL,
