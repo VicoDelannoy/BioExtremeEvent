@@ -58,6 +58,12 @@
     <li>
       <a href="../articles/h_calc_metrics_morpho.html">5. Calculate metrics on the shape of an extreme event."</a>
     </li>
+    <li>
+      <a href="../articles/j_calc_metrics_escape.html">6. Calculate shortest distance (and direction) to escape from an extrem event."</a>
+    </li>
+    <li>
+      <a href="../articles/k_data_merge.html">7. Merge the the ouput of BEE.calc.'..' functions in one dataframe.</a>
+    </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
   <a href="https://github.com/VicoMarbec/BioExtremeEvent/" class="external-link">
@@ -84,21 +90,14 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.id.extreme_events</span><span class="op">(</span></span>
-<span>  <span class="va">binarized_spatraster</span>,</span>
-<span>  <span class="va">n</span>,</span>
-<span>  <span class="va">d</span>,</span>
-<span>  nbis <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  w <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  p <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.id.extreme_events</span><span class="op">(</span><span class="va">extreme_day</span>, <span class="va">n</span>, <span class="va">d</span>, nbis <span class="op">=</span> <span class="cn">NULL</span>, w <span class="op">=</span> <span class="cn">NULL</span>, p <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
 
 
-<dl><dt id="arg-binarized-spatraster">binarized_spatraster<a class="anchor" aria-label="anchor" href="#arg-binarized-spatraster"></a></dt>
+<dl><dt id="arg-extreme-day">extreme_day<a class="anchor" aria-label="anchor" href="#arg-extreme-day"></a></dt>
 <dd><p>:
 A Spatraster built using the BEE.id.extreme_day()
 function. It only contains 1 and 0.</p></dd>
@@ -153,7 +152,7 @@ NOT AVAILBALE YET, see "w" explanations. Default: NULL</p></dd>
     <div id="value">
     <h2>Value</h2>
     <p>Returns a list with 2 elements. The first one is called
-<strong>"binarized_spatraster_corrected"</strong>. This is a Spatraster containing
+<strong>"extreme_event_spatraster"</strong>. This is a Spatraster containing
 binarised values that have been corrected according to the definition used
 in the function. It is used in the next funciton of the pipeline.
 The second element is called <strong>"extreme_event"</strong>. This is a list with one
@@ -203,7 +202,7 @@ designed to work on 4D data (time + spatial 3D).</p>
 <span class="r-in"><span>                                  package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">binarized</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co">### Apply filter:</span></span></span>
-<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.id.extreme_events</span><span class="op">(</span>binarized_spatraster <span class="op">=</span> <span class="va">binarized</span>,</span></span>
+<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.id.extreme_events</span><span class="op">(</span>extreme_day <span class="op">=</span> <span class="va">binarized</span>,</span></span>
 <span class="r-in"><span>n <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>d <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -222,7 +221,7 @@ designed to work on 4D data (time + spatial 3D).</p>
 <span class="r-in"><span>                                  package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">binarized</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co">### Apply filter:</span></span></span>
-<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.id.extreme_events</span><span class="op">(</span>binarized_spatraster <span class="op">=</span> <span class="va">binarized</span>,</span></span>
+<span class="r-in"><span><span class="va">binarized_EE</span> <span class="op">&lt;-</span> <span class="fu">BEE.id.extreme_events</span><span class="op">(</span>extreme_day <span class="op">=</span> <span class="va">binarized</span>,</span></span>
 <span class="r-in"><span>n <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>d <span class="op">=</span> <span class="fl">2</span>,</span></span>
 <span class="r-in"><span>nbis <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>

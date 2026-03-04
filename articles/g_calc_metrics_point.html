@@ -75,6 +75,12 @@
     <li>
       <a href="../articles/h_calc_metrics_morpho.html">5. Calculate metrics on the shape of an extreme event."</a>
     </li>
+    <li>
+      <a href="../articles/j_calc_metrics_escape.html">6. Calculate shortest distance (and direction) to escape from an extrem event."</a>
+    </li>
+    <li>
+      <a href="../articles/k_data_merge.html">7. Merge the the ouput of BEE.calc.'..' functions in one dataframe.</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -124,9 +130,9 @@ variance of the parameter, <em>etc.</em></p>
 <div class="section level3">
 <h3 id="arguments">Arguments:<a class="anchor" aria-label="anchor" href="#arguments"></a>
 </h3>
-<p><strong>events_corrected</strong>: Is the list of data tables
-produced by: bee_calc_true_event (the second element of the output). For
-each pixel, it contains a data.table with dates in the rows and a column
+<p><strong>extreme_event</strong>: Is the list of data tables produced
+by: bee_calc_true_event (the second element of the output). For each
+pixel, it contains a data.table with dates in the rows and a column
 indicating whether it is a day belonging to a heatwave (1) or not
 (0).<br><strong>yourspatraster</strong>: is the spatraster with the values of
 the studded parameter, through time and space.<br><strong>gps</strong>: is a data frame containing the positions for which
@@ -138,7 +144,8 @@ metrics.<br><strong>baseline_qt</strong>: Spatraster of the 90th percentile base
 baseline.<br><strong>time_lapse_vector</strong>: a vector of time laps on which to
 compute mean evolution rate and variance of the studdied
 parameter.<br><strong>group_by_event</strong>: Whether you want an output summarise by
-extreme event or not. If not, you just get daily metrics.</p>
+extreme event or not. If not, you just get daily metrics. Use FALSE to
+be able to use the output in BEE.data.merge().</p>
 </div>
 <div class="section level3">
 <h3 id="warnings">Warnings:<a class="anchor" aria-label="anchor" href="#warnings"></a>
@@ -571,7 +578,7 @@ merge sevral types of metrics) and <em>BEE.data.summarise()</em> (to
 summarise metrics per extreme event or over different time period).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">metrics_points_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
-<span>  events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
+<span>  extreme_event <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
 <span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
 <span>  gps <span class="op">=</span> <span class="va">gps</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -590,7 +597,7 @@ summarise metrics per extreme event or over different time period).</p>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">metrics_points_ee</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
-<span>  events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
+<span>  extreme_event <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
 <span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
 <span>  gps <span class="op">=</span> <span class="va">gps</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -616,7 +623,7 @@ to NULL and <em>“group_by_event”</em> set to FALSE and to later use
 <em>BEE.data.merge()</em> and <em>BEE.data.summarise()</em>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">metrics_point_lag</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
-<span>  events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
+<span>  extreme_event <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
 <span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
 <span>  gps <span class="op">=</span> <span class="va">gps</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -649,7 +656,7 @@ refer to pixels that are always NA.</p>
 <p>Apply function:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">metrics_points_day_all_pix</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
-<span>  events_corrected <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
+<span>  extreme_event <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
 <span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
 <span>  gps <span class="op">=</span> <span class="va">coords</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
