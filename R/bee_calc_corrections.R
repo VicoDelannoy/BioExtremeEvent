@@ -145,7 +145,7 @@ BEE.calc.corrections <- function(
     terra::values(shell) <- vals
     terra::plot(
       shell,
-      main = "Number of extreme days added or withdrawn per pixel."
+      main = "Sum of extreme days added or withdrawn per pixel."
     )
   }
   return(df)
