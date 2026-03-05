@@ -45,16 +45,19 @@ To get more informations on the metrics definition please check the tables from 
 ```{r setup}
 library(BioExtremeEvent)
 
-file_name_1 <- system.file(file.path("extdata", "escape_pixel.rds"),
-                                   package = "BioExtremeEvent")
+file_name_1 <- system.file(file.path("extdata", 
+                                      "escape_pixel.rds"),
+                                      package = "BioExtremeEvent")
 escape_df_list <- readRDS(file_name_1)
 
-file_name_2 <- system.file(file.path("extdata", "metrics_morpho_pixel.rds"),
-                                   package = "BioExtremeEvent")
+file_name_2 <- system.file(file.path("extdata", 
+                                      "metrics_morpho_pixel.rds"),
+                                      package = "BioExtremeEvent")
 morpho_df_list <- readRDS(file_name_2)
 
-file_name_3 <- system.file(file.path("extdata", "metrics_points_pixel.rds"),
-                                   package = "BioExtremeEvent")
+file_name_3 <- system.file(file.path("extdata", 
+                                      "metrics_points_pixel.rds"),
+                                      package = "BioExtremeEvent")
 point_df_list <- readRDS(file_name_3)
 
 ```
