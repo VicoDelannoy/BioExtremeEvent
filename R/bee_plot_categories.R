@@ -28,7 +28,7 @@
 #'
 #' @examples
 #'  # Load data:
-#' file_name_1 <- system.file(file.path("extdata", "metrics_points_day.rds"),
+#' file_name_1 <- system.file(file.path("extdata", "metrics_points_pixel.rds"),
 #'                                   package = "BioExtremeEvent")
 #' metrics_points_day <- readRDS(file_name_1)
 #' # Get data set for one gps point
