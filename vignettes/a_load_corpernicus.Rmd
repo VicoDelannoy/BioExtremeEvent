@@ -13,15 +13,15 @@ vignette: >
 
 This is an **optional function** to download data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products) some dataset. This\
 function uses the CopernicusMarine Python library. A virtual Python environment is automatically created to enable it to run in R. If Python is not already installed on your computer, *BEE.load.copernicus* will download it for you.\
-This allows you to copy and paste the Python API generated on the copernicus website (Data access\>select your data and ONLY one variable\> Automate\> Python API) almost directly as an argument for the *BEE.load.copernicus()* function.
+This allows you to copy and paste the Python API generated on the Copernicus website (Data access\>select your data and ONLY one variable\> Automate\> Python API) almost directly as an argument for the *BEE.load.copernicus()* function.
 
 # Usage
 
-To fulfil the argument of *the BEE.load.copernicus()* function, you just need to copy and paste the contents of the copernicusmarine.subset function, which is visible in the Python API, into the BioExtremeEvent function.\
-1. To access the API code, go on the Copernicus Marine Data Store page of the selected products \> Data access \> in the colonne 'Subset' clic on 'Form' \> select only one variable \> select your area of interest and your date range \> on the top of the webpage clic on Automate \> copy/paste whats inside the brakets of the copernicusmarine.subset() function.\
+To fulfill the argument of *the BEE.load.copernicus()* function, you just need to copy and paste the contents of the copernicusmarine.subset function, which is visible in the Python API, into the BioExtremeEvent function.\
+1. To access the API code, go on the Copernicus Marine Data Store page of the selected products \> Data access \> in the column 'Subset' click on 'Form' \> select only one variable \> select your area of interest and your date range \> on the top of the webpage click on Automate \> copy/paste whats inside the brackets of the copernicusmarine.subset() function.\
 2. Then, add three arguments in *BEE.load.copernicus()* :\
-- *username*: wich is your username from the Copernicus Marine Data Store.\
-- *password*: your Copernicus Marine Data Store passeword.\
+- *username*: which is your username from the Copernicus Marine Data Store. Username must be put in quotation marks\
+- *password*: your Copernicus Marine Data Store password. Password must be put in quotation marks\
 - *output_directory*: The path where you want to store your dataset.\
 You can now run the function.
 
