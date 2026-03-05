@@ -18,7 +18,7 @@ This allows you to copy and paste the Python API generated on the copernicus web
 # Usage
 
 To fulfil the argument of *the BEE.load.copernicus()* function, you just need to copy and paste the contents of the copernicusmarine.subset function, which is visible in the Python API, into the BioExtremeEvent function.\
-1. To access the API code, go on the Copernicus Marine Data Store page of the selected products \> Data access \> in the colonne 'Subset' clic on 'Form' \> select only one variable \> select your area of interest and your date range \> on the top of the webpage clic on Automate \> copy/paste whats inside the brakets of the copernicusmarine.subset() function.\
+1. To access the API code, go on the Copernicus Marine Data Store page of the selected products \> Data access \> in the colonne 'Subset' clic on 'Form' \> select only one variable \> select your area of interest and your date range \> on the top of the webpage clic on Automate \> copy/paste whats inside the brakets of the copernicusmarine.subset() function. You may have to clic on "Show advanced options" to get all the necessary arguments from the API.\
 2. Then, add three arguments in *BEE.load.copernicus()* :\
 - *"username"*: which is your username from the Copernicus Marine Data Store. Don't forget the "" !\
 - *"password"*: your Copernicus Marine Data Store passeword. Don't forget the "" !\
