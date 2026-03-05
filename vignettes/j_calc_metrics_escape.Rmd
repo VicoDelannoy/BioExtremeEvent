@@ -83,8 +83,8 @@ extreme_event_list <- readRDS(file_name_2)
 extreme_event <- list(extreme_event_spatraster,extreme_event_list)
 
 # Build a DATAFRAME with position to studdy:
- GPS <- as.data.frame(terra::xyFromCell(baseline_qt90_smth_15, 
-                          cell = terra::cells(baseline_qt90_smth_15)))
+ GPS <- as.data.frame(terra::xyFromCell(extreme_event_spatraster[[1]], 
+                          cell = terra::cells(extreme_event_spatraster[[1]])))
 # This take in account every pixel in the raster, but you can also build your set of coordinates:
  GPS_2 <- data.frame(x = c(3.6883,4.4268), # Sète, Saintes-Marie-de-la-Mer
                      y = c(43.3786,43.4279))
