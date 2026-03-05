@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>5. Calculate metrics on the shape of an extreme event." • BioExtremeEvent</title>
+<title>5. Calculate metrics on the shape of an extreme event. • BioExtremeEvent</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
@@ -73,13 +73,13 @@
       <a href="../articles/g_calc_metrics_point.html">4. Calculate metrics on what is happening over time in a given pixel.</a>
     </li>
     <li>
-      <a href="../articles/h_calc_metrics_morpho.html">5. Calculate metrics on the shape of an extreme event."</a>
+      <a href="../articles/h_calc_metrics_morpho.html">5. Calculate metrics on the shape of an extreme event.</a>
     </li>
     <li>
-      <a href="../articles/j_calc_metrics_escape.html">6. Calculate shortest distance (and direction) to escape from an extrem event."</a>
+      <a href="../articles/j_calc_metrics_escape.html">6. Calculate shortest distance (and direction) to escape from an extrem event.</a>
     </li>
     <li>
-      <a href="../articles/k_data_merge.html">7. Merge the the ouput of BEE.calc.'..' functions in one dataframe.</a>
+      <a href="../articles/k_data_merge.html">7. Merge the the ouput of BEE.calc. functions in one dataframe.</a>
     </li>
   </ul>
 </li>
@@ -105,7 +105,7 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>5. Calculate metrics on the shape of an extreme
-event.”</h1>
+event.</h1>
                         <h4 data-toc-skip class="author">Victoria
 Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
             
@@ -491,7 +491,7 @@ of BEE.calc.id_extreme_event().</p>
 </h3>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Warning, this can takes a minute or two.</span></span>
-<span><span class="va">list_morpho_metrics</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_morpho.html">BEE.calc.metrics_morpho</a></span><span class="op">(</span><span class="va">extreme_event_spatraster</span>, start_date <span class="op">=</span> <span class="st">"2024-05-01"</span>, end_date <span class="op">=</span> <span class="st">"2024-11-30"</span>, per_pix<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">list_morpho_metrics</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_morpho.html">BEE.calc.metrics_morpho</a></span><span class="op">(</span><span class="va">extreme_event_spatraster</span>, start_date <span class="op">=</span> <span class="st">"2024-02-01"</span>, end_date <span class="op">=</span> <span class="st">"2025-11-30"</span>, per_pix<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> </span></code></pre></div>
 <p>/! In the list of dataframe (first output of
 BEE.calc.metrics_morpho()) are NAMED according pixel_id, which allows
 you to extract a dataframe by it’s NAME. If you extract a dataframe by
@@ -518,9 +518,10 @@ expected pixel.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">list_morpho_metrics_EE</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_morpho.html">BEE.calc.metrics_morpho</a></span><span class="op">(</span><span class="va">extreme_event_spatraster</span>, start_date <span class="op">=</span> <span class="st">"2024-05-01"</span>, end_date <span class="op">=</span> <span class="st">"2024-11-30"</span>, per_pix<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level3">
-<h3 id="how-to-save-the-ouputs">How to save the ouputs:<a class="anchor" aria-label="anchor" href="#how-to-save-the-ouputs"></a>
-</h3>
+</div>
+<div class="section level2">
+<h2 id="how-to-save-the-ouputs">How to save the ouputs:<a class="anchor" aria-label="anchor" href="#how-to-save-the-ouputs"></a>
+</h2>
 <p>If you used per_pix=TRUE, outputs are a list of dataframe, with one
 dataframe per pixel and a spatraster. To save your list of
 dataframe:</p>
@@ -542,7 +543,6 @@ per patch :</p>
 <span><span class="co"># To avoid saving the dataframe as a list of one object, you can extract it from the list before saving:</span></span>
 <span><span class="va">patch_df_unlisted</span> <span class="op">&lt;-</span> <span class="va">patch_df</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="co">#extract the df from the list</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">patch_df_unlisted</span>, file <span class="op">=</span> <span class="st">"your_path/data/metrics_morpho_patch.csv"</span><span class="op">)</span></span></code></pre></div>
-</div>
 </div>
 <div class="section level2">
 <h2 id="plots">Plots<a class="anchor" aria-label="anchor" href="#plots"></a>
@@ -570,7 +570,7 @@ per patch :</p>
 <span>       y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="st">"Patch area (km"</span><span class="op">^</span><span class="fl">2</span><span class="op">*</span><span class="st">")"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span>, vjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: Removed 100 rows containing missing values or values outside the scale range</span></span>
+<pre><code><span><span class="co">## Warning: Removed 147 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">## (`geom_line()`).</span></span></code></pre>
 <p><img src="h_calc_metrics_morpho_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
 <p>If the area is small (as in our example), there is little intrest in

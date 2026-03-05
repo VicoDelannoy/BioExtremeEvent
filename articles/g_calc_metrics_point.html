@@ -73,13 +73,13 @@
       <a href="../articles/g_calc_metrics_point.html">4. Calculate metrics on what is happening over time in a given pixel.</a>
     </li>
     <li>
-      <a href="../articles/h_calc_metrics_morpho.html">5. Calculate metrics on the shape of an extreme event."</a>
+      <a href="../articles/h_calc_metrics_morpho.html">5. Calculate metrics on the shape of an extreme event.</a>
     </li>
     <li>
-      <a href="../articles/j_calc_metrics_escape.html">6. Calculate shortest distance (and direction) to escape from an extrem event."</a>
+      <a href="../articles/j_calc_metrics_escape.html">6. Calculate shortest distance (and direction) to escape from an extrem event.</a>
     </li>
     <li>
-      <a href="../articles/k_data_merge.html">7. Merge the the ouput of BEE.calc.'..' functions in one dataframe.</a>
+      <a href="../articles/k_data_merge.html">7. Merge the the ouput of BEE.calc. functions in one dataframe.</a>
     </li>
   </ul>
 </li>
@@ -566,8 +566,13 @@ been provided.</p>
 <span>                                      <span class="st">"baseline_mean_smth_15.tiff"</span><span class="op">)</span>,</span>
 <span>                                      package <span class="op">=</span> <span class="st">"BioExtremeEvent"</span><span class="op">)</span></span>
 <span> <span class="va">baseline_mean_smth_15</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file_name_4</span><span class="op">)</span></span>
-<span> <span class="va">gps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3.6883</span>,<span class="fl">4.4268</span><span class="op">)</span>, <span class="co"># Sète, Saintes-Marie-de-la-Mer</span></span>
-<span>                   y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">43.3786</span>,<span class="fl">43.4279</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span></span>
+<span><span class="co"># Build a DATAFRAME with position to analyse</span></span>
+<span> <span class="va">GPS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/xyCellFrom.html" class="external-link">xyFromCell</a></span><span class="op">(</span><span class="va">baseline_qt90_smth_15</span>, </span>
+<span>                          cell <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/cells.html" class="external-link">cells</a></span><span class="op">(</span><span class="va">baseline_qt90_smth_15</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># This take in account every pixel in the raster, but you can also build your set of coordinates:</span></span>
+<span> <span class="va">GPS_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3.6883</span>,<span class="fl">4.4268</span><span class="op">)</span>, <span class="co"># Sète, Saintes-Marie-de-la-Mer</span></span>
+<span>                     y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">43.3786</span>,<span class="fl">43.4279</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="get-daily-values-for-each-metrics">Get daily values for each metrics:<a class="anchor" aria-label="anchor" href="#get-daily-values-for-each-metrics"></a>
@@ -577,10 +582,11 @@ extreme event is possible afterward using <em>BEE.data.merge()</em> (to
 merge sevral types of metrics) and <em>BEE.data.summarise()</em> (to
 summarise metrics per extreme event or over different time period).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span> <span class="va">metrics_points_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="co"># Computation can take a minute or two.</span></span>
+<span> <span class="va">metrics_points_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
 <span>  extreme_event <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
 <span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
-<span>  gps <span class="op">=</span> <span class="va">gps</span>,</span>
+<span>  gps <span class="op">=</span> <span class="va">GPS</span>, <span class="co">#or GPS_2 if you want to target some pixel (much faster)</span></span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_lapse_vector <span class="op">=</span> <span class="cn">NULL</span>, </span>
@@ -593,13 +599,13 @@ summarise metrics per extreme event or over different time period).</p>
 <span><span class="co">##       yourspatraster will be used.</span></span></code></pre>
 </div>
 <div class="section level3">
-<h3 id="get-daily-values-for-each-metrics-1">Get daily values for each metrics:<a class="anchor" aria-label="anchor" href="#get-daily-values-for-each-metrics-1"></a>
+<h3 id="get-values-for-each-metrics-per-event">Get values for each metrics per event:<a class="anchor" aria-label="anchor" href="#get-values-for-each-metrics-per-event"></a>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">metrics_points_ee</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
 <span>  extreme_event <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
 <span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
-<span>  gps <span class="op">=</span> <span class="va">gps</span>,</span>
+<span>  gps <span class="op">=</span> <span class="va">GPS_2</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_lapse_vector <span class="op">=</span> <span class="cn">NULL</span>, </span>
@@ -625,7 +631,7 @@ to NULL and <em>“group_by_event”</em> set to FALSE and to later use
 <code class="sourceCode R"><span> <span class="va">metrics_point_lag</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BEE.calc.metrics_point.html">BEE.calc.metrics_point</a></span><span class="op">(</span></span>
 <span>  extreme_event <span class="op">=</span> <span class="va">binarized_corrected_df</span>,</span>
 <span>  yourspatraster <span class="op">=</span> <span class="va">copernicus_data_celsius</span>,</span>
-<span>  gps <span class="op">=</span> <span class="va">gps</span>,</span>
+<span>  gps <span class="op">=</span> <span class="va">GPS_2</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_lapse_vector <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">5</span>,<span class="fl">7</span><span class="op">)</span>,  <span class="co"># The moving time windows are 3,5 and 7 days long.</span></span>
