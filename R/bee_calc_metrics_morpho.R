@@ -36,7 +36,8 @@
 #' list_morpho_metrics <- BEE.calc.metrics_morpho(extreme_event_spatraster,
 #' start_date = "2024-05-01",
 #' end_date = "2024-11-30",
-#' per_pix=TRUE)
+#' per_pix=TRUE,
+#' noise=NULL)
 #'
 #' dataframe_list <- list_morpho_metrics[[1]] # One df per pixel
 #' patch_spatraster <- list_morpho_metrics[[2]]
@@ -46,14 +47,15 @@
 #'
 #-------------------------------------------------------------------------------
 
-# start_date <- "2024-07-01" ; end_date <- "2024-08-31" ;per_pix=TRUE ;
+# start_date <- "2021-09-27" ; end_date <- "2021-09-30" ;per_pix=TRUE ;
 # extreme_event_spatraster <- Corrected_rasters
 
 BEE.calc.metrics_morpho <- function(
   extreme_event_spatraster,
   start_date = NULL,
   end_date = NULL,
-  per_pix = FALSE
+  per_pix = FALSE,
+  noise = NULL
 ) {
   # Retrive the dataframe if required
   if (!is.null(start_date) | !is.null(end_date)) {
@@ -390,6 +392,7 @@ BEE.calc.metrics_morpho <- function(
 #'
 #' @noRd
 #'
+#'
 
 #Minimum ellipse:
 
@@ -415,15 +418,16 @@ min_ellipse_from_polygon <- function(x, data2) {
         !is.na(data2$x) &
         !is.na(data2$y),
     ]
-
+    print(p)
     #matrix of points: (pixels coordinates that must goes into the ellipse)
     coords_m <- as.matrix(
       data_p[, c("x", "y")]
     )
     if (nrow(coords_m) == 1) {
+      print("1 pixel")
       ell_dir[i] <- NA
       ell_crop_area_m2[i] <- 0
-      ell_tot_area_m2 <- 0
+      ell_tot_area_m2[i] <- 0
       patch_ell_ratio[i] <- NA
       ell_long_axis[i] <- 0
       ell_short_axis[i] <- 0
@@ -433,15 +437,17 @@ min_ellipse_from_polygon <- function(x, data2) {
         (length(unique(coords_m[, 1])) == 1 |
           length(unique(coords_m[, 2])) == 1)
     ) {
+      print("1 ligne droite")
       # the patch formes a line
       if (length(unique(coords_m[, 1])) == 1) {
+        print("horizontale")
         #fixed longitude
         ell_dir[i] <- 0
         patch_ell_ratio[i] <- NA
         ell_crop_area_m2[i] <- 0
-        ell_tot_area_m2 <- 0
+        ell_tot_area_m2[i] <- 0
         #distance
-        data_p_deg <- data2[data2$patch_id == p, c("x", "y")]
+        data_p_deg <- data_p[data_p$patch_id == p, c("x", "y")]
         data_p_deg_v <- terra::vect(data_p_deg, crs = terra::crs(x))
 
         ell_long_axis[i] <- max(terra::distance(data_p_deg_v)) / 2
@@ -449,11 +455,12 @@ min_ellipse_from_polygon <- function(x, data2) {
         i <- 1 + i
       }
       if (length(unique(coords_m[, 2])) == 1) {
+        print("verticale")
         #fixed longitude
         ell_dir[i] <- 90
         patch_ell_ratio[i] <- NA
         ell_crop_area_m2[i] <- 0
-        ell_tot_area_m2 <- 0
+        ell_tot_area_m2[i] <- 0
         #distance
         data_p_deg <- data2[data2$patch_id == p, c("x", "y")]
         data_p_deg_v <- terra::vect(data_p_deg, crs = terra::crs(x))
@@ -468,10 +475,11 @@ min_ellipse_from_polygon <- function(x, data2) {
           length(unique(coords_m[, 2])) == nrow(coords_m))
     ) {
       #diagonal
+      print("diagonale")
       ell_dir[i] <- geosphere::bearing(coords_m[1, ], coords_m[2, ])
       patch_ell_ratio[i] <- NA
       ell_crop_area_m2[i] <- 0
-      ell_tot_area_m2 <- 0
+      ell_tot_area_m2[i] <- 0
       #distance
       data_p_deg <- data2[data2$patch_id == p, c("x", "y")]
       data_p_deg_v <- terra::vect(data_p_deg, crs = terra::crs(x))
@@ -484,6 +492,7 @@ min_ellipse_from_polygon <- function(x, data2) {
         length(unique(coords_m[, 1])) > 1 &
         length(unique(coords_m[, 2])) > 1
     ) {
+      print("ellipse possible")
       # /!\ In between those line, every output is in degrees and distances and
       # angle are wrong because cluster::ellipsoidhull assume that coordinates
       # are planer, in our case we just want the coordinates of the points that
@@ -493,8 +502,54 @@ min_ellipse_from_polygon <- function(x, data2) {
       # than convert to metric crs and then compute ellipse and its area.
       #-------------------------------------------------------------------------
       #make ellipse:
-      ell <- cluster::ellipsoidhull(coords_m)
+      if (
+        inherits(
+          # the patch has an axe of symetry determinant(cov_matrix(coords_m))=0
+          try(cluster::ellipsoidhull(coords_m), silent = TRUE),
+          "try-error"
+        )
+      ) {
+        if (is.null(noise)) {
+          noise <- 50
+        }
+        #we are goig to introduce an infinity small variation in one of the
+        # coordonnates to breaks symmetry:
+        set.seed(123)
 
+        # Create noise btw 0 and 20 m
+        noise_x <- numeric(nrow(coords_m))
+        noise_y <- runif(nrow(coords_m), 0, 20 / 111320) # Latitude : 20m = 0.00018°
+        # for longitude:
+        for (longitude in 1:nrow(coords_m)) {
+          lat <- coords_m[longitude, "y"]
+          noise_x[longitude] <- runif(
+            1,
+            0,
+            noise / (111320 * cos(lat * pi / 180))
+          )
+        }
+
+        # Add noise to coordinates values
+        coords_m_noisy <- coords_m
+        coords_m_noisy[, "x"] <- coords_m[, "x"] + noise_x
+        coords_m_noisy[, "y"] <- coords_m[, "y"] + noise_y
+        message(paste0(
+          "On the ",
+          unique(data$date),
+          ", patch n°",
+          p,
+          " had an axis of symmetry, which made the determinant of the covariance
+           matrix equal to zero.This meant that it was not directly possible to
+            compute ellipse coordinates. To do so, we introduced some noise to 
+            the pixel coordinates from that patch. Therefore, the coordinates 
+            have been temporarily relocated from 0 to 50 m from the initial 
+            coordinates. If you want to use a smaller noise for more precision or 
+            bigger noise to help convergence, use the 'noise' argument."
+        ))
+        ell <- cluster::ellipsoidhull(coords_m_noisy)
+      } else {
+        ell <- cluster::ellipsoidhull(coords_m)
+      }
       #extract ellipse caracteristics:
       ## center coordinates:
       center_m <- ell$loc
