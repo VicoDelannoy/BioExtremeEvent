@@ -173,7 +173,18 @@ quantile and used <em>direction = “below”</em>.</p>
 <div class="section level3">
 <h3 id="warnings">Warnings:<a class="anchor" aria-label="anchor" href="#warnings"></a>
 </h3>
-<p>No warning implemented. ## Messages: No warning implemented.</p>
+<p>Except if you provided a fixed threshold as <em>“baseline”</em>
+argument (e.g. numerical value), you will receive a warning if the
+spatial extent of <em>“yourspatraster”</em> argument and
+<em>“baseline”</em> don’t have the exact same spatial extent
+(terra::ext()).<br>
+Please make sure to compute your baseline on the same object as
+yourspatial raster to avoid spatial mismatch.</p>
+</div>
+<div class="section level3">
+<h3 id="messages">Messages:<a class="anchor" aria-label="anchor" href="#messages"></a>
+</h3>
+<p>No warning implemented.</p>
 </div>
 <div class="section level3">
 <h3 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a>
@@ -228,7 +239,7 @@ baseline:<a class="anchor" aria-label="anchor" href="#identify-the-days-on-which
 than the baseline value for this day.</em></p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## terra 1.8.93</span></span></code></pre>
+<pre><code><span><span class="co">## terra 1.9.1</span></span></code></pre>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># color scale:</span></span>
 <span><span class="va">zlim_common</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span></span>

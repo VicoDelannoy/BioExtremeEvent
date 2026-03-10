@@ -108,7 +108,7 @@
                         <h4 data-toc-skip class="author">Victoria
 Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
             
-            <h4 data-toc-skip class="date">2026-03-05</h4>
+            <h4 data-toc-skip class="date">2026-03-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/VicoMarbec/BioExtremeEvent/blob/main/vignettes/a_load_corpernicus.Rmd" class="external-link"><code>vignettes/a_load_corpernicus.Rmd</code></a></small>
       <div class="hidden name"><code>a_load_corpernicus.Rmd</code></div>
@@ -144,11 +144,13 @@ of the selected products &gt; Data access &gt; in the colonne ‘Subset’
 clic on ‘Form’ &gt; select only one variable &gt; select your area of
 interest and your date range &gt; on the top of the webpage clic on
 Automate &gt; copy/paste whats inside the brakets of the
-copernicusmarine.subset() function.<br>
+copernicusmarine.subset() function. You may have to clic on “Show
+advanced options” to get all the necessary arguments from the API.<br>
 2. Then, add three arguments in <em>BEE.load.copernicus()</em> :<br>
-- <em>username</em>: wich is your username from the Copernicus Marine
-Data Store.<br>
-- <em>password</em>: your Copernicus Marine Data Store passeword.<br>
+- <em>“username”</em>: which is your username from the Copernicus Marine
+Data Store. Don’t forget the “” !<br>
+- <em>“password”</em>: your Copernicus Marine Data Store passeword.
+Don’t forget the “” !<br>
 - <em>output_directory</em>: The path where you want to store your
 dataset.<br>
 You can now run the function.</p>
