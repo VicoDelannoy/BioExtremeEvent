@@ -43,7 +43,12 @@ To get more informations on the metrics definition please check the tables from 
 # Examples
 ## Load data:
 ```{r setup}
+
 library(BioExtremeEvent)
+file_spatraster <- system.file(file.path("extdata", 
+                                      "copernicus_data_celsius.tiff"),
+                                      package = "BioExtremeEvent")
+copernicus_data_celsius <- terra::rast(file_spatraster)
 
 file_name_1 <- system.file(file.path("extdata", 
                                       "escape_pixel.rds"),
@@ -66,10 +71,12 @@ point_df_list <- readRDS(file_name_3)
 ```{r}
 library(BioExtremeEvent)
 
-merged_ouputs <- BEE.data.merge( data_metrics_point = point_df_list,
-                                 data_metrics_morpho = morpho_df_list, 
-                                 data_escape = escape_df_list, 
-                                 crs= "EPSG:4326")
+merged_ouputs <- BEE.data.merge( 
+                        yourspatraster = copernicus_data_celsius,
+                        data_metrics_point = point_df_list,
+                        data_metrics_morpho = morpho_df_list, 
+                        data_escape = escape_df_list, 
+                        crs= "EPSG:4326")
 ```
 
 You can also provide only two data_... arguments to the function.
