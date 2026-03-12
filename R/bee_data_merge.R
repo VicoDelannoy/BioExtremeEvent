@@ -12,7 +12,7 @@
 #'  bee.calc.metrics_morpho(..., per_pix = TRUE)
 #'  bee.calc.escape(..., only_days_EE = FALSE, group_by_event = FALSE).
 #'
-#' @param yourspatarster : The spatraster you have used to compute baseline(s)
+#' @param yourspatraster : The spatraster you have used to compute baseline(s)
 #'  and metrics.
 #'
 #' @param data_metrics_point :

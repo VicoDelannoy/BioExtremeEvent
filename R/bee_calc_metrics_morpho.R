@@ -2,8 +2,8 @@
 #'
 #' @description
 #'  This function give the morphological metrics for an extreme event,
-#'  extreme_event_spatraster is the SpatRaster you want to analyze (it needs to be
-#'  binarise with the mhw function)
+#'  extreme_event_spatraster is the SpatRaster you want to analyze (it needs to
+#'  be binarise with the mhw function)
 #'
 #' @param extreme_event_spatraster :
 #'  The SpatRaster you want to analyse (first output of
@@ -336,7 +336,7 @@ BEE.calc.metrics_morpho <- function(
       )]
 
       #Ratio btw patch shape and ellipsoide
-      ellipses <- min_ellipse_from_polygon(x, data)
+      ellipses <- min_ellipse_from_polygon(x, data, noise)
       data <- merge(data, ellipses, by = "patch_id", all.x = TRUE)
 
       #Contiguity :
@@ -502,7 +502,8 @@ min_ellipse_from_polygon <- function(x, data2, noise) {
       #make ellipse:
       if (
         inherits(
-          # the patch has an axe of symetry determinant(cov_matrix(coords_m))=0
+          # the patch has an axe of symetry determinant(cov_matrix(coords_m))
+          # is null
           try(cluster::ellipsoidhull(coords_m), silent = TRUE),
           "try-error"
         )
@@ -533,7 +534,7 @@ min_ellipse_from_polygon <- function(x, data2, noise) {
         coords_m_noisy[, "y"] <- coords_m[, "y"] + noise_y
         message(paste0(
           "On the ",
-          unique(data$date),
+          unique(data2$date),
           ", patch n°",
           p,
           " had an axis of symmetry, which made the determinant of the covariance

@@ -13,6 +13,9 @@ BEE.data.merge(
 )
 }
 \arguments{
+\item{yourspatraster}{: The spatraster you have used to compute baseline(s)
+and metrics.}
+
 \item{data_metrics_point}{:
 The output of the BEE.calc.metrics_point computed using the argument
 group_by_event = FALSE.}
@@ -27,9 +30,6 @@ only_days_EE = FALSE AND group_by_event = FALSE.}
 
 \item{crs}{:
 A METRICS crs that suits the studdied area.}
-
-\item{yourspatarster}{: The spatraster you have used to compute baseline(s)
-and metrics.}
 }
 \value{
 A list of dataframe (one df per pixel) with the metrics of all the

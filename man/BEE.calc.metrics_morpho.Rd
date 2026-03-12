@@ -40,8 +40,8 @@ Units related to area are in m².
 }
 \description{
 This function give the morphological metrics for an extreme event,
-extreme_event_spatraster is the SpatRaster you want to analyze (it needs to be
-binarise with the mhw function)
+extreme_event_spatraster is the SpatRaster you want to analyze (it needs to
+be binarise with the mhw function)
 }
 \note{
 BEE.calc.metrics_morpho is not designed to work on 4D data
