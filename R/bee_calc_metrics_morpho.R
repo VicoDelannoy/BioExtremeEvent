@@ -536,7 +536,7 @@ min_ellipse_from_polygon <- function(x, data2, noise) {
         message(paste0(
           "On the ",
           unique(data2$date),
-          ", patch n°",
+          ", patch number",
           p,
           " had an axis of symmetry, which made the determinant of the
             covariance matrix equal to zero.This meant that it was not directly
