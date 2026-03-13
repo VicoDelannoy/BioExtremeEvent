@@ -95,6 +95,7 @@ following fonctions from BEE package : <em>bee.calc.metrics_point()</em> ;
 
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BEE.data.merge</span><span class="op">(</span></span>
+<span>  <span class="va">yourspatraster</span>,</span>
 <span>  data_metrics_point <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data_metrics_morpho <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data_escape <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -106,7 +107,12 @@ following fonctions from BEE package : <em>bee.calc.metrics_point()</em> ;
     <h2>Arguments</h2>
 
 
-<dl><dt id="arg-data-metrics-point">data_metrics_point<a class="anchor" aria-label="anchor" href="#arg-data-metrics-point"></a></dt>
+<dl><dt id="arg-yourspatraster">yourspatraster<a class="anchor" aria-label="anchor" href="#arg-yourspatraster"></a></dt>
+<dd><p>: The spatraster you have used to compute baseline(s)
+and metrics.</p></dd>
+
+
+<dt id="arg-data-metrics-point">data_metrics_point<a class="anchor" aria-label="anchor" href="#arg-data-metrics-point"></a></dt>
 <dd><p>:
 The output of the BEE.calc.metrics_point computed using the argument
 group_by_event = FALSE.</p></dd>
