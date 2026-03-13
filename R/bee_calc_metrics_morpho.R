@@ -154,7 +154,7 @@ BEE.calc.metrics_morpho <- function(
 
     # previous line : brakets to get vector instead of matrix
     boundary <- terra::boundaries(x, directions = 8)
-    coordonates <- terra::xyFromCell(x, 1:terra::ncell(x)) #each pixel coordinates
+    coordonates <- terra::xyFromCell(x, 1:terra::ncell(x)) #each pixel coords
     d <- terra::time(x)
 
     data <- data.table::data.table(
@@ -210,8 +210,8 @@ BEE.calc.metrics_morpho <- function(
           as.numeric(df$core_area[1]) / as.numeric(df$patch_area[1])
         }
       },
-      #only one  value per patch so corea_area[1] is ok and it prevent bugs linked to the
-      # linked to the numeric(1) bellow
+      #only one  value per patch so corea_area[1] is ok and it prevent bugs 
+      #linked to the numeric(1) bellow
       numeric(1)
     )
     n_pixel <- vapply(
@@ -494,7 +494,7 @@ min_ellipse_from_polygon <- function(x, data2, noise) {
       # /!\ In between those line, every output is in degrees and distances and
       # angle are wrong because cluster::ellipsoidhull assume that coordinates
       # are planer, in our case we just want the coordinates of the points that
-      # formes the ellipse, thoses coordinates will be in degres, once transformed
+      # formes the ellipse, thoses coordinates will be in degres, once
       # transformed into a polygon, terra will deal with the lon/lat to get the
       # most precise estimation of the covered are. This will be more precise
       # than convert to metric crs and then compute ellipse and its area.
@@ -517,11 +517,12 @@ min_ellipse_from_polygon <- function(x, data2, noise) {
 
         # Create noise btw 0 and 20 m
         noise_x <- numeric(nrow(coords_m))
-        noise_y <- runif(nrow(coords_m), 0, 20 / 111320) # Latitude : 20m = 0.00018°
+        noise_y <- stats::runif(nrow(coords_m), 0, 20 / 111320) 
+        # Latitude : 20m = 0.00018 deg
         # for longitude:
         for (longitude in 1:nrow(coords_m)) {
           lat <- coords_m[longitude, "y"]
-          noise_x[longitude] <- runif(
+          noise_x[longitude] <- stats::runif(
             1,
             0,
             noise / (111320 * cos(lat * pi / 180))
@@ -537,13 +538,14 @@ min_ellipse_from_polygon <- function(x, data2, noise) {
           unique(data2$date),
           ", patch n°",
           p,
-          " had an axis of symmetry, which made the determinant of the covariance
-           matrix equal to zero.This meant that it was not directly possible to
-            compute ellipse coordinates. To do so, we introduced some noise to 
-            the pixel coordinates from that patch. Therefore, the coordinates 
-            have been temporarily relocated from 0 to 50 m from the initial 
-            coordinates. If you want to use a smaller noise for more precision or 
-            bigger noise to help convergence, use the 'noise' argument."
+          " had an axis of symmetry, which made the determinant of the
+            covariance matrix equal to zero.This meant that it was not directly
+             possible to compute ellipse coordinates. To do so, we introduced
+             some noise to the pixel coordinates from that patch. Therefore, the
+             coordinates have been temporarily relocated from 0 to 50 m from the
+             initial coordinates. If you want to use a smaller noise for more
+             precision  or bigger noise to help convergence, use the 'noise' 
+             argument."
         ))
         ell <- cluster::ellipsoidhull(coords_m_noisy)
       } else {
@@ -566,14 +568,15 @@ min_ellipse_from_polygon <- function(x, data2, noise) {
       ## Total area of the ellipse
       ellipse_area_m2 <- pi * semi_major_m * semi_minor_m
 
-      ##ellispe orientation relatively to first axis in the matrix provided as data_p
+      ##ellispe orientation relatively to first axis in the matrix provided as
+      # data_p
       #angle btw longest axis and a latitude
       principal_vector <- eigenvectors[, 1]
       angle_rad <- atan2(
         principal_vector[2],
         principal_vector[1]
       )
-      angle_deg <- angle_rad * 180 / pi # par rapport à l'axe des x dans mon repère
+      angle_deg <- angle_rad * 180 / pi # compare to axis west-est
 
       #To compute ratio btw ellispe area and patch area we need to withdraw from
       #the ellipse the portions that fall outside of the raster:
