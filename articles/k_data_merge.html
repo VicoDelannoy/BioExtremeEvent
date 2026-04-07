@@ -275,8 +275,12 @@ data, the output also has continuous daily data. Therefore, many days in
 the output do not correspond to an extreme event. You can remove them as
 follows:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pixel_108</span> <span class="op">&lt;-</span> <span class="va">merged_ouputs</span><span class="op">[[</span><span class="st">"108"</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="va">pixel_108_EE</span> <span class="op">&lt;-</span> <span class="va">pixel_108</span><span class="op">[</span><span class="va">pixel_108</span><span class="op">$</span><span class="va">cleaned_value</span><span class="op">==</span><span class="fl">1</span>,<span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">pixel_108</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">merged_ouputs</span><span class="op">[[</span><span class="st">"108"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">pixel_108_EE</span> <span class="op">&lt;-</span> <span class="va">pixel_108</span><span class="op">[</span><span class="va">pixel_108</span><span class="op">$</span><span class="va">cleaned_value</span> <span class="op">==</span> <span class="fl">1</span>,<span class="op">]</span></span>
+<span><span class="co">#converte message to NA :</span></span>
+<span><span class="va">pixel_108_EE</span><span class="op">$</span><span class="va">anomaly_qt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">pixel_108_EE</span><span class="op">$</span><span class="va">anomaly_qt</span><span class="op">)</span></span>
+<span><span class="va">pixel_108_EE</span><span class="op">$</span><span class="va">distance</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">pixel_108_EE</span><span class="op">$</span><span class="va">distance</span><span class="op">==</span><span class="st">"outside of the raster"</span>,<span class="fl">80000</span>,<span class="va">pixel_108_EE</span><span class="op">$</span><span class="va">distance</span><span class="op">)</span><span class="op">)</span> <span class="co">#when there where no issues inside the raster, the distance to escape is set to 80 km</span></span>
+<span><span class="va">pixel_108_EE</span><span class="op">$</span><span class="va">patch_ell_ratio</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">pixel_108_EE</span><span class="op">$</span><span class="va">patch_ell_ratio</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -311,9 +315,6 @@ follows:</p>
 <span>    panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    legend.position <span class="op">=</span> <span class="st">"right"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in FUN(X[[i]], ...): NAs introduced by coercion</span></span></code></pre>
-<pre><code><span><span class="co">## Warning: Removed 97 rows containing missing values or values outside the scale range</span></span>
-<span><span class="co">## (`geom_point()`).</span></span></code></pre>
 <p><img src="k_data_merge_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="700"></p>
 </div>
   </div>
