@@ -105,7 +105,7 @@ escape <- BEE.calc.escape(
 ```
 
 ## Get metrics per extreme events only:
-```{r, message=FALSE}
+```{r, message=FALSE, echo = FALSE}
 library(BioExtremeEvent)
 
 escape_EE_ONLY <- BEE.calc.escape(
@@ -137,7 +137,7 @@ write.csv(escape_EE_ONLY, file = "your_path/data/escape_EE.csv")
 
 ## Plot refugees around a pixel.
 
-```{r}
+```{r, echo = FALSE}
 # Extract the dataframe associated to pixel 108 from th list of df:
 escape_108 <- escape[["108"]] 
 
