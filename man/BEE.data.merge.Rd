@@ -51,7 +51,7 @@ bee.calc.escape(..., only_days_EE = FALSE, group_by_event = FALSE).
 }
 \examples{
  # Load data:
-file_spatraster <- system.file(file.path("extdata", 
+file_spatraster <- system.file(file.path("extdata",
                                      "copernicus_data_celsius.tiff"),
                                      package = "BioExtremeEvent")
 copernicus_data_celsius <- terra::rast(file_spatraster)
@@ -69,7 +69,7 @@ merged_output <- BEE.data.merge(
  yourspatraster = copernicus_data_celsius,
  data_metrics_point = metrics_points_daily,
  data_metrics_morpho = metrics_morpho_daily,
- data_escape = escape_daily, 
+ data_escape = escape_daily,
  crs = "EPSG:3035")
 
 }
