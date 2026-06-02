@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# BioExtremeEvent <img src="man/figures/package-sticker.png" align="right" style="float:right; height:120px;"/>
+BioExtremeEvent <img src="man/figures/package-sticker.png" align="right" style="float:right; height:120px;"/>
 
 <!-- badges: start -->
 
@@ -61,19 +61,19 @@ vignette.
 
 ## Long-form documentations
 
-`BioExtremeEvent` provides **{{ NUMBER OF VIGNETTES }}** vignettes to
+`BioExtremeEvent` provides 10 vignettes to
 learn more about the package:
 
 - the [Get
   started](https://VicoMarbec.github.io/BioExtremeEvent/articles/BioExtremeEvent.html)
   vignette describes the core features of the package
-- **{{ LIST ADDITIONAL VIGNETTES }}**
+
 
 ## Citation
 
 Please cite `BioExtremeEvent` as:
 
-> Delannoy Victoria, Cabrol Nicolas, Fièvre Céleste, Casajus Nicolas, Villéger Sébastien*,Loiseau Nicolas* (r format(Sys.Date(), "%Y")) ioExtremeEvent: An R package to characterise extreme event. R package version 0.0.900. https://github.com/VicoMarbec/BioExtremeEvent/
+> Delannoy Victoria, Cabrol Nicolas, Fièvre Céleste, Casajus Nicolas, Villéger Sébastien*, Loiseau Nicolas* (r format(Sys.Date(), "%Y")) ioExtremeEvent: An R package to characterise extreme event. R package version 0.0.900. https://github.com/VicoMarbec/BioExtremeEvent/
 
 
 ## Contributing
@@ -89,7 +89,7 @@ By contributing to this project, you agree to abide by its terms.
 
 ## Acknowledgments
 
-**{{ OPTIONAL SECTION }}**
+
 
 ## References
 
