@@ -32,12 +32,15 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">BioExtremeEvent</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.900</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.95</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
+<li>
+  <a href="../articles/BioExtremeEvent.html">Get started</a>
+</li>
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
@@ -49,10 +52,37 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="../articles/a_load_corpernicus.html">0.1 Dowload data from Copernicus</a>
+    </li>
+    <li>
+      <a href="../articles/b_convert_celsius.html">0.2 Convert temperature data to Celsius</a>
+    </li>
+    <li>
       <a href="../articles/BioExtremeEvent_general_workflow.html">BioExtremeEvent: General Workflow</a>
     </li>
     <li>
-      <a href="../articles/data_load_corpernicus.html">BioExtremeEvent: Dowload data from Copernicus</a>
+      <a href="../articles/c_calc_baseline.html">1. Compute a baseline value</a>
+    </li>
+    <li>
+      <a href="../articles/d_id_extreme_day.html">2. Compare a time serie with the baseline or fixed threshold</a>
+    </li>
+    <li>
+      <a href="../articles/e_id_extreme_event.html">3.1 Identify extreme event according specific constraints</a>
+    </li>
+    <li>
+      <a href="../articles/f_calc_corrections.html">3.2 Check how much corrected extreme events differ from raw extreme days.</a>
+    </li>
+    <li>
+      <a href="../articles/g_calc_metrics_point.html">4. Calculate metrics on what is happening over time in a given pixel.</a>
+    </li>
+    <li>
+      <a href="../articles/h_calc_metrics_morpho.html">5. Calculate metrics on the shape of an extreme event.</a>
+    </li>
+    <li>
+      <a href="../articles/j_calc_metrics_escape.html">6. Calculate shortest distance (and direction) to escape from an extrem event.</a>
+    </li>
+    <li>
+      <a href="../articles/k_data_merge.html">7. Merge the the ouput of BEE.calc. functions in one dataframe.</a>
     </li>
   </ul>
 </li>
@@ -81,7 +111,7 @@
                         <h4 data-toc-skip class="author">Victoria
 Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
             
-            <h4 data-toc-skip class="date">2026-01-20</h4>
+            <h4 data-toc-skip class="date">2026-06-02</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/VicoMarbec/BioExtremeEvent/blob/main/vignettes/BioExtremeEvent_general_workflow.Rmd" class="external-link"><code>vignettes/BioExtremeEvent_general_workflow.Rmd</code></a></small>
       <div class="hidden name"><code>BioExtremeEvent_general_workflow.Rmd</code></div>
@@ -96,28 +126,30 @@ Delannoy, Nicolas Loiseau, Sébastien Villéger</h4>
 <p><br></p>
 <p>This tutorial describes the basic workflow showing how to
 characterized step by step extrem event (Marine Heat Wave, water
-stress…) using <code>BioExtremeEvent</code> package.</p>
-<p><strong>DATA:</strong> The dataset used to illustrate this tutorial
-is a spatraster of the sea surface temperature in Gulf of Lion extract
-from <a href="https://data.marine.copernicus.eu/products" class="external-link">Copernicus</a>,
-product: cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021.</p>
+stress…) using <code>BioExtremeEvent</code> package. Other functions are
+available and their uses are illustrated in others tutorials.</p>
+<p><strong>DATA</strong> The dataset used to illustrate this tutorial is
+a <strong>METTRE ICI LE DATASET</strong> based on X sites (<em>i.e.</em>
+coordinates) and a (rasters of temperature) (<em>i.e.</em>
+characterization of extrem event).</p>
 <p><br></p>
-<p>The use of the <code>BioExtremeEvent</code> package is based on a
-pipeline. This tutorial will guide you through the main framework,
-illustrated in the flowchart below, step by step.</p>
+<p>The use of the <code>BioExtremeEvent</code> package is based on two
+datasets:</p>
+<ul>
+<li><p>a <strong>data frame</strong> of coordinates of sites call
+<code>sites_coordinates</code> in this tutorial</p></li>
+<li><p>a <strong>stack raster</strong> of temperature of mediterranean
+Sea call <code>sites_coordinates</code></p></li>
+</ul>
 <p><br></p>
-<strong>FRAMEWORK:</strong>
+<p>This tutorial will guide you through the main framework, illustrated
+in the flowchart below, step by step.</p>
+<p><br></p>
 <div class="figure" style="text-align: center">
-<img src="../../../_temp/Library/BioExtremeEvent/extdata/pipeline_BEE.png" class="r-plt" alt="Framework of the BioExtremeEvent package" width="600px"><p class="caption">
-Framework of the BioExtremeEvent package
+<img src="pipeline_BEE.png" class="r-plt" alt="Basic framework of the BioExtremeEvent package" width="600px"><p class="caption">
+Basic framework of the BioExtremeEvent package
 </p>
 </div>
-</div>
-<div class="section level2">
-<h2 id="install-the-bioextremeevent-package">Install the BioExtremeEvent package<a class="anchor" aria-label="anchor" href="#install-the-bioextremeevent-package"></a>
-</h2>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BioExtremeEvent"</span><span class="op">)</span></span></code></pre></div>
 </div>
   </div>
 
