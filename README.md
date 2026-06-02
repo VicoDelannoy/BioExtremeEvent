@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-BioExtremeEvent <img src="man/figures/package-sticker.png" align="right" style="float:right; height:120px;"/>
+BioExtremeEvent <img src="BioExtremeEvent.png" align="right" style="float:right; height:120px;"/>
 
 <!-- badges: start -->
 
