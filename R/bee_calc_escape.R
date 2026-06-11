@@ -38,10 +38,10 @@
 #' @note
 #'  All distance metrics are limited by the size of the Spatraster your
 #'  are providing. See function is not developped to work on 4D data (time + 3D).
-#' 
+#'
 #' @return
 #'  A list with one dataframe per pixel. Please make sure to call element of the
-#' list by their names and not by their positions. 
+#' list by their names and not by their positions.
 #'
 #' @examples
 #' # Load data for example: library(BioExtremeEvent)
@@ -122,6 +122,147 @@ BEE.calc.escape <- function(
     na.all = TRUE
   )
 
+  ###--- Create the cost raster (NA pixels can not be crossed) for distance "bio"
+  # (avoinding NA pixels)
+  ## step1 : create connexion between pixels neighbours_matrix
+  neighbours_matrix <- matrix(
+    nrow = 7,
+    ncol = 7,
+    data = c(
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+    )
+  )
+  non_NA_pixels <- which(!is.na(terra::values(rasters[[1]])))
+  neighbours <- terra::adjacent(
+    rasters[[1]],
+    cells = non_NA_pixels, #not intrested in the
+    # neighbour of NA pixels
+    directions = neighbours_matrix,
+    pairs = TRUE
+  ) #give 2 colonnes instead fo a matrix
+
+  #step2a, withdraw the connexions starting from an NA pixel
+  neighbours <- neighbours[which(neighbours[, "from"] %in% non_NA_pixels), ]
+  #step2b, withdraw the connexions arriving in an NA pixel
+  neighbours <- neighbours[which(neighbours[, "to"] %in% non_NA_pixels), ]
+  ## step3 : get the coordinates of all combinaison departure-arrival
+  x_coords <- coords_all$x
+  y_coords <- coords_all$y
+  from_all <- neighbours[, 1]
+  to_all <- neighbours[, 2]
+  p1 <- cbind(x_coords[from_all], y_coords[from_all]) # all starting pts coords
+  p2 <- cbind(x_coords[to_all], y_coords[to_all]) #all associated arrival points
+
+  ## step 3 : identify the paths that fly over NA pixels and discard them
+  vals <- terra::values(rasters[[1]])
+  n <- 50
+  m <- nrow(p1)
+  all_cells <- vector("list", m)
+  valid <- logical(m)
+  for (i in seq_len(m)) {
+    # almost 6 minute for 434
+    #i = 5896 diagonale from 17 to 113
+    pts <- geosphere::gcIntermediate(
+      p1[i, ],
+      p2[i, ],
+      n = n,
+      addStartEnd = TRUE
+    )
+    cells <- terra::cellFromXY(rasters[[1]], pts)
+    valid[i] <- !any(is.na(vals[cells]))
+  }
+  #withdraw path going over NA pixel
+  p1 <- p1[valid, ]
+  p2 <- p2[valid, ]
+
+  cost_bio <- geosphere::distGeo(p1, p2)
+  graph_bio <- cppRouting::makegraph(data.frame(
+    from_vertex = neighbours[valid, 1],
+    to_vertex = neighbours[valid, 2],
+    cost = cost_bio
+  ))
+
+  #4 compute shortest path between each pixel
+  nodes <- graph_bio$dict$ref
+  shortest_paths_bio <- cppRouting::get_distance_matrix(
+    graph_bio,
+    from = nodes,
+    to = nodes
+  )
+
+  ###--- Distance between every pixel "as the crows fly"
+
+  p1_strait <- cbind(
+    x_coords[sort(rep(non_NA_pixels, length(non_NA_pixels)))],
+    y_coords[sort(rep(non_NA_pixels, length(non_NA_pixels)))]
+  ) # all starting pts coords
+  p <- cbind(x_coords[non_NA_pixels], y_coords[non_NA_pixels])
+  p2_strait <- do.call(
+    rbind,
+    replicate(length(non_NA_pixels), p, simplify = FALSE)
+  )
+  cost_strait <- geosphere::distGeo(p1_strait, p2_strait)
+  graph_strait <- cppRouting::makegraph(data.frame(
+    from_vertex = sort(rep(non_NA_pixels, length(non_NA_pixels))),
+    to_vertex = rep(non_NA_pixels, length(non_NA_pixels)),
+    cost = cost_strait
+  ))
+  # compute shortest path between each pixel
+  nodes_strait <- graph_strait$dict$ref
+  shortest_paths_strait <- cppRouting::get_distance_matrix(
+    graph_strait,
+    from = nodes_strait,
+    to = nodes_strait
+  )
+
   # Compute by data/layer
   dist_dir <- lapply(rasters, function(x_r) {
     # x_r <- rasters[[4]] # 1 : no MHW , 700 : 1 MHW # <-> iterate through dates
@@ -175,8 +316,10 @@ BEE.calc.escape <- function(
           to_y = "unkown",
           pixel_id = as.integer(pixels_from),
           pixel_to_id = "no escape",
-          distance = "outside of the raster",
-          azimut = "not possible to compute"
+          distance_bio = "outside of the raster",
+          distance_strait = "outside of the raster",
+          azimut_bio = "not possible to compute",
+          azimut_strait = "not possible to compute"
         )
       }
       if (is.data.frame(pixel)) {
@@ -188,8 +331,10 @@ BEE.calc.escape <- function(
           to_y = "unkown",
           pixel_id = as.integer(pixels_from),
           pixel_to_id = "no escape",
-          distance = "outside of the raster",
-          azimut = "not possible to compute"
+          distance_bio = "outside of the raster",
+          distance_strait = "outside of the raster",
+          azimut_bio = "not possible to compute",
+          azimut_strait = "not possible to compute"
         )
       }
       if (is.vector(pixel) & as.character(pixel)[1] != "all") {
@@ -206,8 +351,10 @@ BEE.calc.escape <- function(
           to_y = "unkown",
           pixel_id = as.integer(pixels_from),
           pixel_to_id = "no escape",
-          distance = "outside of the raster",
-          azimut = "not possible to compute"
+          distance_bio = "outside of the raster",
+          distance_strait = "outside of the raster",
+          azimut_bio = "not possible to compute",
+          azimut_strait = "not possible to compute"
         )
       }
     }
@@ -224,8 +371,10 @@ BEE.calc.escape <- function(
           to_y = NA,
           pixel_id = NA,
           pixel_to_id = NA,
-          distance = 0,
-          azimut = NA
+          distance_bio = 0,
+          distance_strait = 0,
+          azimut_bio = NA,
+          azimut_strait = NA
         )
       }
       if (is.data.frame(pixel)) {
@@ -238,8 +387,10 @@ BEE.calc.escape <- function(
           to_y = NA,
           pixel_id = pixels_to_do,
           pixel_to_id = NA,
-          distance = rep(0, length(pixels_to_do)),
-          azimut = NA
+          distance_bio = rep(0, length(pixels_to_do)),
+          distance_strait = rep(0, length(pixels_to_do)),
+          azimut_bio = NA_real_,
+          azimut_strait = NA_real_
         )
       }
       if (is.vector(pixel) & as.character(pixel)[1] != "all") {
@@ -256,8 +407,10 @@ BEE.calc.escape <- function(
           to_y = NA,
           pixel_id = pixels_to_do,
           pixel_to_id = NA,
-          distance = rep(0, length(pixels_to_do)),
-          azimut = NA
+          distance_bio = rep(0, length(pixels_to_do)),
+          distance_strait = rep(0, length(pixels_to_do)),
+          azimut_bio = NA_real_,
+          azimut_strait = NA_real_
         )
       }
     }
@@ -278,21 +431,41 @@ BEE.calc.escape <- function(
         to_x = rep(coords_to[[1]], times = nrow(coords_from)),
         to_y = rep(coords_to[[2]], times = nrow(coords_from)),
         pixel_id = rep(pixels_from, each = nrow(coords_to)),
-        pixel_to_id = rep(pixels_to, times = nrow(coords_from))
+        pixel_to_id = rep(pixels_to, times = nrow(coords_from)),
+        distance_bio = NA_real_,
+        distance_strait = NA_real_,
+        azimut_bio = NA_real_,
+        azimut_strait = NA_real_
       )
       # Compute distances btw each points
-      points$distance <- geosphere::distHaversine(
+      id_to_pos <- setNames(
+        seq_len(nrow(shortest_paths_bio)),
+        rownames(shortest_paths_bio)
+      )
+      rows <- unname(id_to_pos[as.character(points$pixel_to_id)])
+      cols <- unname(id_to_pos[as.character(points$pixel_id)])
+
+      points$distance_bio <- shortest_paths_bio[cbind(rows, cols)]
+      points$distance_strait <- shortest_paths_strait[cbind(rows, cols)]
+
+
+          min_bio <- stats::aggregate(data=points, distance_bio ~ pixel_id, FUN = min, na.rm=T)
+          min_strait <- min(distance_strait, na.rm = TRUE)
+
+          which(distance_bio == min_bio | distance_strait == min_strait)
+        },
+        by = pixel_id
+      ]$V1
+
+      points <- points[idx_keep]
+
+      points$azimut_bio <- (geosphere::bearing(
         cbind(points$x, points$y),
         cbind(points$to_x, points$to_y)
-      )
-      data.table::setorder(points, pixel_id, distance) # sort point by id (from_id)
-      # and then by shortest distance, when ex aequo, it keeps the same order
-      # as in 'points'
-      points <- points[!duplicated(points$pixel_id), ] # keep only the first
-      # occurrence of each 'from_id' <-> the occurence with the shortest
-
-      # distance
-      points$azimut <- (geosphere::bearing(
+      ) +
+        360) %%
+        360
+      points$azimut_strait <- (geosphere::bearing(
         cbind(points$x, points$y),
         cbind(points$to_x, points$to_y)
       ) +
@@ -308,7 +481,12 @@ BEE.calc.escape <- function(
     }
     # Make sure that when they are no reason to leave a pixel (distance = 0),
     # the azimut is NA
-    points$azimut <- ifelse(points$distance == 0, NA, points$azimut)
+    points$azimut_bio <- ifelse(points$distance_bio == 0, NA, points$azimut_bio)
+    points$azimut_strait <- ifelse(
+      points$distance_strait == 0,
+      NA,
+      points$azimut_strait
+    )
     return(points)
   })
 
@@ -330,7 +508,9 @@ BEE.calc.escape <- function(
   # where there are no distances to compute for the case only_days_EE == FALSE
 
   if (only_days_EE == TRUE) {
-    dist_dir <- dist_dir[dist_dir$distance != 0, ]
+    dist_dir <- dist_dir[
+      dist_dir$distance_bio != 0 & dist_dir$distance_strait != 0,
+    ]
     if (nrow(dist_dir) == 0) {
       message("There were no extreme event for the given pixels and timeframe.")
     }
@@ -378,87 +558,173 @@ BEE.calc.escape <- function(
       all.x = TRUE
     )
 
-    ## Distance
-    dist_dir$distance <- as.numeric(dist_dir$distance)
+    ## Distance BIO
+    dist_dir$distance_bio <- as.numeric(dist_dir$distance_bio)
     tmp_mean <- stats::aggregate(
-      distance ~ ID,
+      distance_bio ~ ID,
       data = dist_dir,
       FUN = function(df) mean(df, na.rm = TRUE)
     )
-    dist_dir$distance_mean <- tmp_mean[
+    dist_dir$distance_bio_mean <- tmp_mean[
       match(dist_dir$ID, tmp_mean$ID),
       2
     ]
 
-    distance_sd <- tapply(
-      as.numeric(dist_dir$distance),
+    distance_bio_sd <- tapply(
+      as.numeric(dist_dir$distance_bio),
       dist_dir$ID,
       stats::sd,
       na.rm = TRUE
     )
-    dist_dir$distance_sd <- distance_sd[dist_dir$ID]
+    dist_dir$distance_bio_sd <- distance_bio_sd[dist_dir$ID]
 
-    distance_median <- tapply(
-      as.numeric(dist_dir$distance),
+    distance_bio_median <- tapply(
+      as.numeric(dist_dir$distance_bio),
       dist_dir$ID,
       stats::median,
       na.rm = TRUE
     )
-    dist_dir$distance_median <- distance_median[dist_dir$ID]
+    dist_dir$distance_bio_median <- distance_bio_median[dist_dir$ID]
 
-    distance_min <- tapply(
-      as.numeric(dist_dir$distance),
+    distance_bio_min <- tapply(
+      as.numeric(dist_dir$distance_bio),
       dist_dir$ID,
       min,
       na.rm = TRUE
     )
-    dist_dir$distance_min <- distance_min[dist_dir$ID]
+    dist_dir$distance_bio_min <- distance_bio_min[dist_dir$ID]
 
-    distance_max <- tapply(
-      as.numeric(dist_dir$distance),
+    distance_bio_max <- tapply(
+      as.numeric(dist_dir$distance_bio),
       dist_dir$ID,
       max,
       na.rm = TRUE
     )
-    dist_dir$distance_max <- distance_max[dist_dir$ID]
+    dist_dir$distance_bio_max <- distance_bio_max[dist_dir$ID]
 
     ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
     # special way to compute it :
     # Conversion to circular angle :
 
-    dist_dir$azimut_num <- as.numeric(dist_dir$azimut)
-    dist_dir$azimut_circ <- ifelse(
-      !is.na(dist_dir$azimut_num),
+    dist_dir$azimut_bio_num <- as.numeric(dist_dir$azimut_bio)
+    dist_dir$azimut_bio_circ <- ifelse(
+      !is.na(dist_dir$azimut_bio_num),
       circular::circular(
-        dist_dir$azimut_num,
+        dist_dir$azimut_bio_num,
         units = "degrees",
         template = "geographics"
       ),
       NA
     )
 
-    azimut_mean <- tapply(
-      dist_dir$azimut_circ,
+    azimut_bio_mean <- tapply(
+      dist_dir$azimut_bio_circ,
       dist_dir$ID,
       circular::mean.circular,
       na.rm = TRUE
     )
-    dist_dir$azimut_mean <- (azimut_mean[dist_dir$ID] + 360) %% 360
+    dist_dir$azimut_bio_mean <- (azimut_bio_mean[dist_dir$ID] + 360) %% 360
 
-    azimut_med <- tapply(
-      as.numeric(dist_dir$azimut_circ),
+    azimut_bio_med <- tapply(
+      as.numeric(dist_dir$azimut_bio_circ),
       dist_dir$ID,
       circular::median.circular,
       na.rm = TRUE
     )
-    dist_dir$azimut_med <- (azimut_med[dist_dir$ID] + 360) %% 360
+    dist_dir$azimut_bio_med <- (azimut_bio_med[dist_dir$ID] + 360) %% 360
 
     tmp_sd <- stats::aggregate(
-      azimut_circ ~ ID,
+      azimut_bio_circ ~ ID,
       data = dist_dir,
       FUN = azimut_sd_fun
     )
-    dist_dir$azimut_sd <- (tmp_sd[match(dist_dir$ID, tmp_sd$ID), 2] + 360) %%
+    dist_dir$azimut_bio_sd <- (tmp_sd[match(dist_dir$ID, tmp_sd$ID), 2] +
+      360) %%
+      360
+
+    ## Distance STRAIT
+    dist_dir$distance_strait <- as.numeric(dist_dir$distance_strait)
+    tmp_mean <- stats::aggregate(
+      distance_strait ~ ID,
+      data = dist_dir,
+      FUN = function(df) mean(df, na.rm = TRUE)
+    )
+    dist_dir$distance_strait_mean <- tmp_mean[
+      match(dist_dir$ID, tmp_mean$ID),
+      2
+    ]
+
+    distance_strait_sd <- tapply(
+      as.numeric(dist_dir$distance_strait),
+      dist_dir$ID,
+      stats::sd,
+      na.rm = TRUE
+    )
+    dist_dir$distance_strait_sd <- distance_strait_sd[dist_dir$ID]
+
+    distance_strait_median <- tapply(
+      as.numeric(dist_dir$distance_strait),
+      dist_dir$ID,
+      stats::median,
+      na.rm = TRUE
+    )
+    dist_dir$distance_strait_median <- distance_strait_median[dist_dir$ID]
+
+    distance_strait_min <- tapply(
+      as.numeric(dist_dir$distance_strait),
+      dist_dir$ID,
+      min,
+      na.rm = TRUE
+    )
+    dist_dir$distance_strait_min <- distance_strait_min[dist_dir$ID]
+
+    distance_strait_max <- tapply(
+      as.numeric(dist_dir$distance_strait),
+      dist_dir$ID,
+      max,
+      na.rm = TRUE
+    )
+    dist_dir$distance_strait_max <- distance_strait_max[dist_dir$ID]
+
+    ## Since degree are a circular unit (after 360=0 comes 1,2...) we need a
+    # special way to compute it :
+    # Conversion to circular angle :
+
+    dist_dir$azimut_strait_num <- as.numeric(dist_dir$azimut_strait)
+    dist_dir$azimut_strait_circ <- ifelse(
+      !is.na(dist_dir$azimut_strait_num),
+      circular::circular(
+        dist_dir$azimut_strait_num,
+        units = "degrees",
+        template = "geographics"
+      ),
+      NA
+    )
+
+    azimut_strait_mean <- tapply(
+      dist_dir$azimut_strait_circ,
+      dist_dir$ID,
+      circular::mean.circular,
+      na.rm = TRUE
+    )
+    dist_dir$azimut_strait_mean <- (azimut_strait_mean[dist_dir$ID] + 360) %%
+      360
+
+    azimut_strait_med <- tapply(
+      as.numeric(dist_dir$azimut_strait_circ),
+      dist_dir$ID,
+      circular::median.circular,
+      na.rm = TRUE
+    )
+    dist_dir$azimut_strait_med <- (azimut_strait_med[dist_dir$ID] + 360) %% 360
+
+    tmp_sd <- stats::aggregate(
+      azimut_strait_circ ~ ID,
+      data = dist_dir,
+      FUN = azimut_sd_fun
+    )
+    dist_dir$azimut_strait_sd <- (tmp_sd[match(dist_dir$ID, tmp_sd$ID), 2] +
+      360) %%
       360
 
     # Delete column that refer to daily value and not to value compute on all
@@ -466,10 +732,14 @@ BEE.calc.escape <- function(
     dist_dir[,
       c(
         'date',
-        'distance',
-        'azimut',
-        'azimut_num',
-        'azimut_circ',
+        'distance_bio',
+        'azimut_bio',
+        'azimut_bio_num',
+        'azimut_bio_circ',
+        'distance_strait',
+        'azimut_strait',
+        'azimut_strait_num',
+        'azimut_strait_circ',
         'to_x',
         'to_y',
         'pixel_to_id'
