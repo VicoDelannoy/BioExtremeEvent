@@ -37,7 +37,7 @@
 #'
 #-------------------------------------------------------------------------------
 # data = merged_output ; variable = "perim_pixel_ratio" ;
-# summarise_by = "extreme_event" ; summarise_by = 3 ; variable = "azimut"
+# summarise_by = "extreme_event" ; summarise_by = 3 ; variable = "azimut_strait"
 
 BEE.data.summarise <- function(
   data = data,
@@ -125,8 +125,10 @@ BEE.data.summarise <- function(
     "to_x",
     "to_y",
     "pixel_to_id",
-    "distance",
-    "azimut",
+    "distance_bio",
+    "azimut_bio",
+    "distance_strait",
+    "azimut_strait",
     "ID_df_escape"
   )
   if (!(variable %in% BEE_col_names)) {
@@ -136,8 +138,8 @@ BEE.data.summarise <- function(
       "'",
       "is not a column name from the BEE package. 
     We recommend not changing the name of the outputs before using this function
-    because some variables require special functions. For instance, 'azimut' is
-    a circular variable so a special function is used to compute mean, sd etc.
+    because some variables require special functions. For instance, 'azimut' are
+    circular variables so a special function is used to compute mean, sd etc.
     These variables are recognised by this function, if their names are changed,
     they will be treated as regular variables which may result in silent
     errors."
@@ -151,49 +153,105 @@ BEE.data.summarise <- function(
 
   if (summarise_by == "extreme_event") {
     ### Particular cases:
-    if (variable == "azimut") {
-      data$azimut_num <- as.numeric(data$azimut)
+    if (variable == "azimut_strait") {
+      data$azimut_strait_num <- as.numeric(data$azimut_strait)
       n_rows <- length(unique(data[, id]))
       output <- data.frame(
         ID = unique(data[, id]),
-        azimut_mean = circular::circular(rep(NA, n_rows)),
-        azimut_median = circular::circular(rep(NA, n_rows)),
-        azimut_sd = circular::circular(rep(NA, n_rows))
+        azimut_strait_mean = circular::circular(rep(NA, n_rows)),
+        azimut_strait_median = circular::circular(rep(NA, n_rows)),
+        azimut_strait_sd = circular::circular(rep(NA, n_rows))
       )
 
-      data$azimut_circ <- circular::circular(
-        data$azimut_num,
+      data$azimut_strait_circ <- circular::circular(
+        data$azimut_strait_num,
         units = "degrees",
         template = "geographics"
       )
 
-      azimut_mean <- tapply(
-        data$azimut_circ,
+      azimut_strait_mean <- tapply(
+        data$azimut_strait_circ,
         data[, id],
         circular::mean.circular,
         na.rm = FALSE
       )
-      azimut_mean <- (azimut_mean + 360) %% 360
-      output$azimut_mean <- azimut_mean[match(output$ID, names(azimut_mean))]
+      azimut_strait_mean <- (azimut_strait_mean + 360) %% 360
+      output$azimut_strait_mean <- azimut_strait_mean[match(
+        output$ID,
+        names(azimut_strait_mean)
+      )]
 
-      azimut_median <- tapply(
-        data$azimut_circ,
+      azimut_strait_median <- tapply(
+        data$azimut_strait_circ,
         data[, id],
         median_if_no_na
       )
-      azimut_median <- (azimut_median + 360) %% 360
-      output$azimut_median <- azimut_median[match(
+      azimut_strait_median <- (azimut_strait_median + 360) %% 360
+      output$azimut_strait_median <- azimut_strait_median[match(
         output$ID,
-        names(azimut_median)
+        names(azimut_strait_median)
       )]
 
-      azimut_sd <- tapply(
-        data$azimut_circ,
+      azimut_strait_sd <- tapply(
+        data$azimut_strait_circ,
         data[, id],
         sd_if_no_na
       )
-      azimut_sd <- (azimut_sd + 360) %% 360
-      output$azimut_sd <- azimut_sd[match(output$ID, names(azimut_sd))]
+      azimut_strait_sd <- (azimut_strait_sd + 360) %% 360
+      output$azimut_strait_sd <- azimut_strait_sd[match(
+        output$ID,
+        names(azimut_strait_sd)
+      )]
+    }
+    if (variable == "azimut_bio") {
+      data$azimut_bio_num <- as.numeric(data$azimut_bio)
+      n_rows <- length(unique(data[, id]))
+      output <- data.frame(
+        ID = unique(data[, id]),
+        azimut_bio_mean = circular::circular(rep(NA, n_rows)),
+        azimut_bio_median = circular::circular(rep(NA, n_rows)),
+        azimut_bio_sd = circular::circular(rep(NA, n_rows))
+      )
+
+      data$azimut_bio_circ <- circular::circular(
+        data$azimut_bio_num,
+        units = "degrees",
+        template = "geographics"
+      )
+
+      azimut_bio_mean <- tapply(
+        data$azimut_bio_circ,
+        data[, id],
+        circular::mean.circular,
+        na.rm = FALSE
+      )
+      azimut_bio_mean <- (azimut_bio_mean + 360) %% 360
+      output$azimut_bio_mean <- azimut_bio_mean[match(
+        output$ID,
+        names(azimut_bio_mean)
+      )]
+
+      azimut_bio_median <- tapply(
+        data$azimut_bio_circ,
+        data[, id],
+        median_if_no_na
+      )
+      azimut_bio_median <- (azimut_bio_median + 360) %% 360
+      output$azimut_bio_median <- azimut_bio_median[match(
+        output$ID,
+        names(azimut_bio_median)
+      )]
+
+      azimut_bio_sd <- tapply(
+        data$azimut_bio_circ,
+        data[, id],
+        sd_if_no_na
+      )
+      azimut_bio_sd <- (azimut_bio_sd + 360) %% 360
+      output$azimut_bio_sd <- azimut_bio_sd[match(
+        output$ID,
+        names(azimut_bio_sd)
+      )]
     } else {
       output <- summarise_ID(data = data, variable = variable)
     }
@@ -210,21 +268,21 @@ BEE.data.summarise <- function(
   ### regular situation:
   if (is.numeric(summarise_by)) {
     ### Particular cases:
-    if (variable == "azimut") {
-      data$azimut_num <- as.numeric(data$azimut)
+    if (variable == "azimut_strait") {
+      data$azimut_strait_num <- as.numeric(data$azimut_strait)
       n_rows <- length(data[, id])
       output <- data.frame(
         ID = data[, id],
         date = data[, "date"],
-        azimut = circular::circular(
-          data$azimut_num,
+        azimut_strait = circular::circular(
+          data$azimut_strait_num,
           units = "degrees",
           template = "geographics"
         ),
-        data[, "azimut_num"],
-        azimut_mean = circular::circular(rep(NA, n_rows)),
-        azimut_median = circular::circular(rep(NA, n_rows)),
-        azimut_sd = circular::circular(rep(NA, n_rows)),
+        data[, "azimut_strait_num"],
+        azimut_strait_mean = circular::circular(rep(NA, n_rows)),
+        azimut_strait_median = circular::circular(rep(NA, n_rows)),
+        azimut_strait_sd = circular::circular(rep(NA, n_rows)),
         pixel_id = data[, "pixel_id"]
       )
 
@@ -232,47 +290,117 @@ BEE.data.summarise <- function(
         start <- i - summarise_by + 1
         index <- start:i
 
-        output$azimut_mean[i] <- ifelse(
-          is.na(output[i, "azimut"]),
+        output$azimut_strait_mean[i] <- ifelse(
+          is.na(output[i, "azimut_strait"]),
           NA,
           circular::mean.circular(
-            output[index, "azimut"],
+            output[index, "azimut_strait"],
             na.rm = TRUE
           )
         )
 
-        output$azimut_median[i] <- ifelse(
-          is.na(output[i, "azimut"]),
+        output$azimut_strait_median[i] <- ifelse(
+          is.na(output[i, "azimut_strait"]),
           NA,
           circular::median.circular(
-            output[index, "azimut_circ"],
+            output[index, "azimut_strait_circ"],
             na.rm = TRUE
           )
         )
 
-        output$azimut_sd[i] <- ifelse(
-          is.na(output[i, "azimut"]),
+        output$azimut_strait_sd[i] <- ifelse(
+          is.na(output[i, "azimut_strait"]),
           NA,
           circular::sd.circular(
-            output[index, "azimut_circ"],
+            output[index, "azimut_strait_circ"],
             na.rm = TRUE
           )
         )
       }
-      output$azimut_mean <- (circular::conversion.circular(
-        output$azimut_mean,
+      output$azimut_strait_mean <- (circular::conversion.circular(
+        output$azimut_strait_mean,
         units = "degrees"
       ) +
         360) %%
         360
-      output$azimut_median <- (circular::conversion.circular(
-        output$azimut_median,
+      output$azimut_strait_median <- (circular::conversion.circular(
+        output$azimut_strait_median,
         units = "degrees"
       ) +
         360) %%
         360
-      output$azimut_sd <- (circular::conversion.circular(
-        output$azimut_sd,
+      output$azimut_strait_sd <- (circular::conversion.circular(
+        output$azimut_strait_sd,
+        units = "degrees"
+      ) +
+        360) %%
+        360
+      output <- split(output, output$pixel_id)
+      return(output)
+    }
+    if (variable == "azimut_bio") {
+      data$azimut_bio_num <- as.numeric(data$azimut_bio)
+      n_rows <- length(data[, id])
+      output <- data.frame(
+        ID = data[, id],
+        date = data[, "date"],
+        azimut_bio = circular::circular(
+          data$azimut_bio_num,
+          units = "degrees",
+          template = "geographics"
+        ),
+        data[, "azimut_bio_num"],
+        azimut_bio_mean = circular::circular(rep(NA, n_rows)),
+        azimut_bio_median = circular::circular(rep(NA, n_rows)),
+        azimut_bio_sd = circular::circular(rep(NA, n_rows)),
+        pixel_id = data[, "pixel_id"]
+      )
+
+      for (i in seq(summarise_by, length(data[, variable]), 1)) {
+        start <- i - summarise_by + 1
+        index <- start:i
+
+        output$azimut_bio_mean[i] <- ifelse(
+          is.na(output[i, "azimut_bio"]),
+          NA,
+          circular::mean.circular(
+            output[index, "azimut_bio"],
+            na.rm = TRUE
+          )
+        )
+
+        output$azimut_bio_median[i] <- ifelse(
+          is.na(output[i, "azimut_bio"]),
+          NA,
+          circular::median.circular(
+            output[index, "azimut_bio_circ"],
+            na.rm = TRUE
+          )
+        )
+
+        output$azimut_bio_sd[i] <- ifelse(
+          is.na(output[i, "azimut_bio"]),
+          NA,
+          circular::sd.circular(
+            output[index, "azimut_bio_circ"],
+            na.rm = TRUE
+          )
+        )
+      }
+      output$azimut_bio_mean <- (circular::conversion.circular(
+        output$azimut_bio_mean,
+        units = "degrees"
+      ) +
+        360) %%
+        360
+      output$azimut_bio_median <- (circular::conversion.circular(
+        output$azimut_bio_median,
+        units = "degrees"
+      ) +
+        360) %%
+        360
+      output$azimut_bio_sd <- (circular::conversion.circular(
+        output$azimut_bio_sd,
         units = "degrees"
       ) +
         360) %%
