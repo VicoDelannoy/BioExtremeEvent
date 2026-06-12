@@ -448,16 +448,12 @@ BEE.calc.escape <- function(
       points$distance_bio <- shortest_paths_bio[cbind(rows, cols)]
       points$distance_strait <- shortest_paths_strait[cbind(rows, cols)]
 
-
-          min_bio <- stats::aggregate(data=points, distance_bio ~ pixel_id, FUN = min, na.rm=T)
-          min_strait <- min(distance_strait, na.rm = TRUE)
-
-          which(distance_bio == min_bio | distance_strait == min_strait)
-        },
-        by = pixel_id
-      ]$V1
-
-      points <- points[idx_keep]
+      points_bio <- points[order(points$pixel_id, points$distance_bio), ]
+      points_strait <- points[order(points$pixel_id, points$distance_bio), ]
+      res_bio <- points_bio[!duplicated(points_bio$pixel_id), ]
+      res_strait <- points_strait[!duplicated(points_strait$pixel_id), ]
+      points <- rbind(res_bio, res_strait)
+      points <- unique(points)
 
       points$azimut_bio <- (geosphere::bearing(
         cbind(points$x, points$y),
