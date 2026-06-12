@@ -3,9 +3,23 @@
 #'
 #' @description
 #'  This function calculate the median distance, mean distance and standard
-#'  deviation of distance to escape form an extreme event 'as the crow files'
-#'  (but avoiding NA pixels, which are suppose to represent a place that cannot
-#'  be crossed) through time for a given gps position or for all pixels.
+#'  deviation of distance to escape form an extreme event. Two methods are used:
+#'  First is the "strait" distance, measured 'as the crow files'this method
+#'  doesn't avoid the NA pixels and consider the earth as a sphere for distance
+#'  computation.
+#'  The second method, "bio", also account for the sphericity of the earth and
+#'  compute distances over trajectory that avoid NA pixel. To do so the
+#'  trajectory is built step by step which induce more imprecision than the
+#'  "strait" method.
+#'  If the difference between the two distances is small than the spatraster
+#'  resolution, it is very likely that the difference is due to the lower
+#'  precision of the "bio" methods. If the differences is close or superior to
+#'  the spatraster resolution, it is very likely that it is because the "bio"
+#'  distance take in account the extra distance caused by going round an
+#'  obstacle (NA pixel).
+#'  (see the package vignette for more detail).
+#'  The function also provided the azimut between the pixel to flee and the
+#'  closest refuge pixel according each method.
 #'
 #' @param extreme_events_output :
 #'  Is the ouput of function BEE.id.extreme_events().

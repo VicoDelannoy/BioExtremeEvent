@@ -9,7 +9,7 @@ vignette: >
 ---
 
 # Aims of the function *BEE.calc.escape()*.
-Compute daily metrics related to the of the nearest "refuge area", its direction or position. The function only seek for refuge in 2D.
+Compute daily metrics related to the of the nearest "refuge area", its distances, direction or position. The function only seek for refuge in 2D.
 
 # Usage
 ## Arguments:
@@ -57,13 +57,38 @@ You will get a list of dataframes containning the informations in the table bell
 |                      | outside the extreme event.           |           |                |
 | pixel_to_id          | Pixel number of the closest pixel    | character |                |
 |                      | outside of the extreme event.        | integer   |                |
-| distance             | Distance to the closest pixel outside| character | m              |
-|                      | the extreme event                    |           |                |
-| azimut               | Angle between north and the axis     | character | degrees        |
+| distance_bio         | Distance to the closest pixel outside| character | m              |
+|                      | the extreme event avoiding NA pixels.|           |                |
+| azimut_bio           | Angle between north and the axis     | character | degrees        |
 |                      | formed by the pixel to flee and the  |           |                |
-|                      | refuge pixel                         |           |                |
+|                      | closest refuge pixel. The closest    |           |                |
+|                      | pixel is identify taking in account  |           |                |
+|                      | the extra distance added avoiding NA.|           |                |
+| distance_strait      | Distance to the closest pixel outside| character | m              |
+|                      |the extreme event. 'as the craw flies'|           |                |
+| azimut_strait        | Angle between north and the axis     | character | degrees        |
+|                      | formed by the pixel to flee and the  |           |                |
+|                      | refuge pixel, identified "as the craw|           |                |
+|                      | flies".                              |           |                |
 | ID                   | The event identifier                 | character |                |
 \* Same format as the in the spatraster provided (here yyyy-mm-dd)  
+
+Please note that both of these methods take into account the sphericity of the Earth, but not its flattening at the poles.
+The ‘bio’ approach has made it possible to construct a trajectory that avoids NA pixels by summing the paths between neighbouring pixels
+and selecting only those that do not overlap with NA pixels.
+The small steps between a pixel and its neighbouring pixels are thus identified: 
+
+1 1 1 0 1 1 1  
+1 1 1 0 1 1 1  
+1 1 1 1 1 1 1  
+0 0 1 p 1 0 0  
+1 1 1 1 1 1 1  
+1 1 1 0 1 1 1  
+1 1 1 0 1 1 1 
+
+where ‘p’ denotes the pixel at which the small step begins and ‘1’ denotes the pixels towards which a step can be formed.
+
+If there is no pixel to avoid, the "strait" distance is more precise than the "bio" distance.
 
 # Examples
 ## Load data:
@@ -105,7 +130,7 @@ escape <- BEE.calc.escape(
 ```
 
 ## Get metrics per extreme events only:
-```{r, message=FALSE, echo = FALSE}
+```{r, message=FALSE,warning=FALSE, echo = FALSE}
 library(BioExtremeEvent)
 
 escape_EE_ONLY <- BEE.calc.escape(
@@ -151,7 +176,7 @@ library(MASS)
 library(ggplot2)
 ## Create circles to add on plot:
 cercles <- seq(0, 50000, by = 10000) 
-ggplot(escape_108, ggplot2::aes(x = as.numeric(escape_108$azimut), y = as.numeric(escape_108$distance))) +
+ggplot(escape_108, ggplot2::aes(x = as.numeric(escape_108$azimut_strait), y = as.numeric(escape_108$distance_strait))) +
   # Densité de points par saison
   stat_density_2d_filled(
     geom = "polygon",
