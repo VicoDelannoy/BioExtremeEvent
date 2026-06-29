@@ -468,9 +468,9 @@ BEE.calc.escape <- function(
       points_strait <- points[
         order(points$pixel_id, points$distance_bio),
       ]
-      res_bio <- points_bio[!data.table::duplicated(points_bio$pixel_id), ]
+      res_bio <- points_bio[!duplicated(points_bio$pixel_id), ]
       res_strait <- points_strait[
-        !data.table::duplicated(points_strait$pixel_id),
+        !duplicated(points_strait$pixel_id),
       ]
       points <- rbind(res_bio, res_strait)
       points <- unique(points)
@@ -763,7 +763,7 @@ BEE.calc.escape <- function(
     ] <- NULL
 
     # Keep only one row per EE (<-> per value of ID column) :
-    dist_dir <- dist_dir[!data.table::duplicated(dist_dir$ID), ] # keep the first line of every
+    dist_dir <- dist_dir[!duplicated(dist_dir$ID), ] # keep the first line of every
     # group of same value of ID
     dist_dir <- dist_dir[!is.na(dist_dir$pixel_id), ] # withrdraw the line of NA
 
