@@ -199,7 +199,7 @@ BEE.calc.metrics_morpho <- function(
         data$cell_size[valid] * (data$bordering[valid] == 0),
         group = data$patch_id[valid]
       )
-      core_area_named <- setNames(tmp[, 1], rownames(tmp))
+      core_area_named <- stats::setNames(tmp[, 1], rownames(tmp))
       data$core_area <- core_area_named[as.character(data$patch_id)]
 
       # add metrics :
