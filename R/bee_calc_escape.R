@@ -463,10 +463,10 @@ BEE.calc.escape <- function(
       points$distance_strait <- shortest_paths_strait[cbind(rows, cols)]
 
       points_bio <- points[
-        data.table::order(points$pixel_id, points$distance_bio),
+        order(points$pixel_id, points$distance_bio),
       ]
       points_strait <- points[
-        data.table::order(points$pixel_id, points$distance_bio),
+        order(points$pixel_id, points$distance_bio),
       ]
       res_bio <- points_bio[!data.table::duplicated(points_bio$pixel_id), ]
       res_strait <- points_strait[
