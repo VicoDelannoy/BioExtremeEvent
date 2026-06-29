@@ -118,14 +118,14 @@ BEE.calc.escape <- function(
       number of days, please use the output of BEE.id.extreme_events."
     )
   }
-  date_indices <- match(c(start_date, end_date), names(shell))
-  dates <- names(shell)[date_indices[1]:date_indices[2]]
+  date_indices <- terra::match(c(start_date, end_date), terra::names(shell))
+  dates <- terra::names(shell)[date_indices[1]:date_indices[2]]
   data <- lapply(data, \(df) df[date_indices[1]:date_indices[2], ])
 
   # Subset the layers in the timeframe of interest
   rasters <- extreme_events_output[[1]][[
-    names(extreme_events_output[[1]]) >= start_date &
-      names(extreme_events_output[[1]]) <= end_date
+    terra::names(extreme_events_output[[1]]) >= start_date &
+      terra::names(extreme_events_output[[1]]) <= end_date
   ]]
 
   # coordinates of every pixel in the dataset :
@@ -452,7 +452,7 @@ BEE.calc.escape <- function(
         azimut_strait = NA_real_
       )
       # Compute distances btw each points
-      id_to_pos <- setNames(
+      id_to_pos <- stats::setNames(
         seq_len(nrow(shortest_paths_bio)),
         rownames(shortest_paths_bio)
       )
@@ -462,10 +462,16 @@ BEE.calc.escape <- function(
       points$distance_bio <- shortest_paths_bio[cbind(rows, cols)]
       points$distance_strait <- shortest_paths_strait[cbind(rows, cols)]
 
-      points_bio <- points[order(points$pixel_id, points$distance_bio), ]
-      points_strait <- points[order(points$pixel_id, points$distance_bio), ]
-      res_bio <- points_bio[!duplicated(points_bio$pixel_id), ]
-      res_strait <- points_strait[!duplicated(points_strait$pixel_id), ]
+      points_bio <- points[
+        data.table::order(points$pixel_id, points$distance_bio),
+      ]
+      points_strait <- points[
+        data.table::order(points$pixel_id, points$distance_bio),
+      ]
+      res_bio <- points_bio[!data.table::duplicated(points_bio$pixel_id), ]
+      res_strait <- points_strait[
+        !data.table::duplicated(points_strait$pixel_id),
+      ]
       points <- rbind(res_bio, res_strait)
       points <- unique(points)
 
@@ -541,13 +547,13 @@ BEE.calc.escape <- function(
     data <- data.table::rbindlist(data)
     data$date <- as.Date(data$date)
     dist_dir$date <- as.Date(dist_dir$date)
-    dist_dir <- merge(
+    dist_dir <- data.table::merge(
       dist_dir,
       data[, c("pixel_id", "date", "ID")],
       by = c("pixel_id", "date"),
       all.x = TRUE
     )
-    dist_dir <- split(dist_dir, dist_dir$pixel_id)
+    dist_dir <- data.table::split(dist_dir, dist_dir$pixel_id)
     return(dist_dir)
   }
   if (group_by_event == TRUE) {
@@ -561,7 +567,7 @@ BEE.calc.escape <- function(
     data <- data.table::rbindlist(data)
     data$date <- as.Date(data$date)
     dist_dir$date <- as.Date(dist_dir$date)
-    dist_dir <- merge(
+    dist_dir <- data.table::merge(
       dist_dir,
       data[, c("pixel_id", "date", "ID")],
       by = c("pixel_id", "date"),
@@ -757,7 +763,7 @@ BEE.calc.escape <- function(
     ] <- NULL
 
     # Keep only one row per EE (<-> per value of ID column) :
-    dist_dir <- dist_dir[!duplicated(dist_dir$ID), ] # keep the first line of every
+    dist_dir <- dist_dir[!data.table::duplicated(dist_dir$ID), ] # keep the first line of every
     # group of same value of ID
     dist_dir <- dist_dir[!is.na(dist_dir$pixel_id), ] # withrdraw the line of NA
 

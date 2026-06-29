@@ -18,6 +18,7 @@ RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.1)
 Imports: 
+    cppRouting,
     circular,
     cluster,
     data.table,
