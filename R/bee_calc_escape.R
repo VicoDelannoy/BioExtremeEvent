@@ -547,7 +547,7 @@ BEE.calc.escape <- function(
     data <- data.table::rbindlist(data)
     data$date <- as.Date(data$date)
     dist_dir$date <- as.Date(dist_dir$date)
-    dist_dir <- data.table::merge(
+    dist_dir <- merge(
       dist_dir,
       data[, c("pixel_id", "date", "ID")],
       by = c("pixel_id", "date"),
@@ -567,7 +567,7 @@ BEE.calc.escape <- function(
     data <- data.table::rbindlist(data)
     data$date <- as.Date(data$date)
     dist_dir$date <- as.Date(dist_dir$date)
-    dist_dir <- data.table::merge(
+    dist_dir <- merge(
       dist_dir,
       data[, c("pixel_id", "date", "ID")],
       by = c("pixel_id", "date"),
