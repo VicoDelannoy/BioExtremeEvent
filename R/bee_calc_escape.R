@@ -553,7 +553,7 @@ BEE.calc.escape <- function(
       by = c("pixel_id", "date"),
       all.x = TRUE
     )
-    dist_dir <- data.table::split(dist_dir, dist_dir$pixel_id)
+    dist_dir <- split(dist_dir, dist_dir$pixel_id)
     return(dist_dir)
   }
   if (group_by_event == TRUE) {
