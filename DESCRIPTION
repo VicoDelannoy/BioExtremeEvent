@@ -1,7 +1,7 @@
 Package: BioExtremeEvent
 Type: Package
 Title: BioExtremeEvent
-Version: 0.0.95
+Version: 0.1.0
 Authors@R: c(
     person(given   = "Victoria",
            family  = "Delannoy",

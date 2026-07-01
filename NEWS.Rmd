@@ -1,0 +1,13 @@
+# VERSION 0.1.0
+
+## Updated the 1st of July 2026
+
+## Modification :
+
+We have added a distance metric, called ‘distance_bio’, which takes into account the need to bypass ‘obstacle’ pixels (NA). 
+
+Examples of application: 
+- The distance a fish must travel to reach a refuge pixel on the other side of an island.
+- The distance a small rodent must travel to colonise a valley whilst bypassing peaks that are too high for it. 
+
+Note : The former distance (shortest distance 'as the crow fly', accounting for earth sphericity), is still available under the name 'distance_strait'.
