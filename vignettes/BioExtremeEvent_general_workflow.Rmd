@@ -1,6 +1,6 @@
 ---
 title: "BioExtremeEvent: General Workflow"
-author: "Victoria Delannoy, Nicolas Loiseau, Sébastien Villéger"
+author: "Victoria Delannoy, Nicolas Cabrol, Nicolas Casajus, Célèste Fièvre, Sébastien Villéger, Nicolas Loiseau"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

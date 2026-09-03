@@ -43,7 +43,7 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 }
 
 ## Install < BioExtremeEvent > from GitHub ----
-remotes::install_github("VicoMarbec/BioExtremeEvent")
+remotes::install_github("VicoDelannoy/BioExtremeEvent")
 ```
 
 Then you can attach the package `BioExtremeEvent`:
@@ -56,7 +56,7 @@ library("BioExtremeEvent")
 
 For an overview of the main features of `BioExtremeEvent`, please read
 the [Get
-started](https://VicoMarbec.github.io/BioExtremeEvent/articles/BioExtremeEvent.html)
+started](https://VicoDelannoy.github.io/BioExtremeEvent/articles/BioExtremeEvent.html)
 vignette.
 
 ## Long-form documentations
@@ -65,7 +65,7 @@ vignette.
 learn more about the package:
 
 - the [Get
-  started](https://VicoMarbec.github.io/BioExtremeEvent/articles/BioExtremeEvent.html)
+  started](https://VicoDelannoy.github.io/BioExtremeEvent/articles/BioExtremeEvent.html)
   vignette describes the core features of the package
 
 
@@ -73,14 +73,14 @@ learn more about the package:
 
 Please cite `BioExtremeEvent` as:
 
-> Delannoy Victoria, Cabrol Nicolas, Fièvre Céleste, Casajus Nicolas, Villéger Sébastien*, Loiseau Nicolas* (r format(Sys.Date(), "%Y")) ioExtremeEvent: An R package to characterise extreme event. R package version 0.0.900. https://github.com/VicoMarbec/BioExtremeEvent/
+> Delannoy Victoria, Cabrol Nicolas, Fièvre Céleste, Casajus Nicolas, Villéger Sébastien*, Loiseau Nicolas* (r format(Sys.Date(), "%Y")) ioExtremeEvent: An R package to characterise extreme event. R package version 0.0.900. https://github.com/VicoDelannoy/BioExtremeEvent/
 
 
 ## Contributing
 
 All types of contributions are encouraged and valued. For more
 information, check out our [Contributor
-Guidelines](https://github.com/VicoMarbec/BioExtremeEvent/blob/main/CONTRIBUTING.md).
+Guidelines](https://github.com/VicoDelannoy/BioExtremeEvent/blob/main/CONTRIBUTING.md).
 
 Please note that the `BioExtremeEvent` project is released with a
 [Contributor Code of
