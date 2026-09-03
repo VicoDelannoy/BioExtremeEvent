@@ -1,5 +1,5 @@
 pandoc: 3.8.3
-pkgdown: 2.2.0
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   a_load_corpernicus: a_load_corpernicus.html
@@ -14,4 +14,4 @@ articles:
   h_calc_metrics_morpho: h_calc_metrics_morpho.html
   j_calc_metrics_escape: j_calc_metrics_escape.html
   k_data_merge: k_data_merge.html
-last_built: 2026-07-01T08:42Z
+last_built: 2026-09-03T11:53Z
