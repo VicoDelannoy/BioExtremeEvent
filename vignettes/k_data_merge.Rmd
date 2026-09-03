@@ -137,8 +137,8 @@ ggplot(pixel_108_EE, aes(x = anomaly_qt, y = as.numeric(distance)/1000, color = 
     label = "Not an extreme day but\nbelongs to an\nextreme event",
     color = "red",
     hjust = 1,
-    vjust = 1.2,
-    size = 5,
+    vjust = 2,
+    size = 4,
     fontface = "plain"
   ) +
   labs(
